@@ -602,7 +602,11 @@ revoke all on public.audit_log from anon, authenticated;
 -- belong in the route handler, not in a policy.
 -- ---------------------------------------------------------------------------
 
-revoke select on public.leads from anon, authenticated;
+-- Revoke from anon only. Revoking from authenticated as well would make the
+-- admin read policy below unreachable: a row level policy filters rows you are
+-- already permitted to read, it cannot grant a privilege the table denies.
+revoke select on public.leads from anon;
+grant select on public.leads to authenticated;
 
 create policy leads_public_insert on public.leads
   for insert to anon, authenticated

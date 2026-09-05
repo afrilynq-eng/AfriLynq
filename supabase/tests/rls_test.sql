@@ -197,6 +197,13 @@ select pg_temp.expect('a platform admin may verify a company',
 select pg_temp.expect('the audit log is not reachable by any user role',
   pg_temp.rejected('select count(*) from public.audit_log'));
 
+-- Regression. Revoking select on leads from authenticated as well as anon made
+-- the admin read policy unreachable, and the admin screen showed "permission
+-- denied for table leads". The negative assertion below was not enough on its
+-- own: a positive one has to sit beside it.
+select pg_temp.expect('a platform admin can read leads',
+  not pg_temp.rejected('select count(*) from public.leads'));
+
 -- ---------------------------------------------------------------------------
 -- Integrity rules that hold regardless of who is asking
 -- ---------------------------------------------------------------------------

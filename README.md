@@ -99,14 +99,51 @@ Two things before this form is publicised:
 - Connect Resend and send both the internal notification and the confirmation
   to the person who submitted. The hook is marked in the route handler.
 
+## Legal pages and consent
+
+`/privacy`, `/cookies` and `/terms` are written and linked from the footer.
+They are working drafts prepared by the development team, not legal advice.
+Anything AfriLynq still has to decide is marked on the page itself in a gold
+bordered "To confirm before launch" box, deliberately visible rather than
+hidden in a code comment: an unfinished legal page that looks finished is worse
+than one that says so.
+
+The outstanding items are the registered company name and number, the ICO
+registration, specific retention periods, the international transfer mechanism
+covering the development team, and legal review of the liability section.
+
+Consent is a first party cookie, `afrilynq_consent`, holding only `granted` or
+`denied`. Absence means we have not asked, which is not consent. Google
+Analytics is not rendered at all until consent is granted, so declining means
+the request is never made rather than made and discarded. Accept and Decline
+are the same size and prominence.
+
+## Administration
+
+`/admin` lists leads with type filters, search, and CSV export. `/admin/login`
+signs in through Supabase Auth.
+
+Access is decided by reading `platform_role` from the `profiles` table, not by
+trusting a session claim. Every query runs through the session client, so row
+level security applies to the admin screens and to the CSV export exactly as it
+does everywhere else. The service role client is never used to serve a page.
+
+To create the first administrator: in Supabase, Authentication, Add user, then
+in the SQL Editor run
+
+```sql
+update public.profiles set platform_role = 'admin' where email = '<that email>';
+```
+
+The `admin_role` guard trigger stops anyone promoting themselves, so this has
+to be done from the SQL Editor, which runs as the service role.
+
 ## Still to do in Stage 1
 
-- Privacy notice, cookie notice and terms pages. Footer links to `/privacy`,
-  `/cookies` and `/terms` already exist and currently resolve to the 404.
-- Cookie consent banner.
-- Admin area: sign in, view leads, filter by type, export CSV.
-- Replace `components/Mark.tsx` with the real logo once AfriLynq supplies
-  vector files.
+- Google Analytics measurement ID in `NEXT_PUBLIC_GA_MEASUREMENT_ID`, and
+  Search Console verification after the first deploy.
+- Open Graph image.
+- Replace the brand PNGs with vector artwork once AfriLynq supplies it.
 - Confirm the registered address. The site currently shows the Liverpool
   address from the existing site; the marketing material shows a London one.
 - Open Graph image.
