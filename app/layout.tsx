@@ -4,6 +4,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import CookieConsent from "@/components/CookieConsent";
 import Analytics from "@/components/Analytics";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 /**
@@ -21,10 +22,8 @@ const archivo = localFont({
   variable: "--font-archivo",
 });
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrilynq.co.uk";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "AfriLynq: source agricultural produce from Africa",
     template: "%s | AfriLynq",
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GB",
     siteName: "AfriLynq",
-    url: SITE,
+    url: SITE_URL,
     title: "AfriLynq: source agricultural produce from Africa",
     description:
       "A sourcing platform connecting African producers with buyers in the United Kingdom.",
@@ -49,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "AfriLynq",
-    url: SITE,
+    url: SITE_URL,
     email: "hello@afrilynq.co.uk",
     description:
       "A sourcing platform connecting agricultural producers across Africa with buyers in the United Kingdom.",

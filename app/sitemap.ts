@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { CATEGORIES } from "@/lib/content";
+import { SITE_URL as SITE } from "@/lib/site";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://afrilynq.co.uk";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
