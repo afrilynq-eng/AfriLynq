@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+/*
+  AfriLynq design tokens.
+
+  Colours sampled from the AfriLynq brand sheet and the existing site:
+
+    forest       #0C422B   the green in the logo mark and wordmark
+    forest-deep  #04281A   the dark ground behind the app icon and site footer
+    gold         #D08D1D   the "Lynq" in the wordmark, the swoosh, the network
+    sand         #F4F1E9   a warm light band so sections separate without rules
+
+  Gold is the accent and is used sparingly, which is how it behaves in the
+  logo. Green carries the structure, gold marks the thing worth looking at.
+
+  This block is the whole brand surface. Changing it reskins the site.
+
+  Interim: the files in public/brand were rebuilt from the brand sheet PNG
+  because vector artwork has not been supplied yet. Replace them with the SVG
+  originals when they arrive, ideally inline rather than as images.
+*/
+
+@theme {
+  --color-forest: #0c422b;
+  --color-forest-soft: #1b5e3a;
+  --color-forest-deep: #04281a;
+  --color-gold: #d08d1d;
+  --color-gold-deep: #a97014;
+
+  --color-ink: #14251d;
+  --color-ink-soft: #33463c;
+  --color-stone: #6a7a70;
+
+  --color-sand: #f4f1e9;
+  --color-sand-deep: #e2dbcb;
+  --color-paper: #ffffff;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /*
+    One typeface, two width axes. Headlines set slightly expanded, body text
+    normal. The wordmark is wide and heavy, so headlines lean the same way
+    without needing a second family.
+  */
+  h1,
+  h2,
+  h3 {
+    font-variation-settings: "wdth" 112;
+    font-weight: 600;
+    letter-spacing: -0.018em;
+    color: var(--color-forest);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  table,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: #fff;
+  }
+}
+
+@layer components {
+  /*
+    The harvest band. The one structural device that repeats across the site,
+    because the first question a sourcing buyer asks is what is available and
+    when. Gold marks peak season: it is the brand accent and it is also what a
+    ripe crop looks like.
+  */
+  .harvest {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .harvest-cell {
+    height: 1.75rem;
+    border-radius: 2px;
+    background: var(--color-sand-deep);
+  }
+
+  .harvest-cell[data-state="available"] {
+    background: color-mix(in oklab, var(--color-forest-soft) 55%, var(--color-sand));
+  }
+
+  .harvest-cell[data-state="peak"] {
+    background: var(--color-gold);
+  }
+
+  .harvest-scale {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 2px;
+    font-size: 0.6875rem;
+    color: var(--color-stone);
+    letter-spacing: 0.01em;
+  }
+
+  .link-quiet {
+    background-image: linear-gradient(var(--color-gold), var(--color-gold));
+    background-size: 0% 2px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 180ms ease;
+  }
+
+  .link-quiet:hover {
+    background-size: 100% 2px;
+  }
+
+  .rule-top {
+    border-top: 1px solid var(--color-sand-deep);
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--color-forest);
+    color: var(--color-paper);
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    transition: background-color 160ms ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-gold);
+  }
+
+  .btn-ghost {
+    display: inline-block;
+    border: 1px solid var(--color-forest);
+    color: var(--color-forest);
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .btn-ghost:hover {
+    background: var(--color-forest);
+    color: var(--color-paper);
+  }
+
+  .btn-gold {
+    display: inline-block;
+    background: var(--color-gold);
+    color: var(--color-forest-deep);
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background-color 160ms ease;
+  }
+
+  .btn-gold:hover {
+    background: var(--color-gold-deep);
+    color: var(--color-paper);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
