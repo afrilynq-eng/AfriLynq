@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@type": "Organization",
     name: "AfriLynq",
     url: SITE_URL,
-    email: "hello@afrilynq.co.uk",
+    email: "info@afrilynq.co.uk",
     description:
       "A sourcing platform connecting agricultural producers across Africa with buyers in the United Kingdom.",
     address: {

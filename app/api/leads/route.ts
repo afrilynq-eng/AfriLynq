@@ -51,7 +51,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  const leadType = body.leadType === "supplier" ? "supplier" : "buyer";
+  const requested = String(body.leadType ?? "");
+  const leadType = ["supplier", "buyer", "other"].includes(requested)
+    ? requested
+    : "buyer";
   const fullName = str(body.fullName);
   const email = str(body.email);
 
@@ -90,7 +93,7 @@ export async function POST(request: Request) {
       country_code: str(body.countryCode).slice(0, 2).toUpperCase() || null,
       categories_of_interest: categories.length ? categories : null,
       message: str(body.message).slice(0, 4000) || null,
-      source: "website",
+      source: str(body.source) || "website",
       utm: pick(body.utm),
     });
 

@@ -43,7 +43,7 @@ insert into public.company_members (company_id, user_id, member_role, status, jo
 insert into public.products (id, company_id, category_id, slug, name, status, unit_code, price_currency, price_min_minor)
 select 'cccccccc-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001', c.id,
        'test-hibiscus','Dried Hibiscus Flowers','active','kg','GBP',180
-from public.categories c where c.slug = 'spices-and-herbs';
+from public.categories c where c.slug = 'spices-and-botanicals';
 
 insert into public.enquiries (id, buyer_company_id, supplier_company_id, product_id, quantity, unit_code, created_by)
 values ('dddddddd-0000-0000-0000-000000000001','bbbbbbbb-0000-0000-0000-000000000001',

@@ -130,7 +130,7 @@ export default function TermsPage() {
       <Section heading="Contact">
         <p>
           Questions about these terms can go to{" "}
-          <a href="mailto:hello@afrilynq.co.uk">hello@afrilynq.co.uk</a>.
+          <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a>.
         </p>
       </Section>
     </LegalPage>

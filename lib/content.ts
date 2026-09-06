@@ -1,15 +1,16 @@
 /**
  * Sourcing content for the public site.
  *
- * This is deliberately real. Harvest windows, units and minimum order
- * quantities below reflect how these crops actually trade out of West and East
- * Africa. Before launch, AfriLynq should confirm the categories and origins it
- * is opening with, and correct anything here that does not match.
+ * Categories and products are AfriLynq's own list, supplied 6 September 2026.
+ * Harvest windows, trading units and minimum order quantities reflect how
+ * these goods actually move out of West and East Africa. AfriLynq should
+ * confirm the units and minimums against its own supplier base before launch
+ * and correct anything that does not match.
  *
- * Nothing on the public site claims a supplier count, a delivery percentage,
- * an escrow facility or a customer testimonial. None of those exist yet, and
- * the platform is trading into the United Kingdom where an unsubstantiated
- * claim is an advertising problem as well as a credibility one.
+ * Nothing here claims a supplier count, a delivery percentage, an escrow
+ * facility or a customer testimonial. None of those exist yet, and this is a
+ * United Kingdom site where an unsubstantiated claim is a regulatory exposure
+ * as well as a credibility one.
  */
 
 export const MONTHS = [
@@ -21,6 +22,8 @@ export type Availability = "peak" | "available" | "none";
 
 export interface Product {
   name: string;
+  /** Photo filename stem: public/photos/products/<slug>.jpg */
+  slug: string;
   origins: string[];
   /** Twelve entries, January to December. */
   calendar: Availability[];
@@ -32,16 +35,13 @@ export interface Product {
 export interface Category {
   slug: string;
   name: string;
-  /** One line, used in listings and as the meta description base. */
   summary: string;
-  /** Two or three sentences, used on the category page. */
   intro: string;
-  /** What a UK buyer typically needs to specify when enquiring. */
+  /** What a buyer typically needs to state when enquiring. */
   specify: string[];
   products: Product[];
 }
 
-/** Shorthand for building a twelve month row without writing it out longhand. */
 function months(peak: number[], available: number[] = []): Availability[] {
   return Array.from({ length: 12 }, (_, i) => {
     const m = i + 1;
@@ -52,371 +52,440 @@ function months(peak: number[], available: number[] = []): Availability[] {
 }
 
 const ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const except = (...m: number[]) => ALL.filter((x) => !m.includes(x));
 
 export const CATEGORIES: Category[] = [
   {
-    slug: "nuts-and-seeds",
-    name: "Nuts and seeds",
+    slug: "grains-and-seeds",
+    name: "Grains and seeds",
     summary:
-      "Cashew, sesame, shea and groundnut from West Africa, traded by container load.",
+      "Sesame, soybeans, groundnuts, beans, millet and sorghum, harvested from October and traded by container load.",
     intro:
-      "West Africa supplies a large share of the world's raw cashew and a growing share of its sesame. These are storable crops, which means the buying decision is driven by grade, outturn and moisture rather than by shipping speed. Most trade here moves in twenty and forty foot containers against a pre agreed specification.",
+      "Grains and oilseeds are the backbone of West African agricultural export. They store well, which means the buying decision turns on grade and cleanliness rather than on shipping speed. Most of the crop is harvested between October and February, and quality is judged on three numbers: moisture, foreign matter and broken percentage.",
     specify: [
-      "Grade or outturn, for example cashew nut count per kilogram and defective percentage",
-      "Moisture content and the method used to measure it",
-      "Packaging: jute bags, polypropylene, or bulk",
+      "Moisture content, foreign matter and broken percentage",
+      "Purity, and for sesame whether white or brown",
+      "Bagged or bulk, and the bag weight",
+      "Whether fumigation before loading is required",
+      "Aflatoxin limits where they apply, particularly for groundnuts",
       "Incoterm and load port",
-      "Whether you require phytosanitary and fumigation certificates",
     ],
     products: [
       {
-        name: "Raw cashew nuts",
-        origins: ["Nigeria", "Cote d Ivoire", "Ghana", "Tanzania"],
-        calendar: months([3, 4], [2, 5, 6]),
-        unit: "Metric tonne",
-        minimumOrder: "One 20 ft container, about 16 tonnes",
-        note: "Traded on nut count and outturn. Nigerian and Ivorian crops open in February and thin out by June.",
-      },
-      {
         name: "Sesame seed",
+        slug: "sesame",
         origins: ["Nigeria", "Ethiopia", "Tanzania"],
         calendar: months([12, 1, 2], [3, 4, 11]),
         unit: "Metric tonne",
         minimumOrder: "One 20 ft container, about 25 tonnes",
-        note: "White and brown varieties. Nigerian crop is harvested from November and ships through to about April.",
+        note: "White and brown varieties, sold on purity. The Nigerian crop is harvested from November and ships through to about April.",
       },
       {
-        name: "Shea nuts and shea butter",
-        origins: ["Nigeria", "Ghana"],
-        calendar: months([7, 8], [6, 9, 10]),
+        name: "Soybeans",
+        slug: "soybeans",
+        origins: ["Nigeria"],
+        calendar: months([10, 11, 12], [1, 9]),
         unit: "Metric tonne",
-        minimumOrder: "5 tonnes for butter, one container for nuts",
-        note: "Nut collection runs through the wet season. Processed butter is available year round from stock.",
+        minimumOrder: "One 20 ft container",
+        note: "Non genetically modified crop. Protein and oil content should be agreed before shipment rather than tested on arrival.",
       },
       {
         name: "Groundnuts",
+        slug: "groundnuts",
         origins: ["Nigeria", "Ghana"],
         calendar: months([11, 12], [10, 1, 2]),
         unit: "Metric tonne",
         minimumOrder: "One 20 ft container",
-        note: "Aflatoxin testing is normally required for the United Kingdom and should be agreed before shipment.",
+        note: "Blanched, raw or in shell. Aflatoxin testing is normally required for the United Kingdom and should be agreed up front.",
       },
       {
-        name: "Tiger nuts",
+        name: "Beans",
+        slug: "beans",
         origins: ["Nigeria"],
-        calendar: months([12, 1, 2], [3, 11]),
+        calendar: months([10, 11, 12], [1, 2]),
         unit: "Metric tonne",
-        minimumOrder: "5 tonnes",
-        note: "Sold dried, whole. Demand in the United Kingdom is driven by plant milk and snack producers.",
+        minimumOrder: "One 20 ft container",
+        note: "Brown and white cowpea. Pesticide residue limits are strict for this crop, so confirm the treatment history with the supplier.",
+      },
+      {
+        name: "Millet",
+        slug: "millet",
+        origins: ["Nigeria"],
+        calendar: months([10, 11], [9, 12, 1]),
+        unit: "Metric tonne",
+        minimumOrder: "One 20 ft container",
+        note: "Pearl millet, sold whole or milled. Growing United Kingdom demand for gluten free flour and for bird feed.",
+      },
+      {
+        name: "Sorghum",
+        slug: "sorghum",
+        origins: ["Nigeria"],
+        calendar: months([11, 12], [10, 1, 2]),
+        unit: "Metric tonne",
+        minimumOrder: "One 20 ft container",
+        note: "White and red varieties. Used mainly for brewing and animal feed.",
       },
     ],
   },
   {
-    slug: "spices-and-herbs",
-    name: "Spices and herbs",
+    slug: "spices-and-botanicals",
+    name: "Spices and botanicals",
     summary:
-      "Ginger, turmeric, dried chilli and hibiscus, mostly dried and shipped year round.",
+      "Ginger, turmeric, chilli, hibiscus and moringa, dried at origin and shipped through the year.",
     intro:
-      "Dried spice is one of the easier categories to start with, because the goods are stable and the order sizes are smaller than for grain or nuts. What matters is consistency between samples and shipments, and documentation that satisfies United Kingdom food safety requirements on arrival.",
+      "Dried spice is one of the easier categories to begin with, because the goods are stable and order sizes are smaller than for grain. What decides whether a supplier is workable is consistency between the sample and the shipment, and documentation that satisfies United Kingdom food safety requirements on arrival.",
     specify: [
       "Whole, split, sliced or ground",
-      "Moisture content and, for ginger, oil content",
-      "Sieve size or particle size where ground",
+      "Moisture content, and for ginger the oil content",
+      "Sieve or particle size where ground",
       "Whether steam sterilised material is required",
       "Pesticide residue and heavy metal testing requirements",
     ],
     products: [
       {
-        name: "Dried split ginger",
+        name: "Ginger",
+        slug: "ginger",
         origins: ["Nigeria"],
-        calendar: months([2, 3], ALL.filter((m) => ![2, 3].includes(m))),
+        calendar: months([2, 3], except(2, 3)),
         unit: "Metric tonne",
         minimumOrder: "5 tonnes",
-        note: "The Kaduna crop is harvested from January. Dried material ships year round from stock, with the best pricing shortly after harvest.",
+        note: "Dried split and sliced. The Kaduna crop is harvested from January, and dried material ships year round from stock with the best pricing shortly after harvest.",
       },
       {
-        name: "Dried hibiscus flower",
-        origins: ["Nigeria"],
-        calendar: months([12, 1, 2], [3, 11]),
-        unit: "Metric tonne",
-        minimumOrder: "2 tonnes",
-        note: "Sold as sorrel or zobo. Colour and calyx integrity drive the grade. Used in the United Kingdom for herbal infusions and natural colouring.",
-      },
-      {
-        name: "Turmeric fingers",
+        name: "Turmeric",
+        slug: "turmeric",
         origins: ["Nigeria"],
         calendar: months([1, 2, 3], [4, 12]),
         unit: "Metric tonne",
         minimumOrder: "2 tonnes",
-        note: "Buyers usually specify a minimum curcumin content. Ask for it to be tested before shipment rather than on arrival.",
+        note: "Whole fingers or ground. Buyers usually specify a minimum curcumin content, and it is worth testing before shipment.",
       },
       {
-        name: "Dried chilli",
+        name: "Chilli",
+        slug: "chilli",
         origins: ["Nigeria", "Ghana"],
         calendar: months([12, 1, 2], [3, 11]),
         unit: "Metric tonne",
         minimumOrder: "2 tonnes",
-        note: "Whole or ground. Heat level varies considerably by variety, so agree a reference sample.",
+        note: "Whole dried or ground. Heat varies considerably between varieties, so agree a reference sample before pricing.",
       },
       {
-        name: "Gum arabic",
+        name: "Hibiscus",
+        slug: "hibiscus",
         origins: ["Nigeria"],
-        calendar: months([1, 2, 3], [11, 12, 4, 5]),
+        calendar: months([12, 1, 2], [3, 11]),
         unit: "Metric tonne",
-        minimumOrder: "5 tonnes",
-        note: "Grades one to three. Tapping season runs from about November to May in the northern belt.",
+        minimumOrder: "2 tonnes",
+        note: "Sold as sorrel or zobo. Colour and calyx integrity drive the grade. Used for herbal infusions and natural colouring.",
+      },
+      {
+        name: "Moringa",
+        slug: "moringa",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([], ALL),
+        unit: "Metric tonne",
+        minimumOrder: "1 tonne",
+        note: "Dried leaf, leaf powder and seed. Leaf is available all year; seed follows the October to December window.",
       },
     ],
   },
   {
-    slug: "cocoa-and-coffee",
-    name: "Cocoa and coffee",
+    slug: "nuts-and-superfoods",
+    name: "Nuts and superfoods",
     summary:
-      "Main crop cocoa from the Gulf of Guinea and arabica and robusta from East Africa.",
+      "Cashew, tiger nuts, shea nuts and bambara nuts, traded on grade and outturn.",
     intro:
-      "These are the two categories where origin is part of the product rather than a logistics detail. Buyers are usually looking for a specific profile, a specific region, and increasingly for traceability back to a co-operative or a farm group. Certification is common and should be established before pricing.",
+      "West Africa supplies a large share of the world's raw cashew, and the smaller crops in this group are growing quickly with United Kingdom demand for plant based ingredients. These are storable goods, so the negotiation is about specification rather than speed.",
     specify: [
-      "Main crop or light crop, and crop year",
-      "Bean count, moisture and defect count for cocoa",
-      "Screen size, processing method and cup score for coffee",
+      "Grade or outturn, including nut count per kilogram for cashew",
+      "Defective percentage and moisture content",
+      "Packaging: jute bags, polypropylene or bulk",
+      "Whether phytosanitary and fumigation certificates are required",
+      "Incoterm and load port",
+    ],
+    products: [
+      {
+        name: "Cashew nuts",
+        slug: "cashew",
+        origins: ["Nigeria", "Cote d Ivoire", "Ghana", "Tanzania"],
+        calendar: months([3, 4], [2, 5, 6]),
+        unit: "Metric tonne",
+        minimumOrder: "One 20 ft container, about 16 tonnes",
+        note: "Raw in shell, traded on nut count and outturn. The Nigerian and Ivorian crops open in February and thin out by June.",
+      },
+      {
+        name: "Tiger nuts",
+        slug: "tiger-nuts",
+        origins: ["Nigeria"],
+        calendar: months([12, 1, 2], [3, 11]),
+        unit: "Metric tonne",
+        minimumOrder: "5 tonnes",
+        note: "Sold dried and whole. United Kingdom demand is driven by plant milk and snack producers.",
+      },
+      {
+        name: "Shea nuts",
+        slug: "shea-nuts",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([7, 8], [6, 9, 10]),
+        unit: "Metric tonne",
+        minimumOrder: "One 20 ft container",
+        note: "Collection runs through the wet season. Processed shea butter is available year round and is listed under oils.",
+      },
+      {
+        name: "Bambara nuts",
+        slug: "bambara-nuts",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([10, 11, 12], [1, 9]),
+        unit: "Metric tonne",
+        minimumOrder: "2 tonnes",
+        note: "Also called okpa or gurjiya. Sold dried, mainly into diaspora retail and increasingly to plant protein producers.",
+      },
+    ],
+  },
+  {
+    slug: "cocoa-and-natural-ingredients",
+    name: "Cocoa and natural ingredients",
+    summary:
+      "Main crop cocoa beans from the Gulf of Guinea, plus locally processed powder and butter.",
+    intro:
+      "Cocoa is the category where origin is part of the product rather than a logistics detail. Buyers are usually looking for a specific region, and increasingly for traceability back to a co-operative or farm group. Certification is common and should be established before pricing, not after.",
+    specify: [
+      "Main crop or light crop, and the crop year",
+      "Bean count, moisture and defect count",
+      "Fat content for butter, and fat percentage for powder",
+      "Natural or alkalised, for powder",
       "Certification: organic, Fairtrade, Rainforest Alliance",
       "Whether traceability to co-operative level is required",
     ],
     products: [
       {
-        name: "Cocoa beans, main crop",
-        origins: ["Ghana", "Cote d Ivoire", "Nigeria", "Cameroon"],
-        calendar: months([10, 11, 12, 1], [2, 3]),
+        name: "Cocoa beans",
+        slug: "cocoa-beans",
+        origins: ["Nigeria", "Ghana", "Cote d Ivoire", "Cameroon"],
+        calendar: months([10, 11, 12, 1], [2, 3, 5, 6]),
         unit: "Metric tonne",
         minimumOrder: "One 20 ft container, about 14 tonnes",
         note: "Main crop opens in October. Light crop material is available from about May but trades on a different basis.",
       },
       {
-        name: "Arabica coffee, washed",
-        origins: ["Ethiopia", "Kenya", "Rwanda"],
-        calendar: months([11, 12, 1], [2, 10]),
-        unit: "60 kg bag",
-        minimumOrder: "One pallet, or a container for a single lot",
-        note: "Ethiopian and Kenyan main crops arrive at port from about November. Ask for a sample and a cup score before committing.",
-      },
-      {
-        name: "Robusta coffee",
-        origins: ["Uganda", "Tanzania"],
-        calendar: months([11, 12, 1], [5, 6, 7, 8]),
-        unit: "60 kg bag",
-        minimumOrder: "One 20 ft container",
-        note: "Uganda has two windows, the larger from November and a second from about May.",
-      },
-      {
-        name: "Cocoa butter and cake",
-        origins: ["Ghana", "Nigeria"],
+        name: "Cocoa powder",
+        slug: "cocoa-powder",
+        origins: ["Nigeria", "Ghana"],
         calendar: months([], ALL),
         unit: "Metric tonne",
         minimumOrder: "5 tonnes",
-        note: "Processed locally and available from stock year round, subject to grinding capacity.",
+        note: "Natural and alkalised, processed at origin. Available from stock year round, subject to grinding capacity.",
+      },
+      {
+        name: "Cocoa butter",
+        slug: "cocoa-butter",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([], ALL),
+        unit: "Metric tonne",
+        minimumOrder: "5 tonnes",
+        note: "Food grade and cosmetic grade are different products at different prices. State which before asking for a quotation.",
       },
     ],
   },
   {
-    slug: "fresh-produce",
-    name: "Fresh produce",
-    summary:
-      "Airfreight and reefer lines for avocado, mango, pineapple and vegetables.",
+    slug: "oils",
+    name: "Oils",
+    summary: "Palm, palm kernel, sesame and groundnut oil, available through the year.",
     intro:
-      "Fresh produce is the most demanding category on this platform and the one where the supplier's cold chain matters more than the price. Kenya has the most established route into the United Kingdom, with West African mango and pineapple following seasonal windows. Airfreight is usual for vegetables and early season fruit, sea freight for avocado at volume.",
+      "Oils trade continuously rather than seasonally, with pricing that follows the underlying crop. Two questions decide whether a supplier is workable for the United Kingdom market: the level of refinement, and whether the material can be certified sustainable where that is required.",
     specify: [
-      "Variety and size count per carton",
-      "Airfreight or sea freight, and the arrival airport or port",
-      "Cold chain temperature and whether pre cooling is required",
-      "Packaging format and whether retail ready is needed",
-      "GLOBALG.A.P. or equivalent, and the certificate number",
+      "Crude, semi refined or fully refined",
+      "Free fatty acid content and moisture",
+      "Food grade or cosmetic grade",
+      "Packaging: drums, jerry cans, IBC or flexitank",
+      "Sustainability certification where required",
     ],
     products: [
       {
-        name: "Hass avocado",
-        origins: ["Kenya", "Tanzania"],
-        calendar: months([4, 5, 6, 7], [3, 8, 9]),
-        unit: "4 kg carton",
-        minimumOrder: "One pallet by air, one container by sea",
-        note: "Kenyan Hass season runs from about March to September. Dry matter at harvest is the single most useful thing to agree.",
+        name: "Palm oil",
+        slug: "palm-oil",
+        origins: ["Nigeria", "Ghana", "Cameroon"],
+        calendar: months([2, 3, 4, 5], except(2, 3, 4, 5)),
+        unit: "Metric tonne",
+        minimumOrder: "One flexitank, about 20 tonnes",
+        note: "Crude and refined. Peak production runs February to May. Free fatty acid content is the number that decides the price.",
       },
       {
-        name: "Mango",
-        origins: ["Ghana", "Cote d Ivoire", "Kenya"],
-        calendar: months([4, 5, 6], [11, 12, 1, 2, 3]),
-        unit: "4 kg carton",
-        minimumOrder: "One pallet",
-        note: "West African season runs March to June. Kenyan fruit fills part of the northern winter.",
+        name: "Palm kernel oil",
+        slug: "palm-kernel-oil",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([2, 3, 4, 5], except(2, 3, 4, 5)),
+        unit: "Metric tonne",
+        minimumOrder: "5 tonnes",
+        note: "Distinct from palm oil in composition and use. Sold into food manufacturing, soap and cosmetics.",
       },
       {
-        name: "Pineapple",
-        origins: ["Ghana", "Cote d Ivoire"],
-        calendar: months([1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11, 12]),
-        unit: "Carton or bulk",
-        minimumOrder: "One pallet",
-        note: "MD2 and sugarloaf. Available most of the year with a stronger first half.",
+        name: "Sesame oil",
+        slug: "sesame-oil",
+        origins: ["Nigeria"],
+        calendar: months([1, 2, 3], except(1, 2, 3)),
+        unit: "Metric tonne",
+        minimumOrder: "2 tonnes",
+        note: "Cold pressed and refined. Best pricing follows the December to February seed crop.",
       },
       {
-        name: "Fine beans and snow peas",
-        origins: ["Kenya"],
+        name: "Groundnut oil",
+        slug: "groundnut-oil",
+        origins: ["Nigeria"],
+        calendar: months([12, 1, 2], except(12, 1, 2)),
+        unit: "Metric tonne",
+        minimumOrder: "5 tonnes",
+        note: "Cold pressed and refined. Aflatoxin testing applies to the oil as well as to the nut.",
+      },
+    ],
+  },
+  {
+    slug: "roots-and-processed-foods",
+    name: "Roots and processed foods",
+    summary:
+      "Garri, cassava flour and chips, yam and yam flour, plantain flour and potato.",
+    intro:
+      "This category serves the United Kingdom diaspora retail trade and the growing set of mainstream retailers stocking West African staples. Order sizes are smaller, turnover is faster, and labelling is the thing that most often stops a shipment at the border. Get the label right before the first order rather than after it.",
+    specify: [
+      "Retail pack size and case configuration",
+      "Moisture content and shelf life remaining on arrival",
+      "United Kingdom compliant labelling, including allergens and nutrition",
+      "Barcode, and whether own label is possible",
+      "Whether the producer holds a recognised food safety certification",
+    ],
+    products: [
+      {
+        name: "Garri",
+        slug: "garri",
+        origins: ["Nigeria", "Ghana"],
         calendar: months([], ALL),
-        unit: "Kilogram",
-        minimumOrder: "500 kg by air",
-        note: "Grown for the European market year round. Airfreight only, with a short window between harvest and arrival.",
+        unit: "Carton",
+        minimumOrder: "One pallet",
+        note: "White and yellow. Moisture control decides shelf life, so ask what the producer measures and how often.",
       },
       {
-        name: "Yam and plantain",
+        name: "Cassava flour",
+        slug: "cassava-flour",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([], ALL),
+        unit: "Carton",
+        minimumOrder: "One pallet",
+        note: "Includes fufu and pounded yam style flours. Growing mainstream demand as a gluten free ingredient.",
+      },
+      {
+        name: "Cassava chips",
+        slug: "cassava-chips",
+        origins: ["Nigeria"],
+        calendar: months([], ALL),
+        unit: "Metric tonne",
+        minimumOrder: "One 20 ft container",
+        note: "Dried chips for industrial starch, ethanol and animal feed. Traded on starch content and moisture.",
+      },
+      {
+        name: "Yam",
+        slug: "yam",
         origins: ["Nigeria", "Ghana"],
         calendar: months([10, 11, 12, 1], [2, 3, 9]),
         unit: "Carton or crate",
         minimumOrder: "One pallet",
-        note: "Puna yam ships from about September through the winter. Plantain is available year round.",
+        note: "Puna yam ships from about September through the winter. Handling and packing decide how much arrives saleable.",
       },
-    ],
-  },
-  {
-    slug: "grains-and-cereals",
-    name: "Grains and cereals",
-    summary:
-      "Sorghum, maize, soybean and rice, harvested from October and traded in bulk.",
-    intro:
-      "Grain is a volume category with thin margins, and it rewards buyers who can take a full container and hold it. Most of the West African crop is harvested between October and January. Quality is judged on moisture, foreign matter and broken percentage, and those three numbers should be in the enquiry rather than discovered on arrival.",
-    specify: [
-      "Moisture, foreign matter and broken percentage",
-      "Bagged or bulk, and bag weight",
-      "Whether fumigation before loading is required",
-      "Aflatoxin limits where applicable",
-      "Load port and required delivery window",
-    ],
-    products: [
       {
-        name: "Sorghum",
+        name: "Yam flour",
+        slug: "yam-flour",
         origins: ["Nigeria"],
-        calendar: months([11, 12], [10, 1, 2]),
-        unit: "Metric tonne",
-        minimumOrder: "One 20 ft container",
-        note: "White and red varieties. Used in the United Kingdom mainly for brewing and animal feed.",
-      },
-      {
-        name: "Soybean",
-        origins: ["Nigeria"],
-        calendar: months([10, 11, 12], [1, 9]),
-        unit: "Metric tonne",
-        minimumOrder: "One 20 ft container",
-        note: "Non genetically modified crop. Protein and oil content should be specified.",
-      },
-      {
-        name: "Maize",
-        origins: ["Nigeria", "Ghana", "Tanzania"],
-        calendar: months([10, 11, 12], [1, 8, 9]),
-        unit: "Metric tonne",
-        minimumOrder: "One 20 ft container",
-        note: "Yellow and white. Export availability depends on domestic policy in the producing country and can change at short notice.",
-      },
-      {
-        name: "Egusi melon seed",
-        origins: ["Nigeria"],
-        calendar: months([11, 12], [10, 1]),
-        unit: "Metric tonne",
-        minimumOrder: "5 tonnes",
-        note: "Shelled and cleaned. Sold mainly into the West African diaspora trade in the United Kingdom.",
-      },
-    ],
-  },
-  {
-    slug: "oils-and-fats",
-    name: "Oils and fats",
-    summary: "Palm oil, shea butter and groundnut oil, available through the year.",
-    intro:
-      "Oils trade continuously rather than seasonally, with pricing that follows the underlying crop. For the United Kingdom market, the two questions that decide whether a supplier is workable are refinement level and whether the material can be certified sustainable.",
-    specify: [
-      "Crude, semi refined or fully refined",
-      "Free fatty acid content and moisture",
-      "Packaging: drums, jerry cans, flexitank or IBC",
-      "Sustainability certification where required",
-      "Whether food grade or cosmetic grade",
-    ],
-    products: [
-      {
-        name: "Crude palm oil",
-        origins: ["Nigeria", "Ghana", "Cameroon"],
-        calendar: months([2, 3, 4, 5], ALL.filter((m) => ![2, 3, 4, 5].includes(m))),
-        unit: "Metric tonne",
-        minimumOrder: "One flexitank, about 20 tonnes",
-        note: "Peak production runs February to May. Free fatty acid content is the number that decides the price.",
-      },
-      {
-        name: "Shea butter",
-        origins: ["Nigeria", "Ghana"],
-        calendar: months([], ALL),
-        unit: "Metric tonne",
-        minimumOrder: "1 tonne",
-        note: "Grade A unrefined for cosmetics, refined for food. State which before asking for a price, they are different products.",
-      },
-      {
-        name: "Groundnut oil",
-        origins: ["Nigeria"],
-        calendar: months([12, 1, 2], ALL.filter((m) => ![12, 1, 2].includes(m))),
-        unit: "Metric tonne",
-        minimumOrder: "5 tonnes",
-        note: "Cold pressed and refined. Aflatoxin testing applies to the oil as well as the nut.",
-      },
-      {
-        name: "Coconut oil",
-        origins: ["Nigeria", "Ghana", "Tanzania"],
-        calendar: months([], ALL),
-        unit: "Metric tonne",
-        minimumOrder: "1 tonne",
-        note: "Virgin and refined. Smaller volumes than the Asian trade, usually sold on quality rather than price.",
-      },
-    ],
-  },
-  {
-    slug: "processed-foods",
-    name: "Processed foods",
-    summary:
-      "Cassava flour, dried fish, packaged staples and other shelf stable products.",
-    intro:
-      "This category serves the United Kingdom diaspora retail trade and the growing set of mainstream retailers stocking West and East African staples. Order sizes are smaller, turnover is faster, and labelling is the thing that most often stops a shipment. Get the label right before the first order rather than after.",
-    specify: [
-      "Retail pack size and case configuration",
-      "Shelf life remaining on arrival",
-      "United Kingdom compliant labelling, including allergens and nutrition",
-      "Barcode and whether own label is possible",
-      "Whether the producer holds a food safety certification",
-    ],
-    products: [
-      {
-        name: "Garri and cassava flour",
-        origins: ["Nigeria", "Ghana"],
         calendar: months([], ALL),
         unit: "Carton",
         minimumOrder: "One pallet",
-        note: "White and yellow garri, plus fufu and pounded yam flour. Moisture control decides shelf life.",
+        note: "Elubo. Milled and packed at origin, available year round from stock.",
       },
       {
-        name: "Dried and smoked fish",
-        origins: ["Nigeria", "Ghana"],
-        calendar: months([], ALL),
-        unit: "Carton",
-        minimumOrder: "One pallet",
-        note: "Requires an approved establishment number for import into the United Kingdom. Confirm this before ordering.",
-      },
-      {
-        name: "Palm and pepper soup seasoning",
-        origins: ["Nigeria", "Ghana"],
-        calendar: months([], ALL),
-        unit: "Carton",
-        minimumOrder: "One pallet",
-        note: "Blended and packed at origin. Own label is usually possible at modest volumes.",
-      },
-      {
-        name: "Dried plantain and snack products",
+        name: "Plantain flour",
+        slug: "plantain-flour",
         origins: ["Nigeria", "Ghana", "Uganda"],
         calendar: months([], ALL),
         unit: "Carton",
         minimumOrder: "One pallet",
-        note: "Growing category in United Kingdom retail. Packaging quality varies widely, so ask for physical samples.",
+        note: "Unripe plantain, milled. Packaging quality varies widely between producers, so ask for physical samples.",
+      },
+      {
+        name: "Potato",
+        slug: "potato",
+        origins: ["Nigeria"],
+        calendar: months([8, 9, 10], [3, 4, 11]),
+        unit: "Bag or crate",
+        minimumOrder: "One pallet",
+        note: "Irish and sweet potato from the Plateau highlands. Main crop from August, with a smaller second window in spring.",
+      },
+    ],
+  },
+  {
+    slug: "seafood-and-animal-products",
+    name: "Seafood and animal products",
+    summary: "Dried and smoked fish, prawns, honey, beeswax and hides and skins.",
+    intro:
+      "This is the most tightly regulated category on the platform. Fish and animal products entering the United Kingdom must come from an approved establishment, and honey is subject to residue testing. Establish the approvals before you negotiate a price, because without them the goods cannot land at any price.",
+    specify: [
+      "The producer's approved establishment number for United Kingdom import",
+      "Species, size grade and packing format",
+      "Moisture content for dried fish, and residue testing for honey",
+      "Cold chain requirements where applicable",
+      "Shelf life remaining on arrival",
+    ],
+    products: [
+      {
+        name: "Dried fish",
+        slug: "dried-fish",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([], ALL),
+        unit: "Carton",
+        minimumOrder: "One pallet",
+        note: "Stockfish, catfish and tilapia. An approved establishment number is required for import into the United Kingdom. Confirm it before ordering.",
+      },
+      {
+        name: "Smoked fish",
+        slug: "smoked-fish",
+        origins: ["Nigeria", "Ghana"],
+        calendar: months([], ALL),
+        unit: "Carton",
+        minimumOrder: "One pallet",
+        note: "Sold mainly into diaspora retail. Same approval requirement as dried fish, and moisture control decides shelf life.",
+      },
+      {
+        name: "Prawns",
+        slug: "prawns",
+        origins: ["Nigeria"],
+        calendar: months([7, 8, 9, 10], [6, 11]),
+        unit: "Carton",
+        minimumOrder: "One pallet",
+        note: "Dried and frozen. Size grade drives the price. Frozen product needs an unbroken cold chain and the paperwork to prove it.",
+      },
+      {
+        name: "Honey",
+        slug: "honey",
+        origins: ["Nigeria", "Cameroon"],
+        calendar: months([12, 1, 2, 3], [11, 4]),
+        unit: "Metric tonne",
+        minimumOrder: "1 tonne",
+        note: "Raw and filtered. United Kingdom import requires residue testing, and buyers increasingly ask for pollen analysis to confirm origin.",
+      },
+      {
+        name: "Beeswax",
+        slug: "beeswax",
+        origins: ["Nigeria", "Cameroon"],
+        calendar: months([12, 1, 2, 3], [11, 4]),
+        unit: "Metric tonne",
+        minimumOrder: "1 tonne",
+        note: "Crude and refined blocks, following the honey harvest. Sold into cosmetics, candles and food coating.",
+      },
+      {
+        name: "Hides and skins",
+        slug: "hides-and-skins",
+        origins: ["Nigeria"],
+        calendar: months([], ALL),
+        unit: "Metric tonne",
+        minimumOrder: "One 20 ft container",
+        note: "Wet salted and dried. Veterinary health certification is required for import, and grade depends heavily on flaying quality.",
       },
     ],
   },
@@ -429,15 +498,14 @@ export interface Origin {
 }
 
 export const ORIGINS: Origin[] = [
-  { country: "Nigeria", region: "West Africa", knownFor: "Sesame, cashew, ginger, hibiscus, sorghum, palm oil" },
-  { country: "Ghana", region: "West Africa", knownFor: "Cocoa, shea, pineapple, mango, cassava products" },
-  { country: "Cote d Ivoire", region: "West Africa", knownFor: "Cocoa, cashew, pineapple, mango" },
-  { country: "Cameroon", region: "Central Africa", knownFor: "Cocoa, palm oil, pepper" },
-  { country: "Kenya", region: "East Africa", knownFor: "Avocado, fine beans, coffee, mango" },
-  { country: "Uganda", region: "East Africa", knownFor: "Robusta coffee, dried fruit, sesame" },
-  { country: "Tanzania", region: "East Africa", knownFor: "Cashew, sesame, avocado, coffee" },
-  { country: "Ethiopia", region: "East Africa", knownFor: "Arabica coffee, sesame, pulses" },
-  { country: "Rwanda", region: "East Africa", knownFor: "Speciality coffee, chilli, horticulture" },
+  { country: "Nigeria", region: "West Africa", knownFor: "Sesame, ginger, hibiscus, cashew, palm oil, cassava products" },
+  { country: "Ghana", region: "West Africa", knownFor: "Cocoa, shea, cassava products, dried fish" },
+  { country: "Cote d Ivoire", region: "West Africa", knownFor: "Cocoa, cashew" },
+  { country: "Cameroon", region: "Central Africa", knownFor: "Cocoa, palm oil, honey" },
+  { country: "Kenya", region: "East Africa", knownFor: "Herbs, honey, horticultural produce" },
+  { country: "Uganda", region: "East Africa", knownFor: "Sesame, dried fruit, plantain products" },
+  { country: "Tanzania", region: "East Africa", knownFor: "Cashew, sesame" },
+  { country: "Ethiopia", region: "East Africa", knownFor: "Sesame, pulses, spices" },
 ];
 
 export function getCategory(slug: string): Category | undefined {

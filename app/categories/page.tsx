@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIES, MONTHS, categoryCalendar } from "@/lib/content";
 import { Harvest, HarvestKey } from "@/components/Harvest";
+import { Photo } from "@/components/Photo";
+import { categoryPhoto } from "@/lib/photos";
 
 export const metadata: Metadata = {
   title: "What we source",
@@ -45,7 +47,19 @@ export default function CategoriesPage() {
               key={category.slug}
               className="grid gap-6 border-b border-sand-deep py-9 lg:grid-cols-12"
             >
-              <div className="lg:col-span-5">
+              <div className="lg:col-span-4">
+                <Link href={`/categories/${category.slug}`} className="block">
+                  <Photo
+                    src={categoryPhoto(category.slug)}
+                    alt={category.name}
+                    label={category.name}
+                    className="aspect-[3/2] w-full rounded"
+                    sizes="(min-width: 1024px) 340px, 100vw"
+                  />
+                </Link>
+              </div>
+
+              <div className="lg:col-span-4">
                 <h2 className="text-2xl">
                   <Link href={`/categories/${category.slug}`} className="link-quiet">
                     {category.name}
@@ -59,7 +73,7 @@ export default function CategoriesPage() {
                 </p>
               </div>
 
-              <div className="lg:col-span-7">
+              <div className="lg:col-span-4">
                 <Harvest
                   calendar={categoryCalendar(category)}
                   showScale

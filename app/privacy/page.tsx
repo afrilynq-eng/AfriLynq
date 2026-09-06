@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <p>
           AfriLynq operates this website and is the data controller for the
           personal data described in this notice. You can contact us at{" "}
-          <a href="mailto:hello@afrilynq.co.uk">hello@afrilynq.co.uk</a> or at 58
+          <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a> or at 58
           Rockfield Road, Anfield, Liverpool, United Kingdom.
         </p>
         <ToConfirm>
@@ -137,7 +137,7 @@ export default function PrivacyPage() {
         </p>
         <p>
           To exercise any of these, email{" "}
-          <a href="mailto:hello@afrilynq.co.uk">hello@afrilynq.co.uk</a>. We will
+          <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a>. We will
           respond within one month.
         </p>
         <p>

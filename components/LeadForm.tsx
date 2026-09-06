@@ -11,14 +11,14 @@ const COPY: Record<Kind, { heading: string; blurb: string; action: string; done:
     blurb:
       "Describe the product, the volume and roughly when you need it. We will come back with the suppliers we can put in front of you and what they can commit to.",
     action: "Send sourcing request",
-    done: "Request received. We will reply by email within two working days.",
+    done: "Request received. We will review it and come back to you by email.",
   },
   supplier: {
     heading: "List your produce",
     blurb:
       "Tell us what you grow or process and where you export from. We will explain what verification involves and what we need from you before your listing goes live.",
     action: "Register interest",
-    done: "Thank you. We will be in touch by email about verification within two working days.",
+    done: "Thank you. We will be in touch by email about verification.",
   },
 };
 
@@ -169,7 +169,7 @@ export default function LeadForm({
 
       {state === "error" && (
         <p className="mt-5 border-l-2 border-gold bg-sand px-4 py-3 text-sm text-ink">
-          {error} Please try again, or email hello@afrilynq.co.uk directly.
+          {error} Please try again, or email info@afrilynq.co.uk directly.
         </p>
       )}
 

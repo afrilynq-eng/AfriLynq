@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { CATEGORIES, categoryCalendar, getCategory } from "@/lib/content";
 import { Harvest, HarvestKey } from "@/components/Harvest";
 import LeadForm from "@/components/LeadForm";
+import { Photo } from "@/components/Photo";
+import { categoryPhoto, productPhoto } from "@/lib/photos";
 
 /**
  * Every category page is generated at build time. These pages are the
@@ -73,6 +75,17 @@ export default async function CategoryPage({
           {category.intro}
         </p>
 
+        <div className="mt-10">
+          <Photo
+            src={categoryPhoto(category.slug)}
+            alt={category.name}
+            label={category.name}
+            className="aspect-[21/9] w-full rounded"
+            sizes="(min-width: 1280px) 1152px, 100vw"
+            priority
+          />
+        </div>
+
         <div className="mt-10 max-w-2xl">
           <Harvest
             calendar={categoryCalendar(category)}
@@ -96,7 +109,17 @@ export default async function CategoryPage({
                 key={product.name}
                 className="grid gap-6 border-b border-sand-deep py-8 lg:grid-cols-12"
               >
-                <div className="lg:col-span-5">
+                <div className="lg:col-span-3">
+                  <Photo
+                    src={productPhoto(product.slug)}
+                    alt={product.name}
+                    label={product.name}
+                    className="aspect-[4/3] w-full rounded"
+                    sizes="(min-width: 1024px) 260px, 100vw"
+                  />
+                </div>
+
+                <div className="lg:col-span-4">
                   <h3 className="text-xl">{product.name}</h3>
                   <p className="mt-1.5 text-sm text-stone">
                     {product.origins.join(", ")}
@@ -106,7 +129,7 @@ export default async function CategoryPage({
                   </p>
                 </div>
 
-                <div className="lg:col-span-4">
+                <div className="lg:col-span-3">
                   <Harvest calendar={product.calendar} showScale label={product.name} />
                 </div>
 

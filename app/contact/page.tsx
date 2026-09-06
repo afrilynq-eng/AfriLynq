@@ -15,7 +15,7 @@ export default function ContactPage() {
         <h1 className="max-w-3xl text-4xl sm:text-5xl">Contact</h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
           Two forms below, depending on which side of the trade you are on. Both reach
-          the same inbox and both get an answer within two working days.
+          the same inbox and both get a reply.
         </p>
       </section>
 
@@ -36,8 +36,8 @@ export default function ContactPage() {
           <div>
             <h2 className="text-lg">Email</h2>
             <p className="mt-3">
-              <a href="mailto:hello@afrilynq.co.uk" className="link-quiet text-ink-soft">
-                hello@afrilynq.co.uk
+              <a href="mailto:info@afrilynq.co.uk" className="link-quiet text-ink-soft">
+                info@afrilynq.co.uk
               </a>
             </p>
             <p className="mt-2 text-sm text-stone">
@@ -57,10 +57,10 @@ export default function ContactPage() {
           </div>
 
           <div>
-            <h2 className="text-lg">Response times</h2>
+            <h2 className="text-lg">What happens next</h2>
             <p className="mt-3 leading-relaxed text-ink-soft">
-              Two working days for a first reply. Sourcing requests take longer to
-              answer properly, because we go to suppliers before we come back to you.
+              We read every enquiry ourselves. Sourcing requests take longer to answer
+              properly, because we go to the suppliers before we come back to you.
             </p>
           </div>
         </div>

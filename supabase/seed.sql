@@ -51,13 +51,13 @@ insert into public.units (code, name, plural_name, unit_family, sort_order) valu
   ('unit',      'Unit',            'Units',            'count',  40)
 on conflict (code) do nothing;
 
--- Launch categories. Confirm the final list with AfriLynq before going live.
+-- Launch categories, as supplied by AfriLynq on 6 September 2026.
 insert into public.categories (slug, name, description, sort_order) values
-  ('fresh-produce',      'Fresh Produce',      'Fruit and vegetables for export', 10),
-  ('grains-and-cereals', 'Grains and Cereals', 'Rice, maize, sorghum, millet and related crops', 20),
-  ('nuts-and-seeds',     'Nuts and Seeds',     'Cashew, sesame, groundnut, shea and related crops', 30),
-  ('spices-and-herbs',   'Spices and Herbs',   'Ginger, turmeric, chilli, dried herbs', 40),
-  ('cocoa-and-coffee',   'Cocoa and Coffee',   'Cocoa beans, coffee beans and derivatives', 50),
-  ('oils-and-fats',      'Oils and Fats',      'Palm oil, groundnut oil, shea butter', 60),
-  ('processed-foods',    'Processed Foods',    'Dried, milled and packaged food products', 70)
+  ('grains-and-seeds',              'Grains and seeds',              'Sesame, soybeans, groundnuts, beans, millet and sorghum', 10),
+  ('spices-and-botanicals',         'Spices and botanicals',         'Ginger, turmeric, chilli, hibiscus and moringa', 20),
+  ('nuts-and-superfoods',           'Nuts and superfoods',           'Cashew, tiger nuts, shea nuts and bambara nuts', 30),
+  ('cocoa-and-natural-ingredients', 'Cocoa and natural ingredients', 'Cocoa beans, cocoa powder and cocoa butter', 40),
+  ('oils',                          'Oils',                          'Palm, palm kernel, sesame and groundnut oil', 50),
+  ('roots-and-processed-foods',     'Roots and processed foods',     'Garri, cassava flour and chips, yam, yam flour, plantain flour and potato', 60),
+  ('seafood-and-animal-products',   'Seafood and animal products',   'Dried and smoked fish, prawns, honey, beeswax, hides and skins', 70)
 on conflict (slug) do nothing;
