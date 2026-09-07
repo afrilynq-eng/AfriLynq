@@ -14,8 +14,8 @@ const COMPANY = [
 
 const MARKETPLACE = [
   { href: "/categories", label: "Product Categories" },
-  { href: "/contact#supply", label: "For Farmers" },
-  { href: "/contact#buy", label: "For Retailers" },
+  { href: "/for-farmers", label: "For Farmers" },
+  { href: "/for-retailers", label: "For Retailers" },
   { href: "/categories", label: "Browse Products" },
 ];
 

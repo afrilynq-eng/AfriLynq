@@ -155,14 +155,14 @@ export default function AboutPage() {
           </p>
 
           <div className="mt-9 flex flex-wrap gap-4">
-            <Link href="/contact#buy" className="btn-gold">
-              Send a sourcing request
+            <Link href="/for-retailers" className="btn-gold">
+              Join us as a retailer
             </Link>
             <Link
-              href="/contact#supply"
+              href="/for-farmers"
               className="inline-block rounded border border-sand-deep px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
             >
-              List your produce
+              Join us as a farmer
             </Link>
           </div>
         </div>

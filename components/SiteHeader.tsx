@@ -13,8 +13,8 @@ const NAV = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About Us" },
   { href: "/#how-it-works", label: "How It Works" },
-  { href: "/contact#supply", label: "For Farmers" },
-  { href: "/contact#buy", label: "For Retailers" },
+  { href: "/for-farmers", label: "For Farmers" },
+  { href: "/for-retailers", label: "For Retailers" },
   { href: "/categories", label: "Products" },
 ];
 
@@ -62,7 +62,7 @@ export default function SiteHeader() {
           </Link>
 
           <Link
-            href="/contact#buy"
+            href="/for-retailers"
             className="rounded bg-forest px-5 py-2 text-[0.95rem] text-paper transition-colors hover:bg-gold hover:text-forest-deep"
           >
             Join Now

@@ -126,14 +126,14 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/contact#buy" className="btn-primary bg-forest-soft">
-                Explore as a retailer
+              <Link href="/for-retailers" className="btn-primary bg-forest-soft">
+                Join us as a retailer
               </Link>
               <Link
-                href="/contact#supply"
+                href="/for-farmers"
                 className="inline-block rounded bg-paper px-6 py-3 text-forest transition-colors hover:bg-gold hover:text-forest-deep"
               >
-                Explore as a farmer
+                Join us as a farmer
               </Link>
             </div>
 
@@ -160,17 +160,17 @@ export default function HomePage() {
 
               <div className="mt-6 space-y-3">
                 <Link
-                  href="/contact#buy"
+                  href="/register/retailer"
                   className="flex items-center justify-between rounded bg-forest px-5 py-3.5 text-paper transition-colors hover:bg-gold hover:text-forest-deep"
                 >
-                  Join as a retailer
+                  Join us as a retailer
                   <span aria-hidden="true">&rarr;</span>
                 </Link>
                 <Link
-                  href="/contact#supply"
+                  href="/register/farmer"
                   className="flex items-center justify-between rounded border border-forest px-5 py-3.5 text-forest transition-colors hover:bg-forest hover:text-paper"
                 >
-                  Join as a farmer
+                  Join us as a farmer
                   <span aria-hidden="true">&rarr;</span>
                 </Link>
               </div>

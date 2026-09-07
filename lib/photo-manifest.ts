@@ -54,6 +54,8 @@ export const REMOTE_PHOTOS: Record<string, string> = {
   hero: "https://images.unsplash.com/photo-1781453640130-3430f4a2815f?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   about: "https://images.unsplash.com/photo-1744726010540-bf318d4a691f?q=80&w=1062&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   verification: "https://images.unsplash.com/photo-1779517935094-f2e9c8ae3c78?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    buyers: "https://images.unsplash.com/photo-1599033183537-54ff77f58f75?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  farmers: "https://images.unsplash.com/photo-1622676566956-b42b50c84c31?q=80&w=764&auto=format&fit=crop",
 
   // How it works, the four numbered cards on the home page
   discover: "https://images.unsplash.com/photo-1734255026082-82fdc81991f0?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",

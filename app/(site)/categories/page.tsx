@@ -97,7 +97,7 @@ export default function CategoriesPage() {
           will say honestly whether we can source it.
         </p>
         <Link
-          href="/contact#buy"
+          href="/register/retailer"
           className="btn-primary mt-6"
         >
           Ask about a product

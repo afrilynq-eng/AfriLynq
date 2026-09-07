@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
-import CookieConsent from "@/components/CookieConsent";
-import Analytics from "@/components/Analytics";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -63,17 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-GB" className={archivo.variable}>
       <body>
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-2 focus:text-paper"
-        >
-          Skip to content
-        </a>
-        <SiteHeader />
-        <main id="main">{children}</main>
-        <SiteFooter />
-        <CookieConsent />
-        <Analytics />
+        {children}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organisation) }}

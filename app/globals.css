@@ -189,3 +189,21 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+  Administration area.
+
+  A dark surface, unlike the public site. Headings there are forest green by
+  default, which disappears on a dark ground, so inside .admin they inherit
+  instead and each screen sets its own colour.
+*/
+.admin h1,
+.admin h2,
+.admin h3 {
+  color: inherit;
+}
+
+.admin ::selection {
+  background: var(--color-gold);
+  color: #042115;
+}

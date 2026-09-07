@@ -15,6 +15,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
+    { url: `${SITE}/for-retailers`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE}/for-farmers`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE}/register/retailer`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE}/register/farmer`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
   ];

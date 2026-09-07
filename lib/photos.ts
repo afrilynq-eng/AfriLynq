@@ -45,12 +45,32 @@ const categories = index("categories");
 const products = index("products");
 const site = index("site");
 
-/** A local file always wins over the remote stopgap. */
+const rejected = new Set<string>();
+
+/**
+ * A local file always wins over the remote stopgap.
+ *
+ * A URL that cannot be used falls back to a tile, which looks the same as an
+ * empty slot and gives no clue that something was pasted and refused. So the
+ * refusal is recorded and printed once, at build and on first render.
+ */
 function resolve(local: Map<string, string>, slug: string) {
   const file = local.get(slug);
   if (file) return file;
+
   const remote = REMOTE_PHOTOS[slug];
-  return remote ? toImageUrl(remote) : null;
+  if (!remote) return null;
+
+  const url = toImageUrl(remote);
+  if (!url && !rejected.has(slug)) {
+    rejected.add(slug);
+    const why = remote.startsWith("https://plus.unsplash.com/")
+      ? "Unsplash+ is the paid tier and is not covered by the free licence"
+      : "not a usable image address, needs an images.unsplash.com link or a direct .jpg or .png";
+    console.warn(`[photos] "${slug}" was refused: ${why}`);
+  }
+
+  return url;
 }
 
 export function categoryPhoto(slug: string) {
