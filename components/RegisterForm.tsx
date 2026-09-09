@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CATEGORIES, ORIGINS } from "@/lib/content";
+import { COUNTRIES } from "@/lib/countries";
 
 type Kind = "buyer" | "supplier";
 
@@ -42,8 +43,8 @@ const COPY: Record<
     band: "Join as a farmer or exporter",
     bandSub: "Free to list, verification before you go live",
     company: "Business or co-operative name",
-    country: "Where you export from",
-    countryHelp: "The country the goods ship from",
+    country: "What is your country of origin",
+    countryHelp: "Your home country",
     interest: "What you supply",
     detail: "Volumes, certifications and export experience",
     detailHelp: "Tell us what you can actually ship and how often",
@@ -195,31 +196,11 @@ export default function RegisterForm({ kind }: { kind: Kind }) {
             <span className={label}>{copy.country}</span>
             <select name="countryCode" defaultValue="" className={field}>
               <option value="">Select a country</option>
-              {kind === "buyer" ? (
-                <>
-                  <option value="GB">United Kingdom</option>
-                  <option value="IE">Ireland</option>
-                  <option value="NL">Netherlands</option>
-                  <option value="DE">Germany</option>
-                  <option value="FR">France</option>
-                  <option value="US">United States</option>
-                  <option value="AE">United Arab Emirates</option>
-                </>
-              ) : (
-                <>
-                  <option value="NG">Nigeria</option>
-                  <option value="GH">Ghana</option>
-                  <option value="CI">Cote d Ivoire</option>
-                  <option value="CM">Cameroon</option>
-                  <option value="KE">Kenya</option>
-                  <option value="UG">Uganda</option>
-                  <option value="TZ">Tanzania</option>
-                  <option value="ET">Ethiopia</option>
-                  <option value="RW">Rwanda</option>
-                  <option value="ZA">South Africa</option>
-                  <option value="EG">Egypt</option>
-                </>
-              )}
+                            {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
             </select>
             <span className="mt-1.5 block text-xs text-stone">{copy.countryHelp}</span>
           </label>
