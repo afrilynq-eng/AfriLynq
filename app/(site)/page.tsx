@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { CATEGORIES, ORIGINS } from "@/lib/content";
-import { categoryPhoto, productPhoto, sitePhoto } from "@/lib/photos";
+import { productPhoto, sitePhoto } from "@/lib/photos";
 import { Photo } from "@/components/Photo";
 import SeasonExplorer from "@/components/SeasonExplorer";
 import Newsletter from "@/components/Newsletter";
@@ -60,9 +60,23 @@ const CHECKS = [
   "One named, accountable contact",
 ];
 
+/**
+ * Woven backdrop used behind the pale sections, so that a panel is never a
+ * flat white rectangle. It sits under a photograph where one exists and stands
+ * on its own where one does not.
+ */
+const WEAVE =
+  "repeating-linear-gradient(115deg, transparent 0 18px, rgba(12,66,43,0.06) 18px 20px), " +
+  "repeating-linear-gradient(205deg, transparent 0 18px, rgba(208,141,29,0.07) 18px 20px)";
+
 export default function HomePage() {
   const currentMonth = new Date().getMonth();
   const products = CATEGORIES.flatMap((c) => c.products);
+
+  /** Every product, flattened out of its category and sorted by name. */
+  const allProducts = CATEGORIES.flatMap((c) =>
+    c.products.map((p) => ({ ...p, category: c.slug }))
+  ).sort((a, b) => a.name.localeCompare(b.name));
 
   const productPhotos = Object.fromEntries(
     products.map((p) => [p.slug, productPhoto(p.slug)])
@@ -71,13 +85,15 @@ export default function HomePage() {
   // Counts computed from the catalogue, so they are true today and grow with
   // the platform rather than being typed in and going stale.
   const stats = [
-    { value: CATEGORIES.length, label: "Product categories" },
     { value: products.length, label: "Products listed" },
     { value: ORIGINS.length, label: "Sourcing origins" },
+    { value: CATEGORIES.length, label: "Product categories" },
     { value: new Set(products.flatMap((p) => p.origins)).size, label: "Export countries" },
   ];
 
   const hero = sitePhoto("hero");
+  const backdropProduce = sitePhoto("backdrop-produce");
+  const backdropTrust = sitePhoto("backdrop-trust");
 
   return (
     <>
@@ -116,13 +132,14 @@ export default function HomePage() {
             </span>
 
             <h1 className="mt-6 max-w-2xl text-4xl leading-[1.08] !text-paper sm:text-5xl lg:text-6xl">
-              Connecting Africa&apos;s producers to global markets
+              Connecting African producers to{" "}
+              <span className="text-gold">global markets</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-sand">
               AfriLynq is a digital marketplace connecting verified African suppliers,
-              farmers and manufacturers directly with buyers across the United Kingdom
-              and beyond.
+              farmers and manufacturers directly with buyers in the United Kingdom,
+              Europe, Asia, the Americas and across Africa itself.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -153,7 +170,9 @@ export default function HomePage() {
           {/* Floating join card, as in the prototype. */}
           <div className="lg:col-span-5 lg:pl-6">
             <div className="rounded-xl bg-paper p-7 shadow-xl">
-              <h2 className="text-2xl">Join the AfriLynq marketplace</h2>
+              <h2 className="text-2xl">
+                Join the <span className="text-gold">AfriLynq</span> marketplace
+              </h2>
               <p className="mt-2 text-ink-soft">
                 Trade with verified farmers and retailers.
               </p>
@@ -200,8 +219,13 @@ export default function HomePage() {
       </section>
 
       {/* ================= HOW IT WORKS ================= */}
-      <section id="how-it-works" className="scroll-mt-24">
-        <div className="mx-auto max-w-7xl px-6 py-16">
+      <section id="how-it-works" className="relative isolate scroll-mt-24 overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ backgroundImage: WEAVE }}
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto max-w-7xl px-6 py-16">
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl">
               How <span className="text-gold">AfriLynq</span> works
@@ -257,41 +281,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= CATEGORIES ================= */}
-      <section className="border-t border-sand-deep bg-sand">
-        <div className="mx-auto max-w-7xl px-6 py-16">
+      {/* ================= EVERY PRODUCT ================= */}
+      <section className="relative isolate overflow-hidden border-t border-sand-deep bg-sand">
+        {backdropProduce ? (
+          <Image
+            src={backdropProduce}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : null}
+        <div
+          className="absolute inset-0 bg-sand/92"
+          style={{ backgroundImage: WEAVE }}
+          aria-hidden="true"
+        />
+
+        <div className="relative mx-auto max-w-7xl px-6 py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-3xl sm:text-4xl">
-              Popular product <span className="text-gold">categories</span>
-            </h2>
+            <div>
+              <h2 className="text-3xl sm:text-4xl">
+                Every <span className="text-gold">product</span> we source
+              </h2>
+              <p className="mt-3 max-w-2xl text-lg text-ink-soft">
+                {allProducts.length} products from {ORIGINS.length} African origins,
+                listed by the names buyers actually use.
+              </p>
+            </div>
             <Link href="/categories" className="link-quiet text-ink-soft">
-              View all products &rarr;
+              Browse by category &rarr;
             </Link>
           </div>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {CATEGORIES.map((category) => (
+          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+            {allProducts.map((p) => (
               <Link
-                key={category.slug}
-                href={`/categories/${category.slug}`}
-                className="group overflow-hidden rounded-xl bg-paper shadow-sm transition-shadow hover:shadow-md"
+                key={p.slug}
+                href={`/categories/${p.category}`}
+                className="group overflow-hidden rounded-lg bg-paper shadow-sm transition-shadow hover:shadow-md"
               >
                 <Photo
-                  src={categoryPhoto(category.slug)}
-                  alt={category.name}
-                  label={category.name}
-                  className="aspect-[4/3] w-full"
-                  sizes="(min-width: 1024px) 300px, 100vw"
+                  src={productPhoto(p.slug)}
+                  alt={p.name}
+                  label={p.name}
+                  className="aspect-square w-full"
+                  sizes="(min-width: 1280px) 180px, (min-width: 1024px) 200px, (min-width: 640px) 30vw, 45vw"
                 />
-                <div className="p-5">
-                  <h3 className="text-lg">{category.name}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                    {category.summary}
-                  </p>
-                  <span className="mt-3 inline-flex items-center gap-2 text-sm text-gold">
-                    {category.products.length} products
-                    <span aria-hidden="true">&rarr;</span>
-                  </span>
+                <div className="p-3">
+                  <h3 className="text-sm leading-snug">{p.name}</h3>
+                  {p.localName ? (
+                    <p className="mt-1 text-xs leading-snug text-gold">{p.localName}</p>
+                  ) : null}
                 </div>
               </Link>
             ))}
@@ -300,9 +341,16 @@ export default function HomePage() {
       </section>
 
       {/* ================= SEASON EXPLORER ================= */}
-      <section className="border-t border-sand-deep">
-        <div className="mx-auto max-w-7xl px-6 py-16">
-          <h2 className="text-3xl sm:text-4xl">What can you source, and when</h2>
+      <section className="relative isolate overflow-hidden border-t border-sand-deep">
+        <div
+          className="absolute inset-0"
+          style={{ backgroundImage: WEAVE }}
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto max-w-7xl px-6 py-16">
+          <h2 className="text-3xl sm:text-4xl">
+            What can you <span className="text-gold">source</span>, and when
+          </h2>
           <p className="mt-3 max-w-2xl text-lg text-ink-soft">
             Pick a month to see what is shipping. Seasons shift with rainfall and vary
             between origins, so confirm the window with a supplier before you plan
@@ -315,9 +363,24 @@ export default function HomePage() {
       </section>
 
       {/* ================= WHY / VERIFICATION ================= */}
-      <section className="border-t border-sand-deep bg-sand">
-        <div className="mx-auto grid max-w-7xl gap-6 px-6 py-16 lg:grid-cols-3">
-          <div className="rounded-xl bg-paper p-7">
+      <section className="relative isolate overflow-hidden border-t border-sand-deep bg-sand">
+        {backdropTrust ? (
+          <Image
+            src={backdropTrust}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : null}
+        <div
+          className="absolute inset-0 bg-sand/93"
+          style={{ backgroundImage: WEAVE }}
+          aria-hidden="true"
+        />
+
+        <div className="relative mx-auto grid max-w-7xl gap-6 px-6 py-16 lg:grid-cols-3">
+          <div className="rounded-xl bg-paper/95 p-7 shadow-sm backdrop-blur-sm">
             <h2 className="text-2xl">
               Why choose <span className="text-gold">AfriLynq</span>
             </h2>
@@ -338,8 +401,11 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="rounded-xl bg-paper p-7">
-            <h2 className="text-2xl">What we check before a supplier is listed</h2>
+          <div className="rounded-xl bg-paper/95 p-7 shadow-sm backdrop-blur-sm">
+            <h2 className="text-2xl">
+              What we <span className="text-gold">check</span> before a supplier is
+              listed
+            </h2>
             <p className="mt-2 text-ink-soft">
               Sourcing from a new origin usually fails on trust rather than on price.
             </p>
@@ -357,7 +423,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-xl bg-forest-deep">
+          <div className="overflow-hidden rounded-xl bg-forest-deep shadow-sm">
             <Photo
               src={sitePhoto("verification")}
               alt=""
@@ -366,12 +432,14 @@ export default function HomePage() {
               sizes="(min-width: 1024px) 380px, 100vw"
             />
             <div className="p-7">
-              <h2 className="text-2xl !text-paper">Built for the United Kingdom market</h2>
+              <h2 className="text-2xl !text-paper">
+                Built for the <span className="text-gold">global</span> market
+              </h2>
               <p className="mt-3 leading-relaxed text-sand-deep">
                 Every category page states what a supplier will ask you to specify, and
-                what the United Kingdom requires on arrival. Establishment numbers for
-                fish, aflatoxin limits for groundnuts, residue testing for honey. The
-                things that stop a shipment are on the page before you enquire.
+                what the destination market requires on arrival. Establishment numbers
+                for fish, aflatoxin limits for groundnuts, residue testing for honey.
+                The things that stop a shipment are on the page before you enquire.
               </p>
               <Link href="/categories" className="btn-gold mt-6">
                 See what we source
