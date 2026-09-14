@@ -1,136 +1,277 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { LegalPage, Section, ToConfirm } from "@/components/Legal";
+import { LegalPage, Section } from "@/components/Legal";
 
 export const metadata: Metadata = {
   title: "Terms of use",
   description:
-    "The terms on which you may use the AfriLynq website, and the limits of what AfriLynq is responsible for.",
+    "The terms governing access to and use of the AfriLynq marketplace, including supplier and buyer responsibilities, verification and liability.",
   alternates: { canonical: "/terms" },
 };
 
+/**
+ * Terms and conditions.
+ *
+ * AfriLynq's own text, supplied by the client on 14 September 2026 and
+ * published as provided. Responsibility for legal accuracy sits with AfriLynq
+ * under Section 8 of the development agreement.
+ */
 export default function TermsPage() {
   return (
     <LegalPage
-      title="Terms of use"
-      updated="5 September 2026"
-      intro="These terms govern your use of this website. They will be replaced by fuller marketplace terms when supplier and buyer accounts open, at which point separate supplier terms and buyer terms will apply to trading."
+      title="Terms and conditions"
+      updated="September 2026"
+      intro="These terms govern access to and use of AfriLynq. AfriLynq is an online marketplace that facilitates connections between suppliers, farmers, producers, exporters, buyers, retailers and other businesses."
     >
-      <ToConfirm>
-        This is a working draft prepared by the development team, not legal
-        advice. Separate supplier terms, buyer terms and a commission or
-        subscription agreement will be needed before trading begins, and all of
-        them should be drafted or reviewed by a solicitor.
-      </ToConfirm>
-
-      <Section heading="Who these terms are with">
+      <Section heading="1. About AfriLynq">
         <p>
-          This website is operated by AfriLynq. By using it you accept these
-          terms. If you do not accept them, please do not use the site.
-        </p>
-        <ToConfirm>
-          The registered company name, company number and registered office of
-          the entity that operates the site.
-        </ToConfirm>
-      </Section>
-
-      <Section heading="What this website is">
-        <p>
-          This site describes what AfriLynq sources and lets you register an
-          interest as a buyer or a supplier. It is informational. Nothing on it
-          is an offer to sell, an offer to buy, or a binding quotation.
+          AfriLynq is not necessarily the seller, buyer, importer, exporter,
+          manufacturer, farmer, distributor or logistics provider in
+          transactions between marketplace users.
         </p>
         <p>
-          Harvest windows, trading units, minimum order quantities and other
-          sourcing information are given as general guidance. Seasons vary with
-          rainfall and between origins, and availability changes. Confirm
-          anything you intend to rely on with a supplier before you plan around
-          it.
+          Unless expressly stated otherwise, contracts for the sale of goods are
+          between the relevant buyer and supplier.
         </p>
       </Section>
 
-      <Section heading="AfriLynq is not a party to your trade">
+      <Section heading="2. Acceptance of these terms">
         <p>
-          AfriLynq introduces buyers and suppliers. Where a trade follows, the
-          contract of sale is between the buyer and the supplier. AfriLynq is not
-          the seller, is not the buyer, and does not take title to any goods.
-        </p>
-        <p>
-          You remain responsible for your own commercial and legal due diligence,
-          including import requirements, food safety and labelling rules,
-          customs, duties, insurance and payment arrangements.
+          By accessing or using AfriLynq, you agree to comply with these terms.
+          If you do not agree, you should not use the relevant services.
         </p>
       </Section>
 
-      <Section heading="Information you give us">
+      <Section heading="3. Account registration">
+        <ul className="list-disc space-y-2 pl-5">
+          <li>Provide accurate and current information.</li>
+          <li>Keep login credentials secure.</li>
+          <li>Do not share your account with unauthorised persons.</li>
+          <li>Promptly update inaccurate information.</li>
+          <li>
+            Notify AfriLynq if you believe your account has been compromised.
+          </li>
+        </ul>
+      </Section>
+
+      <Section heading="4. Supplier responsibilities">
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            Suppliers are responsible for ensuring that information they provide
+            is accurate and up to date.
+          </li>
+          <li>
+            Suppliers must have the right to sell or supply listed products;
+            ensure descriptions, quantities and pricing are accurate; maintain
+            required licences and certifications; comply with applicable laws;
+            avoid fraudulent documentation; and not use AfriLynq for unlawful
+            activities.
+          </li>
+        </ul>
+      </Section>
+
+      <Section heading="5. Buyer responsibilities">
+        <ul className="list-disc space-y-2 pl-5">
+          <li>Provide accurate business information.</li>
+          <li>Provide genuine purchasing requirements.</li>
+          <li>Communicate honestly with suppliers.</li>
+          <li>Comply with applicable laws.</li>
+          <li>Honour contractual obligations entered into with suppliers.</li>
+          <li>Not misuse supplier information.</li>
+        </ul>
+      </Section>
+
+      <Section heading="6. Product listings">
         <p>
-          Information you submit through our forms must be accurate and must be
-          yours to give. Do not submit anything unlawful, misleading or
-          infringing, and do not use the forms to send unsolicited marketing.
-        </p>
-        <p>
-          We handle what you send us as set out in our{" "}
-          <Link href="/privacy">privacy notice</Link>.
+          AfriLynq may allow suppliers to publish product listings. We may
+          remove, suspend or restrict listings that contain inaccurate
+          information, violate law, infringe intellectual property rights, appear
+          fraudulent, create security risks, violate these terms or are
+          otherwise unsuitable.
         </p>
       </Section>
 
-      <Section heading="Acceptable use">
+      <Section heading="7. Verification">
         <p>
-          Do not attempt to gain unauthorised access to any part of the site or
-          its infrastructure, introduce malicious code, scrape content at a scale
-          that affects performance, or use the site in a way that interferes with
-          anyone else&apos;s use of it.
+          AfriLynq may offer supplier or buyer verification. Verification means
+          that AfriLynq has carried out checks based on information and
+          documents available to it. Verification does not guarantee quality,
+          safety, legality, financial standing, reliability or performance. Users
+          should conduct their own due diligence.
         </p>
       </Section>
 
-      <Section heading="Intellectual property">
+      <Section heading="8. Transactions between users">
         <p>
-          The AfriLynq name, logo, page designs, text and other content on this
-          site belong to AfriLynq or its licensors. You may read, print and share
-          pages for your own business purposes. You may not republish our content
-          commercially or present it as your own.
+          AfriLynq may facilitate introductions, enquiries, quotations,
+          negotiations and other marketplace communications. Unless expressly
+          stated otherwise, the actual sale and purchase contract is between the
+          buyer and supplier.
+        </p>
+        <p>
+          Users are responsible for agreeing price, quantity, quality,
+          specifications, delivery, shipping, insurance, payment, customs, import
+          and export requirements, taxes and other contractual terms.
         </p>
       </Section>
 
-      <Section heading="Availability and accuracy">
+      <Section heading="9. Product quality and compliance">
         <p>
-          We aim to keep the site available and its content current, but we do
-          not guarantee that it will be uninterrupted or free of errors. We may
-          change, suspend or withdraw any part of it without notice.
+          Suppliers are responsible for ensuring products comply with applicable
+          requirements, including where applicable food safety, product
+          standards, labelling, certification, export, import and other United
+          Kingdom or international requirements.
         </p>
       </Section>
 
-      <Section heading="Liability">
+      <Section heading="10. Logistics">
         <p>
-          Nothing in these terms excludes or limits liability for death or
-          personal injury caused by negligence, for fraud, or for anything else
-          that cannot lawfully be excluded.
-        </p>
-        <p>
-          Subject to that, and to the extent permitted by law, AfriLynq is not
-          liable for loss of profit, revenue, business, goodwill or anticipated
-          savings, or for indirect or consequential loss, arising from your use
-          of this site or from reliance on information published on it.
-        </p>
-        <ToConfirm>
-          Whether these limits are appropriate, and whether they need to differ
-          for consumers and for business users. This section in particular
-          should not go live without legal review.
-        </ToConfirm>
-      </Section>
-
-      <Section heading="Governing law">
-        <p>
-          These terms and any dispute arising from them are governed by the law
-          of England and Wales, and the courts of England and Wales have
-          jurisdiction.
+          Where AfriLynq introduces or integrates logistics providers, those
+          providers may operate under separate terms. AfriLynq does not guarantee
+          delivery times unless expressly agreed in writing.
         </p>
       </Section>
 
-      <Section heading="Contact">
+      <Section heading="11. Payments">
         <p>
-          Questions about these terms can go to{" "}
-          <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a>.
+          Where payment services are available through AfriLynq, payments may be
+          processed through third party payment providers. Users may be required
+          to accept the relevant provider&apos;s terms.
+        </p>
+      </Section>
+
+      <Section heading="12. Subscriptions and paid services">
+        <p>
+          AfriLynq may offer supplier subscriptions, buyer services, featured
+          listings, promotional services, premium features and other business
+          services. Applicable price, billing period and cancellation
+          arrangements will be displayed before purchase.
+        </p>
+      </Section>
+
+      <Section heading="13. Intellectual property">
+        <p>
+          The AfriLynq website, branding, logos, software, designs, text and
+          other original materials are owned by or licensed to AfriLynq Limited
+          unless otherwise stated.
+        </p>
+        <p>
+          Users must not reproduce, copy, modify, distribute or commercially
+          exploit AfriLynq content without permission.
+        </p>
+        <p>
+          Users retain ownership of content they submit, subject to the licence
+          required by AfriLynq to operate the marketplace.
+        </p>
+      </Section>
+
+      <Section heading="14. User content">
+        <p>
+          By uploading information, photographs, product listings, documents or
+          other content, you confirm that you have the right to provide it, it is
+          not fraudulent, it does not unlawfully infringe another
+          person&apos;s rights, and it complies with applicable law.
+        </p>
+        <p>
+          You grant AfriLynq a non exclusive licence to use the content as
+          reasonably necessary to operate, promote and improve the marketplace.
+        </p>
+      </Section>
+
+      <Section heading="15. Prohibited activities">
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            Users must not use AfriLynq to commit fraud; conduct unlawful
+            activities; impersonate another person or business; upload malicious
+            software; distribute misleading information; manipulate reviews or
+            listings; harvest personal information without permission; interfere
+            with website security; infringe intellectual property rights; or
+            circumvent security or access controls.
+          </li>
+        </ul>
+      </Section>
+
+      <Section heading="16. Suspension and termination">
+        <p>
+          AfriLynq may suspend or terminate an account where reasonably
+          necessary, including for breach of these terms, fraudulent
+          information, security risks, unlawful activity, abuse of other users or
+          non payment of applicable charges.
+        </p>
+      </Section>
+
+      <Section heading="17. Availability">
+        <p>
+          We aim to keep AfriLynq available and reliable, but do not guarantee
+          that the website will always be available, uninterrupted or error free.
+          Maintenance, upgrades, technical failures and circumstances outside our
+          reasonable control may affect availability.
+        </p>
+      </Section>
+
+      <Section heading="18. Disclaimer">
+        <p>
+          AfriLynq provides a marketplace and introduction service. Unless
+          expressly stated otherwise, AfriLynq does not guarantee product
+          quality, supplier information, financial standing, ability to pay,
+          ability to fulfil orders, delivery times, product availability or
+          successful completion of transactions.
+        </p>
+      </Section>
+
+      <Section heading="19. Liability">
+        <p>
+          Nothing in these terms excludes or limits liability where doing so
+          would be unlawful. To the extent permitted by law, AfriLynq is not
+          responsible for losses arising solely from a transaction or agreement
+          between independent marketplace users where AfriLynq is not a party to
+          that transaction.
+        </p>
+      </Section>
+
+      <Section heading="20. Privacy">
+        <p>
+          Personal information is handled in accordance with the{" "}
+          <a href="/privacy">AfriLynq privacy notice</a>.
+        </p>
+      </Section>
+
+      <Section heading="21. Cookies">
+        <p>
+          Our use of cookies and similar technologies is explained in the{" "}
+          <a href="/cookies">AfriLynq cookie policy</a>.
+        </p>
+      </Section>
+
+      <Section heading="22. Changes to these terms">
+        <p>
+          We may update these terms from time to time. Updated terms will be
+          published on the website.
+        </p>
+      </Section>
+
+      <Section heading="23. Governing law">
+        <p>
+          These terms are governed by the laws of England and Wales, unless
+          applicable law requires otherwise. The courts of England and Wales will
+          have jurisdiction, subject to any mandatory rights available to
+          consumers or other users under applicable law.
+        </p>
+      </Section>
+
+      <Section heading="24. Contact">
+        <p>
+          AfriLynq Limited
+          <br />
+          58 Rockfield Road, Anfield
+          <br />
+          Liverpool, United Kingdom
+        </p>
+        <p>
+          Email: <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a>
+          <br />
+          Telephone: <a href="tel:+447721737556">+44 7721 737 556</a>
+          <br />
+          Website: <a href="https://www.afrilynq.co.uk">www.afrilynq.co.uk</a>
         </p>
       </Section>
     </LegalPage>

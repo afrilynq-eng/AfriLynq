@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/content";
+import { HeadingIcon } from "@/components/HeadingIcon";
 
 export const metadata: Metadata = {
   title: "Contact AfriLynq",
@@ -12,10 +13,9 @@ export const metadata: Metadata = {
 /**
  * Contact page.
  *
- * Previously two long forms stacked on one page, which asked a visitor to
- * scroll past a form that was not for them. Now it routes: pick the path that
- * describes you, or contact us directly. The forms live on their own pages
- * where the person arriving has already decided.
+ * Two routes rather than two stacked forms, so nobody scrolls past a form that
+ * is not for them. The panels are a matched pair: forest green for the buying
+ * side, gold for the selling side, which is the same pairing the logo uses.
  */
 
 const PATHS = [
@@ -40,9 +40,11 @@ const PATHS = [
 export default function ContactPage() {
   return (
     <>
-      <section className="border-b border-sand-deep bg-sand">
+      <section className="band-veil border-b border-sand-deep">
         <div className="mx-auto max-w-7xl px-6 py-14">
-          <h1 className="text-4xl sm:text-5xl">Contact</h1>
+          <h1 className="text-4xl sm:text-5xl">
+            Contact <span className="text-gold">AfriLynq</span>
+          </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
             Start with whichever side of the trade you are on. If you already know what
             you need, email or call us directly and skip the form.
@@ -53,98 +55,129 @@ export default function ContactPage() {
       {/* Two routes */}
       <section className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid gap-6 lg:grid-cols-2">
-          {PATHS.map((p) => (
-            <article
-              key={p.href}
-              className={`flex flex-col rounded-xl p-8 ring-1 ${
-                p.accent === "forest"
-                  ? "bg-forest-deep text-paper ring-forest"
-                  : "bg-paper ring-sand-deep"
-              }`}
-            >
-              <span
-                className={`text-[0.72rem] font-semibold tracking-widest uppercase ${
-                  p.accent === "forest" ? "text-gold" : "text-gold"
-                }`}
+          {PATHS.map((p) => {
+            const forest = p.accent === "forest";
+            return (
+              <article
+                key={p.href}
+                className={
+                  "flex flex-col rounded-xl p-8 shadow-sm ring-1 " +
+                  (forest
+                    ? "bg-forest-deep text-paper ring-forest"
+                    : "bg-gold text-forest-deep ring-gold-deep")
+                }
               >
-                {p.eyebrow}
-              </span>
-              <h2
-                className={`mt-3 text-2xl ${p.accent === "forest" ? "!text-paper" : ""}`}
-              >
-                {p.title}
-              </h2>
-              <p
-                className={`mt-4 flex-1 leading-relaxed ${
-                  p.accent === "forest" ? "text-sand-deep" : "text-ink-soft"
-                }`}
-              >
-                {p.body}
-              </p>
-              <div className="mt-7">
-                <Link
-                  href={p.href}
-                  className={p.accent === "forest" ? "btn-gold" : "btn-primary"}
+                <span
+                  className={
+                    "text-[0.72rem] font-semibold tracking-widest uppercase " +
+                    (forest ? "text-gold" : "text-forest-deep/75")
+                  }
                 >
-                  {p.action}
-                </Link>
-              </div>
-            </article>
-          ))}
+                  {p.eyebrow}
+                </span>
+                <h2
+                  className={
+                    "mt-3 text-2xl " + (forest ? "!text-paper" : "!text-forest-deep")
+                  }
+                >
+                  {p.title}
+                </h2>
+                <p
+                  className={
+                    "mt-4 flex-1 leading-relaxed " +
+                    (forest ? "text-sand-deep" : "text-forest-deep/85")
+                  }
+                >
+                  {p.body}
+                </p>
+                <div className="mt-7">
+                  <Link
+                    href={p.href}
+                    className={
+                      forest
+                        ? "btn-gold"
+                        : "inline-block rounded bg-forest-deep px-6 py-3 font-medium text-paper transition-colors hover:bg-forest"
+                    }
+                  >
+                    {p.action}
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 
       {/* Direct contact */}
       <section className="border-t border-sand-deep">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <h2 className="text-lg">Email</h2>
-            <p className="mt-3">
-              <a href="mailto:info@afrilynq.co.uk" className="link-quiet text-ink-soft">
-                info@afrilynq.co.uk
-              </a>
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-stone">
-              The fastest route if you already know what you need.
-            </p>
+        <div className="mx-auto max-w-7xl px-6 py-14">
+          <div className="flex items-start gap-4">
+            <HeadingIcon name="handshake" />
+            <h2 className="text-2xl sm:text-3xl">
+              Reach us <span className="text-gold">directly</span>
+            </h2>
           </div>
 
-          <div>
-            <h2 className="text-lg">Telephone</h2>
-            <p className="mt-3">
-              <a href="tel:+447721737556" className="link-quiet text-ink-soft">
-                +44 7721 737 556
-              </a>
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-stone">
-              United Kingdom office hours.
-            </p>
-          </div>
+          <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rule-top pt-5">
+              <h3 className="text-lg">Email</h3>
+              <p className="mt-3">
+                <a
+                  href="mailto:info@afrilynq.co.uk"
+                  className="link-quiet text-ink-soft"
+                >
+                  info@afrilynq.co.uk
+                </a>
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-stone">
+                The fastest route if you already know what you need.
+              </p>
+            </div>
 
-          <div>
-            <h2 className="text-lg">Registered address</h2>
-            <address className="mt-3 not-italic leading-relaxed text-ink-soft">
-              58 Rockfield Road, Anfield
-              <br />
-              Liverpool, United Kingdom
-            </address>
-          </div>
+            <div className="rule-top pt-5">
+              <h3 className="text-lg">Telephone</h3>
+              <p className="mt-3">
+                <a href="tel:+447721737556" className="link-quiet text-ink-soft">
+                  +44 7721 737 556
+                </a>
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-stone">
+                United Kingdom office hours.
+              </p>
+            </div>
 
-          <div>
-            <h2 className="text-lg">What happens next</h2>
-            <p className="mt-3 leading-relaxed text-ink-soft">
-              We read every enquiry ourselves. Sourcing requests take longer to answer
-              properly, because we go to the suppliers before we come back to you.
-            </p>
+            <div className="rule-top pt-5">
+              <h3 className="text-lg">Registered address</h3>
+              <address className="mt-3 not-italic leading-relaxed text-ink-soft">
+                AfriLynq Limited
+                <br />
+                58 Rockfield Road, Anfield
+                <br />
+                Liverpool, United Kingdom
+              </address>
+            </div>
+
+            <div className="rule-top pt-5">
+              <h3 className="text-lg">What happens next</h3>
+              <p className="mt-3 leading-relaxed text-ink-soft">
+                We read every enquiry ourselves. Sourcing requests take longer to answer
+                properly, because we go to the suppliers before we come back to you.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Straight into a category */}
-      <section className="border-t border-sand-deep bg-sand">
+      <section className="band-veil border-t border-sand-deep">
         <div className="mx-auto max-w-7xl px-6 py-14">
-          <h2 className="text-2xl sm:text-3xl">Or start from a product</h2>
-          <p className="mt-3 max-w-2xl leading-relaxed text-ink-soft">
+          <div className="flex items-start gap-4">
+            <HeadingIcon name="services" />
+            <h2 className="text-2xl sm:text-3xl">
+              Or start from a <span className="text-gold">product</span>
+            </h2>
+          </div>
+          <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
             Every category page states the harvest window, the trading unit, the typical
             minimum order and what a supplier will ask you to specify.
           </p>
@@ -153,7 +186,7 @@ export default function ContactPage() {
               <li key={c.slug}>
                 <Link
                   href={`/categories/${c.slug}`}
-                  className="inline-block rounded-full border border-sand-deep bg-paper px-4 py-2 text-[0.95rem] text-ink-soft transition-colors hover:border-gold hover:text-forest"
+                  className="inline-block rounded-full border border-sand-deep bg-paper/90 px-4 py-2 text-[0.95rem] text-ink-soft transition-colors hover:border-gold hover:text-forest"
                 >
                   {c.name}
                 </Link>

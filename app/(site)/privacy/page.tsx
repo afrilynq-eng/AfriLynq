@@ -1,174 +1,225 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { LegalPage, Section, ToConfirm } from "@/components/Legal";
+import { LegalPage, Section } from "@/components/Legal";
 
 export const metadata: Metadata = {
   title: "Privacy notice",
   description:
-    "How AfriLynq collects, uses and protects personal data, and the rights you have over your information under UK data protection law.",
+    "How AfriLynq Limited collects, uses, stores and protects personal information, and the rights you have over your information.",
   alternates: { canonical: "/privacy" },
 };
 
+/**
+ * Privacy notice.
+ *
+ * The text is AfriLynq's own, supplied by the client on 14 September 2026 and
+ * published as provided. Responsibility for its legal accuracy sits with
+ * AfriLynq under Section 8 of the development agreement.
+ */
 export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy notice"
-      updated="5 September 2026"
-      intro="This notice explains what personal data AfriLynq collects, why we collect it, how long we keep it and what rights you have over it. It covers this website. It will be extended when supplier and buyer accounts open."
+      updated="September 2026"
+      intro="AfriLynq Limited operates an online marketplace designed to connect African farmers, producers, suppliers and exporters with buyers, retailers and other businesses in the United Kingdom and potentially other markets. This notice explains how we collect, use, store and protect personal information when you visit our website, create an account, register as a supplier or buyer, submit business information, contact us, make enquiries, request quotations, communicate with other marketplace users or otherwise interact with AfriLynq."
     >
-      <ToConfirm>
-        This is a working draft prepared by the development team, not legal
-        advice. AfriLynq should have it reviewed by a solicitor and complete the
-        items marked below before the site goes live.
-      </ToConfirm>
-
-      <Section heading="Who we are">
+      <Section heading="1. About this privacy notice">
         <p>
-          AfriLynq operates this website and is the data controller for the
-          personal data described in this notice. You can contact us at{" "}
-          <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a> or at 58
-          Rockfield Road, Anfield, Liverpool, United Kingdom.
-        </p>
-        <ToConfirm>
-          The registered company name, company number, registered office and ICO
-          registration number. A data controller must identify itself precisely,
-          and the address here should match the one on the Companies House
-          record.
-        </ToConfirm>
-      </Section>
-
-      <Section heading="What we collect">
-        <p>
-          If you complete the sourcing request form or the supplier registration
-          form, we collect the name, email address, telephone number, company
-          name and country you give us, the product categories you select and
-          anything you write in the message field.
-        </p>
-        <p>
-          We also collect limited technical information automatically: your IP
-          address, browser type and the pages you visit. This is used to keep the
-          site working and to protect the forms from automated abuse.
-        </p>
-        <p>
-          If you consent to analytics cookies, we collect information about how
-          you use the site. See our{" "}
-          <Link href="/cookies">cookie notice</Link> for the detail.
+          We are committed to handling personal information responsibly,
+          lawfully and transparently.
         </p>
       </Section>
 
-      <Section heading="Why we use it, and our lawful basis">
+      <Section heading="2. Who is responsible for your information">
+        <p>
+          AfriLynq Limited is responsible for deciding how and why personal
+          information is processed in connection with our services.
+        </p>
+      </Section>
+
+      <Section heading="3. Information we collect">
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong>To answer your enquiry.</strong> Lawful basis: legitimate
-            interests, namely responding to someone who has contacted us about
-            doing business.
+            <strong>Account information:</strong> full name, email address,
+            telephone number, password and login information, account type,
+            business name and role.
           </li>
           <li>
-            <strong>To assess a supplier for listing.</strong> Lawful basis:
-            steps taken at your request before entering into a contract.
+            <strong>Supplier information:</strong> business or farm name, farm
+            or business location, products supplied, product quantities, prices,
+            certifications, business registration information, product
+            documentation and export related information where applicable.
           </li>
           <li>
-            <strong>To keep the site secure.</strong> Lawful basis: legitimate
-            interests, namely preventing abuse of our forms and infrastructure.
+            <strong>Buyer information:</strong> business name, contact details,
+            business address, products of interest and purchasing requirements.
           </li>
           <li>
-            <strong>To measure how the site is used.</strong> Lawful basis:
-            consent, which you give or withhold through the cookie banner and can
-            change at any time.
+            <strong>Transaction and marketplace information:</strong> enquiries,
+            quotations, orders, subscription information and communications
+            between marketplace users.
+          </li>
+          <li>
+            <strong>Technical information:</strong> IP address, browser type,
+            device information and information about how you use our website.
           </li>
         </ul>
+      </Section>
+
+      <Section heading="4. How we use your information">
+        <ul className="list-disc space-y-2 pl-5">
+          <li>Create and manage accounts.</li>
+          <li>Verify users and businesses.</li>
+          <li>Operate the AfriLynq marketplace.</li>
+          <li>Connect buyers with suppliers.</li>
+          <li>
+            Facilitate enquiries, quotations, orders and marketplace activities.
+          </li>
+          <li>Process subscriptions and payments.</li>
+          <li>Communicate with users and provide customer support.</li>
+          <li>Improve our website and services.</li>
+          <li>
+            Maintain website security and prevent fraud, misuse and unlawful
+            activity.
+          </li>
+          <li>
+            Comply with legal and regulatory obligations and keep appropriate
+            business records.
+          </li>
+          <li>
+            Send marketing communications where permitted by law and, where
+            required, with your consent.
+          </li>
+        </ul>
+      </Section>
+
+      <Section heading="5. Sharing information">
         <p>
-          We do not sell personal data and we do not use it for automated
-          decision making or profiling.
+          AfriLynq may share relevant information with buyers and suppliers
+          where necessary to facilitate marketplace activities; payment,
+          hosting, technology, email, analytics and security providers;
+          logistics partners where relevant; professional advisers; regulators
+          or law enforcement authorities where legally required; and other
+          service providers acting on our behalf.
+        </p>
+        <p>We do not intend to sell personal information to third parties.</p>
+      </Section>
+
+      <Section heading="6. Marketplace information">
+        <p>
+          Certain supplier information may be displayed to buyers, including
+          supplier or business name, product information, location,
+          availability, quantities, certifications, pricing or indicative
+          pricing, and other information the supplier chooses to make available.
+        </p>
+        <p>
+          Users should not upload confidential or sensitive information unless
+          AfriLynq specifically requests it.
         </p>
       </Section>
 
-      <Section heading="Who we share it with">
+      <Section heading="7. Payments">
         <p>
-          We use a small number of service providers who process data on our
-          instructions: Supabase for our database and file storage, hosted in the
-          United Kingdom; Vercel for website hosting; Resend for sending email;
-          and Sentry for error monitoring. Each is bound by a contract that
-          restricts what they may do with the data.
-        </p>
-        <p>
-          If you ask us to source a product, we will pass what is necessary to
-          the suppliers we approach on your behalf. We will tell you who they are.
-          We will not pass your details to anyone else without asking you first.
+          Where payment services are provided through third party payment
+          providers, payment card information may be processed directly by the
+          relevant payment provider. AfriLynq does not intend to store full
+          payment card details on its own systems unless specifically necessary
+          and lawfully permitted.
         </p>
       </Section>
 
-      <Section heading="Where your data is held">
+      <Section heading="8. Legal basis for processing">
         <p>
-          Our database is hosted in the United Kingdom. Some of our service
-          providers, and the developers who build and maintain the platform, are
-          located outside the United Kingdom. Where personal data is transferred
-          outside the UK, that transfer is made under an appropriate safeguard
-          recognised by UK data protection law.
-        </p>
-        <ToConfirm>
-          The transfer mechanism covering the development team in Nigeria, most
-          likely the UK International Data Transfer Agreement or the UK Addendum
-          to the EU standard contractual clauses, together with a transfer risk
-          assessment. This must be in place before personal data is processed.
-        </ToConfirm>
-      </Section>
-
-      <Section heading="How long we keep it">
-        <p>
-          We keep enquiry and registration details for as long as we are in
-          contact with you about the enquiry, and afterwards for a period that
-          lets us pick the conversation back up if you return. We delete or
-          anonymise data once it no longer serves that purpose.
-        </p>
-        <ToConfirm>
-          Specific retention periods for each category of data. A period stated
-          in months is far easier to defend than the general wording above.
-        </ToConfirm>
-      </Section>
-
-      <Section heading="Your rights">
-        <p>
-          Under UK data protection law you have the right to ask us for a copy of
-          your personal data, to have it corrected, to have it deleted, to
-          restrict or object to how we use it, and to receive it in a portable
-          format. Where we rely on consent, you can withdraw it at any time
-          without affecting anything done before you withdrew it.
-        </p>
-        <p>
-          To exercise any of these, email{" "}
-          <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a>. We will
-          respond within one month.
-        </p>
-        <p>
-          If you are not satisfied with how we have handled your data, you can
-          complain to the Information Commissioner&apos;s Office at ico.org.uk or
-          on 0303 123 1113. We would rather you came to us first so we can put it
-          right.
+          Depending on the circumstances, we may process personal information
+          because it is necessary to provide our services or perform a contract;
+          we have a legitimate interest in operating and improving our business;
+          we have a legal or regulatory obligation; you have provided consent; or
+          another lawful basis applies under applicable data protection law.
         </p>
       </Section>
 
-      <Section heading="Security">
+      <Section heading="9. Marketing">
         <p>
-          Access to personal data is controlled at the database level, so a
-          record is only readable by the people entitled to see it. Verification
-          documents are stored privately and served through short lived links
-          rather than public addresses. Passwords are hashed and never stored in
-          readable form. We monitor for errors and unusual activity, and we keep
-          development and live environments separate.
-        </p>
-        <p>
-          No system is perfectly secure. If a breach affects your personal data
-          and is likely to result in a risk to your rights, we will tell you and
-          the Information Commissioner&apos;s Office as the law requires.
+          We may send information about AfriLynq, our services, marketplace
+          opportunities and relevant business updates. Where applicable, we will
+          provide appropriate choices regarding marketing communications and you
+          may unsubscribe.
         </p>
       </Section>
 
-      <Section heading="Changes to this notice">
+      <Section heading="10. How long we keep information">
         <p>
-          We will update this notice as the platform develops, particularly when
-          supplier and buyer accounts, messaging and payments are introduced. The
-          date at the top shows when it last changed.
+          We retain personal information only for as long as reasonably
+          necessary for the purposes for which it was collected, including
+          legal, accounting, regulatory, dispute resolution and security
+          requirements. Different categories may be retained for different
+          periods.
+        </p>
+      </Section>
+
+      <Section heading="11. International transfers">
+        <p>
+          Because AfriLynq may operate internationally and work with suppliers
+          and service providers outside the United Kingdom, personal information
+          may sometimes be transferred outside the United Kingdom. Where
+          required, we will use appropriate safeguards.
+        </p>
+      </Section>
+
+      <Section heading="12. Your rights">
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            Subject to applicable law, you may have rights to request access,
+            correction or deletion; request restriction of processing; object to
+            certain processing; withdraw consent where processing relies on
+            consent; and exercise other rights available under applicable data
+            protection law.
+          </li>
+          <li>
+            To exercise your rights, contact{" "}
+            <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a>.
+          </li>
+        </ul>
+      </Section>
+
+      <Section heading="13. Security">
+        <p>
+          We take reasonable technical and organisational measures to protect
+          personal information against unauthorised access, loss, misuse,
+          alteration or disclosure. However, no internet based service can
+          guarantee absolute security.
+        </p>
+      </Section>
+
+      <Section heading="14. Children">
+        <p>
+          AfriLynq is primarily intended for businesses, suppliers, farmers,
+          retailers and other users who are able to lawfully use our services. We
+          do not knowingly seek to collect unnecessary personal information from
+          children.
+        </p>
+      </Section>
+
+      <Section heading="15. Changes to this privacy notice">
+        <p>
+          We may update this privacy notice from time to time. The latest version
+          will be published on our website.
+        </p>
+      </Section>
+
+      <Section heading="16. Contact us">
+        <p>
+          AfriLynq Limited
+          <br />
+          58 Rockfield Road, Anfield
+          <br />
+          Liverpool, United Kingdom
+        </p>
+        <p>
+          Email: <a href="mailto:info@afrilynq.co.uk">info@afrilynq.co.uk</a>
+          <br />
+          Telephone: <a href="tel:+447721737556">+44 7721 737 556</a>
+          <br />
+          Website: <a href="https://www.afrilynq.co.uk">www.afrilynq.co.uk</a>
         </p>
       </Section>
     </LegalPage>

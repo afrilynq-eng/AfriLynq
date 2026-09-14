@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoReverse } from "./Logo";
+import { SocialIcon, type SocialName } from "./SocialIcon";
 
 /**
  * Footer matching the prototype: four columns plus the brand block, on the
@@ -25,11 +26,20 @@ const SUPPORT = [
   { href: "/terms", label: "Terms of Use" },
 ];
 
-const SOCIAL = [
-  { label: "Facebook", href: "https://facebook.com/afrilynq" },
-  { label: "Instagram", href: "https://instagram.com/afrilynq" },
-  { label: "LinkedIn", href: "https://linkedin.com/company/afrilynq" },
-  { label: "X", href: "https://x.com/afrilynq" },
+/**
+ * Social accounts.
+ *
+ * These are the handles AfriLynq is registering under, confirmed by the client
+ * on 15 September 2026. An entry with an empty href is not rendered, so a
+ * platform can be added later by pasting its address between the quotes, and
+ * removed by clearing it.
+ */
+const SOCIAL: { name: SocialName; label: string; href: string }[] = [
+  { name: "facebook", label: "AfriLynq on Facebook", href: "https://facebook.com/afrilynq" },
+  { name: "instagram", label: "AfriLynq on Instagram", href: "https://instagram.com/afrilynq" },
+  { name: "linkedin", label: "AfriLynq on LinkedIn", href: "https://linkedin.com/company/afrilynq" },
+  { name: "x", label: "AfriLynq on X", href: "https://x.com/afrilynq" },
+  { name: "youtube", label: "AfriLynq on YouTube", href: "" },
 ];
 
 export default function SiteFooter() {
@@ -39,25 +49,27 @@ export default function SiteFooter() {
         <div className="lg:col-span-2">
           <LogoReverse />
           <p className="mt-5 max-w-xs leading-relaxed text-sand-deep">
-            Connecting Africa&apos;s agricultural value chain to trusted markets and
-            opportunities worldwide.
+            Connecting African producers to trusted markets and opportunities
+            worldwide.
           </p>
 
-          <ul className="mt-6 flex gap-3">
-            {SOCIAL.map((item) => (
-              <li key={item.label}>
-                <a
-                  href={item.href}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-sand-deep/40 text-sm text-sand-deep transition-colors hover:border-gold hover:text-gold"
-                  aria-label={item.label}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  {item.label.charAt(0)}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {SOCIAL.some((s) => s.href) ? (
+            <ul className="mt-6 flex gap-3">
+              {SOCIAL.filter((s) => s.href).map((item) => (
+                <li key={item.name}>
+                  <a
+                    href={item.href}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-sand-deep/40 text-sand-deep transition-colors hover:border-gold hover:bg-gold hover:text-forest-deep"
+                    aria-label={item.label}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <SocialIcon name={item.name} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
 
         <div>

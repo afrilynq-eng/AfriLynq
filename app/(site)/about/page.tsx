@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ORIGINS } from "@/lib/content";
 import { sitePhoto } from "@/lib/photos";
+import { LEAF_BACKDROP, LEAF_BACKDROP_SIZE } from "@/lib/pattern";
 import { Photo } from "@/components/Photo";
+import { HeadingIcon } from "@/components/HeadingIcon";
 
 export const metadata: Metadata = {
   title: "About AfriLynq",
@@ -39,19 +41,35 @@ const SERVICES = [
   },
 ];
 
+/** Backdrop layer, used behind the pale sections. */
+function Backdrop({ opacity = "opacity-60" }: { opacity?: string }) {
+  return (
+    <div
+      className={"absolute inset-0 " + opacity}
+      style={{
+        backgroundImage: LEAF_BACKDROP,
+        backgroundSize: LEAF_BACKDROP_SIZE,
+      }}
+      aria-hidden="true"
+    />
+  );
+}
+
 export default function AboutPage() {
   return (
     <>
-      <section className="mx-auto max-w-6xl px-6 pt-16 pb-12">
-        <h1 className="max-w-4xl text-4xl sm:text-5xl">
-          Bridging continents. Creating opportunities.
-        </h1>
-        <p className="mt-7 max-w-2xl text-lg leading-relaxed text-ink-soft">
-          AfriLynq is a digital marketplace that connects trusted African suppliers,
-          farmers and manufacturers with businesses and buyers in the United Kingdom
-          and beyond. We simplify sourcing, support secure trade, and help African
-          products reach global markets through reliable partnerships.
-        </p>
+      {/* ================= OPENING ================= */}
+      <section className="relative isolate overflow-hidden">
+        <Backdrop />
+        <div className="relative mx-auto max-w-6xl px-6 pt-16 pb-12">
+          <h1 className="max-w-4xl text-4xl sm:text-5xl">
+            Bridging continents.{" "}
+            <span className="text-gold">Creating opportunities.</span>
+          </h1>
+          <p className="mt-4 max-w-2xl text-xl italic leading-relaxed tracking-tight text-forest-soft sm:text-2xl">
+            Empowering and enriching lives.
+          </p>
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-14">
@@ -65,10 +83,36 @@ export default function AboutPage() {
         />
       </section>
 
-      <section className="border-y border-sand-deep bg-sand">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-2">
+      {/* ================= ABOUT AFRILYNQ ================= */}
+      <section className="mx-auto max-w-6xl px-6 pb-16">
+        <div className="flex items-start gap-4">
+          <HeadingIcon name="sprout" />
           <div>
-            <h2 className="text-2xl sm:text-3xl">Our mission</h2>
+            <h2 className="text-2xl sm:text-3xl">
+              About <span className="text-gold">AfriLynq</span>
+            </h2>
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+              AfriLynq is a digital marketplace that connects trusted African
+              suppliers, farmers and manufacturers with businesses and buyers in the
+              United Kingdom, Europe, Asia, the Americas and across Africa itself. We
+              simplify sourcing, support secure trade, and help African products reach
+              global markets through reliable partnerships.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= MISSION AND PROBLEM ================= */}
+      <section className="relative isolate overflow-hidden border-y border-sand-deep bg-sand">
+        <Backdrop opacity="opacity-70" />
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-2">
+          <div>
+            <div className="flex items-start gap-4">
+              <HeadingIcon name="mission" />
+              <h2 className="text-2xl sm:text-3xl">
+                Our <span className="text-gold">mission</span>
+              </h2>
+            </div>
             <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-soft">
               To be the leading platform driving sustainable trade between Africa and
               the world, empowering businesses and communities for generational
@@ -77,7 +121,13 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <h2 className="text-2xl sm:text-3xl">Two sides of a trade that rarely meet</h2>
+            <div className="flex items-start gap-4">
+              <HeadingIcon name="bridge" />
+              <h2 className="text-2xl sm:text-3xl">
+                Two sides of a trade that{" "}
+                <span className="text-gold">rarely meet</span>
+              </h2>
+            </div>
             <div className="mt-5 space-y-4 leading-relaxed text-ink-soft">
               <p>
                 A buyer in the United Kingdom wants forty tonnes of white sesame at a
@@ -94,22 +144,38 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="text-2xl sm:text-3xl">What we do</h2>
-        <div className="mt-10 grid gap-x-10 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((service) => (
-            <div key={service.title} className="rule-top pt-5">
-              <h3 className="text-lg">{service.title}</h3>
-              <p className="mt-2.5 leading-relaxed text-ink-soft">{service.body}</p>
-            </div>
-          ))}
+      {/* ================= WHAT WE DO ================= */}
+      <section className="relative isolate overflow-hidden">
+        <Backdrop opacity="opacity-50" />
+        <div className="relative mx-auto max-w-6xl px-6 py-16">
+          <div className="flex items-start gap-4">
+            <HeadingIcon name="services" />
+            <h2 className="text-2xl sm:text-3xl">
+              What we <span className="text-gold">do</span>
+            </h2>
+          </div>
+          <div className="mt-10 grid gap-x-10 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((service) => (
+              <div key={service.title} className="rule-top pt-5">
+                <h3 className="text-lg">{service.title}</h3>
+                <p className="mt-2.5 leading-relaxed text-ink-soft">{service.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="border-t border-sand-deep">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-2">
+      {/* ================= HOW AND WHERE ================= */}
+      <section className="relative isolate overflow-hidden border-t border-sand-deep bg-sand">
+        <Backdrop opacity="opacity-70" />
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-2">
           <div>
-            <h2 className="text-2xl sm:text-3xl">How we work</h2>
+            <div className="flex items-start gap-4">
+              <HeadingIcon name="compass" />
+              <h2 className="text-2xl sm:text-3xl">
+                How we <span className="text-gold">work</span>
+              </h2>
+            </div>
             <div className="mt-5 space-y-4 leading-relaxed text-ink-soft">
               <p>
                 We are not a trader. We do not buy your produce and sell it on at a
@@ -126,7 +192,12 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <h2 className="text-2xl sm:text-3xl">Where we are</h2>
+            <div className="flex items-start gap-4">
+              <HeadingIcon name="sprout" />
+              <h2 className="text-2xl sm:text-3xl">
+                Where we <span className="text-gold">are</span>
+              </h2>
+            </div>
             <div className="mt-5 space-y-4 leading-relaxed text-ink-soft">
               <p>
                 AfriLynq is early. We are building the supplier directory now, verifying
@@ -144,10 +215,11 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* ================= PARTNER ================= */}
       <section className="border-t border-sand-deep bg-forest-deep text-paper">
         <div className="mx-auto max-w-6xl px-6 py-16">
           <h2 className="max-w-2xl text-2xl !text-paper sm:text-3xl">
-            Partner with AfriLynq
+            Partner with <span className="text-gold">AfriLynq</span>
           </h2>
           <p className="mt-5 max-w-2xl leading-relaxed text-sand-deep">
             Whether you are sourcing into the United Kingdom or exporting from Africa,
@@ -168,27 +240,33 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="text-2xl sm:text-3xl">Origins we work with</h2>
-        <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
-          Every origin has its own export authority, its own certification regime and
-          its own idea of what a phytosanitary certificate should look like. Rather
-          than claim to cover a continent, we opened with the countries where the route
-          into the United Kingdom is already established and where we know the
-          paperwork.
-        </p>
+      {/* ================= ORIGINS ================= */}
+      <section className="relative isolate overflow-hidden">
+        <Backdrop opacity="opacity-50" />
+        <div className="relative mx-auto max-w-6xl px-6 py-16">
+          <div className="flex items-start gap-4">
+            <HeadingIcon name="globe" />
+            <h2 className="text-2xl sm:text-3xl">
+              Origins we <span className="text-gold">work with</span>
+            </h2>
+          </div>
+          <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
+            Every origin has its own export authority, its own certification regime and
+            its own idea of what a phytosanitary certificate should look like. These
+            are the countries we trade from today, and the list grows as suppliers are
+            verified. Produce varies within every one of them, so tell us what you need
+            rather than working from a fixed list.
+          </p>
 
-        <ul className="mt-10 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
-          {ORIGINS.map((origin) => (
-            <li key={origin.country} className="rule-top pt-4">
-              <h3 className="text-lg">{origin.country}</h3>
-              <p className="mt-1 text-sm text-stone">{origin.region}</p>
-              <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft">
-                {origin.knownFor}
-              </p>
-            </li>
-          ))}
-        </ul>
+          <ul className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+            {ORIGINS.map((origin) => (
+              <li key={origin.country} className="rule-top pt-4">
+                <h3 className="text-lg">{origin.country}</h3>
+                <p className="mt-1 text-sm text-stone">{origin.region}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </>
   );
