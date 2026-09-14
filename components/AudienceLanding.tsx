@@ -1,7 +1,27 @@
 import Link from "next/link";
-import { CATEGORIES } from "@/lib/content";
-import { categoryPhoto, sitePhoto } from "@/lib/photos";
+import Image from "next/image";
+import { sitePhoto } from "@/lib/photos";
 import { Photo } from "@/components/Photo";
+
+/** The four approved how-it-works photographs, reused on both audience pages. */
+const STEP_PHOTOS = ["discover", "connect", "trade", "deliver"];
+
+/**
+ * Sets the last two words of a heading in gold, the way the logo splits
+ * AfriLynq. Keeps the two-colour treatment consistent without hand marking up
+ * every string in the content file.
+ */
+function TwoTone({ text }: { text: string }) {
+  const words = text.split(" ");
+  if (words.length < 3) return <>{text}</>;
+  const head = words.slice(0, -2).join(" ");
+  const tail = words.slice(-2).join(" ");
+  return (
+    <>
+      {head} <span className="text-gold">{tail}</span>
+    </>
+  );
+}
 
 /**
  * Shared landing page for the two audiences.
@@ -33,16 +53,14 @@ export default function AudienceLanding({ a }: { a: Audience }) {
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-forest-deep">
         {hero ? (
-          <div className="absolute inset-0">
-            <Photo
-              src={hero}
-              alt=""
-              label=""
-              className="h-full w-full"
-              sizes="100vw"
-              priority
-            />
-          </div>
+          <Photo
+            src={hero}
+            alt=""
+            label=""
+            className="absolute inset-0 h-full w-full"
+            sizes="100vw"
+            priority
+          />
         ) : (
           <div
             className="absolute inset-0 opacity-25"
@@ -83,7 +101,9 @@ export default function AudienceLanding({ a }: { a: Audience }) {
 
       {/* Story */}
       <section className="mx-auto max-w-3xl px-6 py-16">
-        <h2 className="text-3xl sm:text-4xl">{a.story.heading}</h2>
+        <h2 className="text-3xl sm:text-4xl">
+          <TwoTone text={a.story.heading} />
+        </h2>
         <div className="mt-6 space-y-5 text-lg leading-relaxed text-ink-soft">
           {a.story.body.map((p) => (
             <p key={p.slice(0, 24)}>{p}</p>
@@ -92,20 +112,52 @@ export default function AudienceLanding({ a }: { a: Audience }) {
       </section>
 
       {/* Steps */}
-      <section id="how" className="scroll-mt-24 border-y border-sand-deep bg-sand">
+      <section id="how" className="band-veil scroll-mt-24 border-y border-sand-deep">
         <div className="mx-auto max-w-7xl px-6 py-16">
-          <h2 className="text-3xl sm:text-4xl">How it works</h2>
+          <h2 className="text-3xl sm:text-4xl">
+            How it <span className="text-gold">works</span>
+          </h2>
 
           <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {a.steps.map((s) => (
-              <li key={s.n} className="rounded-xl bg-paper p-6 shadow-sm">
-                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-gold font-semibold text-forest-deep">
-                  {s.n}
-                </span>
-                <h3 className="mt-4 text-lg">{s.title}</h3>
-                <p className="mt-2 leading-relaxed text-ink-soft">{s.body}</p>
-              </li>
-            ))}
+            {a.steps.map((s, i) => {
+              const shot = sitePhoto(STEP_PHOTOS[i % STEP_PHOTOS.length]);
+              return (
+                <li
+                  key={s.n}
+                  className="relative isolate flex min-h-[18rem] flex-col justify-end overflow-hidden rounded-xl bg-forest-deep p-6"
+                >
+                  {shot ? (
+                    <Image
+                      src={shot}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 300px, 100vw"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="absolute inset-0 opacity-25"
+                      style={{
+                        backgroundImage:
+                          "repeating-linear-gradient(115deg, transparent 0 14px, rgba(208,141,29,0.5) 14px 15px)",
+                      }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div
+                    className="absolute inset-0 bg-gradient-to-t from-forest-deep via-forest-deep/72 to-transparent"
+                    aria-hidden="true"
+                  />
+                  <span className="absolute left-6 top-6 flex h-11 w-11 items-center justify-center rounded-lg bg-gold font-semibold text-forest-deep">
+                    {s.n}
+                  </span>
+                  <div className="relative">
+                    <h3 className="text-lg !text-paper">{s.title}</h3>
+                    <p className="mt-2 leading-relaxed text-sand">{s.body}</p>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
 
           <div className="mt-10">
@@ -118,7 +170,9 @@ export default function AudienceLanding({ a }: { a: Audience }) {
 
       {/* What you get */}
       <section className="mx-auto max-w-7xl px-6 py-16">
-        <h2 className="text-3xl sm:text-4xl">What you get</h2>
+        <h2 className="text-3xl sm:text-4xl">
+          What you <span className="text-gold">get</span>
+        </h2>
         <div className="mt-9 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {a.gains.map((g) => (
             <div key={g.title} className="rule-top pt-5">
@@ -129,47 +183,28 @@ export default function AudienceLanding({ a }: { a: Audience }) {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="border-t border-sand-deep bg-sand">
-        <div className="mx-auto max-w-7xl px-6 py-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-3xl sm:text-4xl">
-              {a.kind === "buyer" ? "What you can source" : "What we list"}
-            </h2>
-            <Link href="/categories" className="link-quiet text-ink-soft">
-              All categories &rarr;
+      {/* Through to the catalogue. The full grid lives on the home page; a
+          second copy here was duplication, but the route still has to exist. */}
+      <section className="band-veil border-t border-sand-deep">
+        <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <p className="max-w-xl text-lg leading-relaxed text-ink-soft">
+              {a.kind === "buyer"
+                ? "Every product we source, with its season, trading unit and what a supplier will ask you to specify."
+                : "See what buyers are asking for, and where your produce fits."}
+            </p>
+            <Link href="/categories" className="btn-primary">
+              Browse the catalogue
             </Link>
-          </div>
-
-          <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {CATEGORIES.slice(0, 4).map((c) => (
-              <Link
-                key={c.slug}
-                href={`/categories/${c.slug}`}
-                className="overflow-hidden rounded-xl bg-paper shadow-sm transition-shadow hover:shadow-md"
-              >
-                <Photo
-                  src={categoryPhoto(c.slug)}
-                  alt={c.name}
-                  label={c.name}
-                  className="aspect-[4/3] w-full"
-                  sizes="(min-width: 1024px) 280px, 100vw"
-                />
-                <div className="p-5">
-                  <h3 className="text-lg">{c.name}</h3>
-                  <p className="mt-1.5 text-sm text-ink-soft">
-                    {c.products.length} products
-                  </p>
-                </div>
-              </Link>
-            ))}
           </div>
         </div>
       </section>
 
       {/* Questions */}
       <section className="mx-auto max-w-3xl px-6 py-16">
-        <h2 className="text-3xl sm:text-4xl">Questions people ask</h2>
+        <h2 className="text-3xl sm:text-4xl">
+          Questions people <span className="text-gold">ask</span>
+        </h2>
         <dl className="mt-9 space-y-7">
           {a.faqs.map((f) => (
             <div key={f.q} className="rule-top pt-5">
@@ -183,7 +218,9 @@ export default function AudienceLanding({ a }: { a: Audience }) {
       {/* Close */}
       <section className="bg-forest-deep text-paper">
         <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-          <h2 className="text-3xl !text-paper sm:text-4xl">Ready to start?</h2>
+          <h2 className="text-3xl !text-paper sm:text-4xl">
+            Ready to <span className="text-gold">start?</span>
+          </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-sand-deep">
             Registration is free and takes a couple of minutes. You will hear from a
             person, not an automated reply.

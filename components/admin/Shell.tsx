@@ -18,6 +18,9 @@ const NAV = [
     items: [
       { href: "/admin", label: "Dashboard", icon: "grid" },
       { href: "/admin/leads", label: "All leads", icon: "list" },
+      { href: "/admin/buyers", label: "Buyers", icon: "cart" },
+      { href: "/admin/suppliers", label: "Suppliers", icon: "leaf" },
+      { href: "/admin/subscribers", label: "Subscribers", icon: "mail" },
     ],
   },
   {
@@ -54,6 +57,25 @@ function Icon({ name }: { name: string }) {
           <circle cx="10" cy="10" r="7.5" {...common} />
           <ellipse cx="10" cy="10" rx="3.2" ry="7.5" {...common} />
           <path d="M2.7 10h14.6" {...common} />
+        </>
+      )}
+      {name === "cart" && (
+        <>
+          <path d="M2.5 3h2l2 9h8.5l2-6.5H6" {...common} strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="8" cy="15.6" r="1.3" fill="currentColor" />
+          <circle cx="14.4" cy="15.6" r="1.3" fill="currentColor" />
+        </>
+      )}
+      {name === "leaf" && (
+        <>
+          <path d="M16.5 3.5c0 7-4.4 10.4-9.4 10.4-2 0-3.6-.6-3.6-.6S3 6.9 9.6 5.1c3-.8 6.9-1.6 6.9-1.6Z" {...common} strokeLinejoin="round" />
+          <path d="M14 6.2C9.8 8 7 11.4 5.4 16.5" {...common} strokeLinecap="round" />
+        </>
+      )}
+      {name === "mail" && (
+        <>
+          <rect x="2.5" y="4.5" width="15" height="11" rx="1.6" {...common} />
+          <path d="M3 5.6 10 11l7-5.4" {...common} strokeLinecap="round" strokeLinejoin="round" />
         </>
       )}
       {name === "tag" && (

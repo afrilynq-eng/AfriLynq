@@ -5,7 +5,7 @@ import LeadsView from "@/components/admin/LeadsView";
 
 export const dynamic = "force-dynamic";
 
-export default async function LeadsPage({
+export default async function BuyersPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
@@ -16,12 +16,12 @@ export default async function LeadsPage({
   const { q } = await searchParams;
 
   return (
-    <AdminShell admin={admin} title="All leads" subtitle="Every enquiry and registration from the website">
+    <AdminShell admin={admin} title="Buyers" subtitle="Retailers, importers and manufacturers who have registered">
       <LeadsView
-        leadType={undefined}
-        basePath="/admin/leads"
+        leadType={"buyer"}
+        basePath="/admin/buyers"
         q={q}
-        emptyMessage="Nothing matches. Submissions from the website appear here as they arrive."
+        emptyMessage="No buyers yet. Registrations from the retailer form appear here."
       />
     </AdminShell>
   );
