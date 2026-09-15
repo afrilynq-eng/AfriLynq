@@ -193,7 +193,7 @@ export default async function ProductsPage({
       </section>
 
       {/* ================= CLOSE ================= */}
-      <section className="border-t border-sand-deep bg-forest-deep text-paper">
+      <section className="band-scene border-t border-sand-deep text-paper">
         <div className="mx-auto max-w-3xl px-6 py-14 text-center">
           <h2 className="text-2xl !text-paper sm:text-3xl">
             Cannot find what you <span className="text-gold">need?</span>

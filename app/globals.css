@@ -263,3 +263,38 @@ body {
 
 /* On a narrow screen a fixed background costs more than it gives, and iOS
    handles it poorly, so it scrolls with the page there. */
+/* ------------------------------------------------------------------
+   Scene bands
+   ------------------------------------------------------------------
+   The dark green bands were reading as flat colour. These carry the same
+   farmland scene behind a deep green wash, so a band is part of the
+   landscape rather than a block of paint, and the text stays legible.
+
+   Use .band-scene in place of bg-forest-deep on a full width section.
+   ------------------------------------------------------------------ */
+
+.band-scene {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--color-forest-deep);
+  background-image:
+    linear-gradient(
+      rgba(4, 40, 26, 0.88),
+      rgba(4, 40, 26, 0.82)
+    ),
+    url("/backdrop.svg");
+  background-repeat: no-repeat, no-repeat;
+  background-size: cover, cover;
+  background-position: center, center bottom;
+}
+
+/* A softer version, for a band that sits next to a photograph and should
+   not compete with it. */
+.band-scene-soft {
+  background-image:
+    linear-gradient(
+      rgba(4, 40, 26, 0.94),
+      rgba(4, 40, 26, 0.90)
+    ),
+    url("/backdrop.svg");
+}

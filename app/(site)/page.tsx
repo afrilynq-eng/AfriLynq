@@ -101,10 +101,11 @@ export default function HomePage() {
           />
         ) : (
           <div
-            className="absolute inset-0 opacity-25"
+            className="absolute inset-0"
             style={{
-              backgroundImage:
-                "repeating-linear-gradient(115deg, transparent 0 22px, rgba(208,141,29,0.4) 22px 24px)",
+              backgroundImage: "url(/backdrop.svg)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
             }}
             aria-hidden="true"
           />

@@ -279,7 +279,7 @@ export default function AboutPage() {
       </section>
 
       {/* ================= PARTNER ================= */}
-      <section className="border-t border-sand-deep bg-forest-deep text-paper">
+      <section className="band-scene border-t border-sand-deep text-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 text-center">
           <div className="flex justify-center">
             <HeadingIcon name="handshake" tone="gold" />

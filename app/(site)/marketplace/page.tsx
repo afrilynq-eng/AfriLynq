@@ -56,7 +56,7 @@ export default function MarketplacePage() {
   return (
     <>
       {/* ================= OPENING ================= */}
-      <section className="relative isolate overflow-hidden bg-forest-deep text-paper">
+      <section className="band-scene relative isolate overflow-hidden text-paper">
         {hero ? (
           <Image src={hero} alt="" fill priority sizes="100vw" className="object-cover" />
         ) : null}

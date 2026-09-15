@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CATEGORIES, ORIGINS } from "@/lib/content";
+import { CATEGORIES } from "@/lib/content";
 import { COUNTRIES } from "@/lib/countries";
 
 type Kind = "buyer" | "supplier";
@@ -28,8 +28,8 @@ const COPY: Record<
     band: "Join as a retailer",
     bandSub: "No account needed to get started",
     company: "Company name",
-    country: "Where you are buying for",
-    countryHelp: "The market the goods are landing in",
+    country: "Which market are you buying for",
+    countryHelp: "The country the goods will land in",
     interest: "What you are looking to source",
     detail: "Volume, specification and timing",
     detailHelp: "The more you put here, the faster a usable quotation comes back",
@@ -119,7 +119,7 @@ export default function RegisterForm({ kind }: { kind: Kind }) {
           </span>
           <p className="mt-5 text-lg text-ink">{copy.done}</p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link href="/categories" className="btn-primary">
+            <Link href="/products" className="btn-primary">
               Browse what we source
             </Link>
             <button type="button" onClick={() => setState("idle")} className="btn-ghost">
@@ -196,7 +196,7 @@ export default function RegisterForm({ kind }: { kind: Kind }) {
             <span className={label}>{copy.country}</span>
             <select name="countryCode" defaultValue="" className={field}>
               <option value="">Select a country</option>
-                            {COUNTRIES.map((c) => (
+              {COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code}>
                   {c.name}
                 </option>
