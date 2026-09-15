@@ -44,8 +44,37 @@ const SOCIAL: { name: SocialName; label: string; href: string }[] = [
 
 export default function SiteFooter() {
   return (
-    <footer className="bg-forest-deep text-paper">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-5">
+    <footer className="relative isolate overflow-hidden bg-forest-deep text-paper">
+      {/* Field rows fading up out of the dark ground, so the footer carries the
+          same landscape as the rest of the site rather than a flat block. */}
+      <div className="absolute inset-0" aria-hidden="true">
+        <svg
+          viewBox="0 0 1600 420"
+          preserveAspectRatio="xMidYMax slice"
+          className="h-full w-full"
+        >
+          <defs>
+            <linearGradient id="footer-fade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#04281A" stopOpacity="1" />
+              <stop offset="55%" stopColor="#04281A" stopOpacity="0.72" />
+              <stop offset="100%" stopColor="#04281A" stopOpacity="0.55" />
+            </linearGradient>
+          </defs>
+          <g stroke="#1B5E3A" strokeWidth="2" fill="none" opacity="0.55">
+            {Array.from({ length: 21 }, (_, i) => (
+              <path key={i} d={`M800 40 L ${-600 + i * 140} 440`} />
+            ))}
+          </g>
+          <g stroke="#D08D1D" strokeWidth="1.2" fill="none" opacity="0.16">
+            {[70, 130, 210, 310].map((y, i) => (
+              <ellipse key={i} cx="800" cy={40 + y} rx={700 + y * 3} ry={y * 0.5} />
+            ))}
+          </g>
+          <rect width="1600" height="420" fill="url(#footer-fade)" />
+        </svg>
+      </div>
+
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <LogoReverse />
           <p className="mt-5 max-w-xs leading-relaxed text-sand-deep">
@@ -131,7 +160,7 @@ export default function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-forest">
+      <div className="relative border-t border-forest/70 bg-forest-deep/60">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-stone">
           <p>Copyright {new Date().getFullYear()} AfriLynq. All rights reserved.</p>
           <p>

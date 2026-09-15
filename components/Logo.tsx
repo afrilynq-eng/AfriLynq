@@ -16,14 +16,25 @@ import wordmarkReverse from "@/public/brand/wordmark-reverse.png";
  */
 export function Logo({
   showStrapline = true,
+  size = "md",
   className = "",
 }: {
   showStrapline?: boolean;
+  /** "lg" is used in the header, where the wordmark has to be legible. */
+  size?: "md" | "lg";
   className?: string;
 }) {
+  const large = size === "lg";
   return (
-    <span className={`flex items-center gap-2.5 ${className}`}>
-      <Image src={mark} alt="" width={44} height={34} priority className="h-9 w-auto" />
+    <span className={`flex items-center ${large ? "gap-3.5" : "gap-2.5"} ${className}`}>
+      <Image
+        src={mark}
+        alt=""
+        width={44}
+        height={34}
+        priority
+        className={large ? "h-12 w-auto" : "h-9 w-auto"}
+      />
       <span className="flex flex-col">
         <Image
           src={wordmark}
@@ -31,10 +42,16 @@ export function Logo({
           width={451}
           height={112}
           priority
-          className="h-[1.35rem] w-auto"
+          className={large ? "h-[1.9rem] w-auto" : "h-[1.35rem] w-auto"}
         />
         {showStrapline && (
-          <span className="mt-0.5 text-[0.5rem] leading-tight tracking-[0.06em] text-forest">
+          <span
+            className={
+              large
+                ? "mt-1 text-[0.68rem] leading-tight font-semibold tracking-[0.04em] text-forest"
+                : "mt-0.5 text-[0.5rem] leading-tight tracking-[0.06em] text-forest"
+            }
+          >
             Connecting African Harvests
             <br />
             to Global Markets

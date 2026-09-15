@@ -47,7 +47,7 @@ export default async function RegisterPage({
   if (!entry) notFound();
 
   return (
-    <div className="bg-sand">
+    <div className="band-veil">
       <section className="mx-auto max-w-3xl px-6 pt-10 pb-16">
         <nav aria-label="Breadcrumb" className="text-sm text-stone">
           <Link href={entry.back.href} className="link-quiet">

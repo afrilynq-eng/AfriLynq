@@ -10,6 +10,10 @@ const nextConfig = {
     // picture can be swapped in without a config change and a restart; the
     // licensing rules in that file are what actually govern what may be used.
     remotePatterns: [{ protocol: "https", hostname: "**" }],
+    // Development only. The home page now renders 129 product images at once,
+    // and putting every one through sharp exhausts the machine before the page
+    // finishes. Production is untouched, so the live site still optimises.
+    unoptimized: process.env.NODE_ENV === "development",
   },
 };
 

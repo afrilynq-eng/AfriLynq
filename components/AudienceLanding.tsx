@@ -1,10 +1,31 @@
 import Link from "next/link";
 import Image from "next/image";
 import { sitePhoto } from "@/lib/photos";
+import { HeadingIcon, type IconName } from "@/components/HeadingIcon";
 import { Photo } from "@/components/Photo";
 
 /** The four approved how-it-works photographs, reused on both audience pages. */
 const STEP_PHOTOS = ["discover", "connect", "trade", "deliver"];
+
+/**
+ * What you get: an icon and a photograph per benefit, keyed by position so the
+ * content file does not have to carry presentation detail. Buyers and
+ * suppliers get their own photo slugs, since the two audiences want to see
+ * different things.
+ */
+const GAIN_ICONS: IconName[] = [
+  "verified",
+  "trade-support",
+  "connections",
+  "sourcing",
+  "facilitation",
+  "logistics",
+];
+
+const GAIN_PHOTOS: Record<"buyer" | "supplier", string[]> = {
+  buyer: ["gain-buyer-1", "gain-buyer-2", "gain-buyer-3", "gain-buyer-4", "gain-buyer-5", "gain-buyer-6"],
+  supplier: ["gain-farmer-1", "gain-farmer-2", "gain-farmer-3", "gain-farmer-4", "gain-farmer-5", "gain-farmer-6"],
+};
 
 /**
  * Sets the last two words of a heading in gold, the way the logo splits
@@ -100,14 +121,16 @@ export default function AudienceLanding({ a }: { a: Audience }) {
       </section>
 
       {/* Story */}
-      <section className="mx-auto max-w-3xl px-6 py-16">
-        <h2 className="text-3xl sm:text-4xl">
-          <TwoTone text={a.story.heading} />
-        </h2>
-        <div className="mt-6 space-y-5 text-lg leading-relaxed text-ink-soft">
-          {a.story.body.map((p) => (
-            <p key={p.slice(0, 24)}>{p}</p>
-          ))}
+      <section className="band-veil border-b border-sand-deep">
+        <div className="mx-auto max-w-3xl px-6 py-16">
+          <h2 className="text-3xl sm:text-4xl">
+            <TwoTone text={a.story.heading} />
+          </h2>
+          <div className="mt-6 space-y-5 text-lg leading-relaxed text-ink-soft">
+            {a.story.body.map((p) => (
+              <p key={p.slice(0, 24)}>{p}</p>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -173,13 +196,33 @@ export default function AudienceLanding({ a }: { a: Audience }) {
         <h2 className="text-3xl sm:text-4xl">
           What you <span className="text-gold">get</span>
         </h2>
-        <div className="mt-9 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-          {a.gains.map((g) => (
-            <div key={g.title} className="rule-top pt-5">
-              <h3 className="text-lg">{g.title}</h3>
-              <p className="mt-2 leading-relaxed text-ink-soft">{g.body}</p>
-            </div>
-          ))}
+        <div className="mt-11 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+          {a.gains.map((g, i) => {
+            const shot = sitePhoto(GAIN_PHOTOS[a.kind][i % 6]);
+            return (
+              <article
+                key={g.title}
+                className="overflow-hidden rounded-xl bg-paper/90 shadow-sm ring-1 ring-sand-deep"
+              >
+                <div className="relative isolate">
+                  <Photo
+                    src={shot}
+                    alt=""
+                    label={g.title}
+                    className="aspect-[16/10] w-full"
+                    sizes="(min-width: 1024px) 380px, 100vw"
+                  />
+                  <span className="absolute -bottom-7 left-6">
+                    <HeadingIcon name={GAIN_ICONS[i % 6]} size="sm" />
+                  </span>
+                </div>
+                <div className="px-6 pt-11 pb-7">
+                  <h3 className="text-lg font-bold">{g.title}</h3>
+                  <p className="mt-2.5 leading-relaxed text-ink-soft">{g.body}</p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 

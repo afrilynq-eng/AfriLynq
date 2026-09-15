@@ -60,15 +60,6 @@ const CHECKS = [
   "One named, accountable contact",
 ];
 
-/**
- * Woven backdrop used behind the pale sections, so that a panel is never a
- * flat white rectangle. It sits under a photograph where one exists and stands
- * on its own where one does not.
- */
-const WEAVE =
-  "repeating-linear-gradient(115deg, transparent 0 18px, rgba(12,66,43,0.06) 18px 20px), " +
-  "repeating-linear-gradient(205deg, transparent 0 18px, rgba(208,141,29,0.07) 18px 20px)";
-
 export default function HomePage() {
   const currentMonth = new Date().getMonth();
   const products = CATEGORIES.flatMap((c) => c.products);
@@ -127,11 +118,7 @@ export default function HomePage() {
 
         <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-12 lg:py-24">
           <div className="lg:col-span-7">
-            <span className="inline-block rounded-full bg-forest-deep/70 px-4 py-1.5 text-sm text-sand ring-1 ring-sand-deep/30">
-              Trusted. Transparent. Seasonal.
-            </span>
-
-            <h1 className="mt-6 max-w-2xl text-4xl leading-[1.08] !text-paper sm:text-5xl lg:text-6xl">
+            <h1 className="max-w-2xl text-4xl leading-[1.08] !text-paper sm:text-5xl lg:text-6xl">
               Connecting African producers to{" "}
               <span className="text-gold">global markets</span>
             </h1>
@@ -220,11 +207,6 @@ export default function HomePage() {
 
       {/* ================= HOW IT WORKS ================= */}
       <section id="how-it-works" className="relative isolate scroll-mt-24 overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{ backgroundImage: WEAVE }}
-          aria-hidden="true"
-        />
         <div className="relative mx-auto max-w-7xl px-6 py-16">
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl">
@@ -282,7 +264,7 @@ export default function HomePage() {
       </section>
 
       {/* ================= EVERY PRODUCT ================= */}
-      <section className="relative isolate overflow-hidden border-t border-sand-deep bg-sand">
+      <section className="band-veil relative isolate overflow-hidden border-t border-sand-deep">
         {backdropProduce ? (
           <Image
             src={backdropProduce}
@@ -292,11 +274,6 @@ export default function HomePage() {
             className="object-cover"
           />
         ) : null}
-        <div
-          className="absolute inset-0 bg-sand/92"
-          style={{ backgroundImage: WEAVE }}
-          aria-hidden="true"
-        />
 
         <div className="relative mx-auto max-w-7xl px-6 py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -342,11 +319,6 @@ export default function HomePage() {
 
       {/* ================= SEASON EXPLORER ================= */}
       <section className="relative isolate overflow-hidden border-t border-sand-deep">
-        <div
-          className="absolute inset-0"
-          style={{ backgroundImage: WEAVE }}
-          aria-hidden="true"
-        />
         <div className="relative mx-auto max-w-7xl px-6 py-16">
           <h2 className="text-3xl sm:text-4xl">
             What can you <span className="text-gold">source</span>, and when
@@ -363,7 +335,7 @@ export default function HomePage() {
       </section>
 
       {/* ================= WHY / VERIFICATION ================= */}
-      <section className="relative isolate overflow-hidden border-t border-sand-deep bg-sand">
+      <section className="band-veil relative isolate overflow-hidden border-t border-sand-deep">
         {backdropTrust ? (
           <Image
             src={backdropTrust}
@@ -373,14 +345,9 @@ export default function HomePage() {
             className="object-cover"
           />
         ) : null}
-        <div
-          className="absolute inset-0 bg-sand/93"
-          style={{ backgroundImage: WEAVE }}
-          aria-hidden="true"
-        />
 
         <div className="relative mx-auto grid max-w-7xl gap-6 px-6 py-16 lg:grid-cols-3">
-          <div className="rounded-xl bg-paper/95 p-7 shadow-sm backdrop-blur-sm">
+          <div className="rounded-xl bg-forest/6 p-7 shadow-sm ring-1 ring-forest/12 backdrop-blur-sm">
             <h2 className="text-2xl">
               Why choose <span className="text-gold">AfriLynq</span>
             </h2>
@@ -401,7 +368,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="rounded-xl bg-paper/95 p-7 shadow-sm backdrop-blur-sm">
+          <div className="rounded-xl bg-forest/6 p-7 shadow-sm ring-1 ring-forest/12 backdrop-blur-sm">
             <h2 className="text-2xl">
               What we <span className="text-gold">check</span> before a supplier is
               listed

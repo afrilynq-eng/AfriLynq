@@ -150,7 +150,7 @@ export default async function CategoryPage({
       </section>
 
       {/* What to specify */}
-      <section className="border-t border-sand-deep bg-sand">
+      <section className="band-veil border-t border-sand-deep">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 lg:grid-cols-2">
           <div>
             <h2 className="text-2xl sm:text-3xl">What to specify when you enquire</h2>
