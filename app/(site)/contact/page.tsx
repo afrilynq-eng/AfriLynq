@@ -141,8 +141,21 @@ export default function ContactPage() {
                   +44 7721 737 556
                 </a>
               </p>
+              <p className="mt-2">
+                <a
+                  href="https://wa.me/2347043085338"
+                  className="link-quiet text-ink-soft"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  +234 704 308 5338
+                </a>
+                <span className="ml-2 rounded bg-forest/10 px-2 py-0.5 text-xs font-medium text-forest">
+                  WhatsApp
+                </span>
+              </p>
               <p className="mt-2 text-sm leading-relaxed text-stone">
-                United Kingdom office hours.
+                United Kingdom office hours. The Nigerian line opens WhatsApp.
               </p>
             </div>
 

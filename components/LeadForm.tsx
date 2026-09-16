@@ -96,7 +96,7 @@ export default function LeadForm({
         <label className="block">
           <span className="text-sm font-medium text-ink">
             {kind === "buyer"
-              ? "Which market are you buying for"
+              ? "Where do you want to buy from"
               : "What is your country of origin"}
           </span>
           <select

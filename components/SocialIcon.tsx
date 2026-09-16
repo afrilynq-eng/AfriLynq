@@ -6,7 +6,13 @@
  * a 24 unit square using the platform's own glyph shape.
  */
 
-export type SocialName = "facebook" | "instagram" | "linkedin" | "x" | "youtube";
+export type SocialName =
+  | "facebook"
+  | "instagram"
+  | "linkedin"
+  | "x"
+  | "youtube"
+  | "tiktok";
 
 const GLYPHS: Record<SocialName, React.ReactNode> = {
   facebook: (
@@ -54,6 +60,12 @@ const GLYPHS: Record<SocialName, React.ReactNode> = {
     <path
       fill="currentColor"
       d="M17.2 3.75h2.9l-6.35 7.26L21.25 20.5h-5.9l-4.6-6.02-5.28 6.02H2.56l6.8-7.77L2.75 3.75h6.05l4.16 5.5zm-1.02 15h1.6L8.1 5.4H6.38z"
+    />
+  ),
+  tiktok: (
+    <path
+      fill="currentColor"
+      d="M16.02 2.5h-2.9v12.06a2.32 2.32 0 1 1-1.9-2.28V9.3a5.25 5.25 0 1 0 4.8 5.23V8.45a6.1 6.1 0 0 0 3.6 1.17V6.71a3.55 3.55 0 0 1-3.6-4.21z"
     />
   ),
   youtube: (

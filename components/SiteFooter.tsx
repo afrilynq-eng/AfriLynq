@@ -35,10 +35,11 @@ const SUPPORT = [
  * removed by clearing it.
  */
 const SOCIAL: { name: SocialName; label: string; href: string }[] = [
-  { name: "facebook", label: "AfriLynq on Facebook", href: "https://facebook.com/afrilynq" },
+  { name: "facebook", label: "AfriLynq on Facebook", href: "https://www.facebook.com/share/1FELz8vn4Z/" },
   { name: "instagram", label: "AfriLynq on Instagram", href: "https://instagram.com/afrilynq" },
   { name: "linkedin", label: "AfriLynq on LinkedIn", href: "https://linkedin.com/company/afrilynq" },
   { name: "x", label: "AfriLynq on X", href: "https://x.com/afrilynq" },
+  { name: "tiktok", label: "AfriLynq on TikTok", href: "https://tiktok.com/@afrilynq" },
   { name: "youtube", label: "AfriLynq on YouTube", href: "" },
 ];
 
@@ -138,6 +139,19 @@ export default function SiteFooter() {
             <p>
               <a href="tel:+447721737556" className="link-quiet">
                 +44 7721 737 556
+              </a>
+            </p>
+            <p>
+              {/* Nigerian line is the client's WhatsApp, so it opens there
+                  rather than dialling. */}
+              <a
+                href="https://wa.me/2347043085338"
+                className="link-quiet"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                +234 704 308 5338
+                <span className="ml-1.5 text-xs text-stone">WhatsApp</span>
               </a>
             </p>
             <p>

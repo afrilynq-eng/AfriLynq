@@ -128,9 +128,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ============ PHOTOGRAPH WITH THE MISSION BADGE ============ */}
+      {/* ================= PHOTOGRAPH ================= */}
       <section className="band-veil-paper">
-        <div className="relative mx-auto max-w-6xl px-6 pb-20">
+        <div className="mx-auto max-w-6xl px-6 pb-12">
           <Photo
             src={sitePhoto("about")}
             alt="African agricultural producers at work"
@@ -139,23 +139,26 @@ export default function AboutPage() {
             sizes="(min-width: 1280px) 1152px, 100vw"
             priority
           />
+        </div>
+      </section>
 
-          {/* Sits over the photograph, as on the flyer. Stacks underneath on a
-              narrow screen so nothing is ever covered. */}
-          <div className="relative z-10 -mt-12 sm:-mt-16 lg:absolute lg:bottom-4 lg:left-10 lg:mt-0 lg:max-w-sm">
-            <div className="rounded-2xl bg-forest-deep p-7 text-center shadow-xl ring-1 ring-gold/30">
-              <div className="flex justify-center">
-                <HeadingIcon name="mission" tone="gold" />
-              </div>
-              <h2 className="mt-4 text-xl font-bold tracking-wide !text-paper uppercase">
-                Our <span className="text-gold">mission</span>
-              </h2>
-              <p className="mt-3 leading-relaxed text-sand">
-                To be the leading platform driving sustainable trade between
-                Africa and the world, empowering businesses and communities for
-                generational impact.
-              </p>
+      {/* ================= MISSION ================= */}
+      {/* Stands on its own beneath the photograph rather than sitting over it.
+          The client asked for this: the badge was covering the picture. */}
+      <section className="band-veil-paper">
+        <div className="mx-auto max-w-4xl px-6 pb-16">
+          <div className="rounded-2xl bg-forest-deep px-8 py-10 text-center shadow-lg ring-1 ring-gold/30 sm:px-12">
+            <div className="flex justify-center">
+              <HeadingIcon name="mission" tone="gold" />
             </div>
+            <h2 className="mt-4 text-xl font-bold tracking-wide !text-paper uppercase sm:text-2xl">
+              Our <span className="text-gold">mission</span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-sand">
+              To be the leading platform driving sustainable trade between Africa
+              and the world, empowering businesses and communities for
+              generational impact.
+            </p>
           </div>
         </div>
       </section>
