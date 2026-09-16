@@ -55,12 +55,31 @@ export async function POST(request: Request) {
   const leadType = ["supplier", "buyer", "other"].includes(requested)
     ? requested
     : "buyer";
-  const fullName = str(body.fullName);
+  /**
+   * Name.
+   *
+   * The forms now collect surname, first name and middle name separately, at
+   * the client's request. The database keeps one full_name column, so the
+   * parts are composed here in reading order. A plain fullName is still
+   * accepted so that anything posting the older shape keeps working.
+   */
+  const surname = str(body.surname);
+  const firstName = str(body.firstName);
+  const middleName = str(body.middleName);
+  const composed = [firstName, middleName, surname].filter(Boolean).join(" ");
+  const fullName = composed || str(body.fullName);
   const email = str(body.email);
 
-  if (!fullName || !email) {
+  if (!firstName && !surname && !fullName) {
     return NextResponse.json(
-      { message: "Please give us your name and email." },
+      { message: "Please give us your first name and surname." },
+      { status: 400 }
+    );
+  }
+
+  if (!email) {
+    return NextResponse.json(
+      { message: "Please give us your email address." },
       { status: 400 }
     );
   }

@@ -74,14 +74,19 @@ export default function AudienceLanding({ a }: { a: Audience }) {
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-forest-deep">
         {hero ? (
-          <Photo
-            src={hero}
-            alt=""
-            label=""
-            className="absolute inset-0 h-full w-full"
-            sizes="100vw"
-            priority
-          />
+          /* The wrapper carries the positioning. Photo hardcodes `relative` on
+             its own box and Tailwind emits `relative` after `absolute`, so
+             passing `absolute inset-0` straight in collapses it to zero height. */
+          <div className="absolute inset-0">
+            <Photo
+              src={hero}
+              alt=""
+              label=""
+              className="h-full w-full"
+              sizes="100vw"
+              priority
+            />
+          </div>
         ) : (
           <div
             className="absolute inset-0"

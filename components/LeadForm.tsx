@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIES, ORIGINS } from "@/lib/content";
+import { CATEGORIES } from "@/lib/content";
+import { COUNTRIES } from "@/lib/countries";
 
 type Kind = "buyer" | "supplier";
 
@@ -83,14 +84,20 @@ export default function LeadForm({
       <p className="mt-3 text-ink-soft">{copy.blurb}</p>
 
       <div className="mt-8 space-y-5">
-        <Field label="Your name" name="fullName" required autoComplete="name" />
+        <div className="grid gap-5 sm:grid-cols-3">
+          <Field label="Surname" name="surname" required autoComplete="family-name" />
+          <Field label="First name" name="firstName" required autoComplete="given-name" />
+          <Field label="Middle name" name="middleName" autoComplete="additional-name" />
+        </div>
         <Field label="Work email" name="email" type="email" required autoComplete="email" />
         <Field label="Company" name="companyName" autoComplete="organization" />
         <Field label="Phone, including country code" name="phone" autoComplete="tel" />
 
         <label className="block">
           <span className="text-sm font-medium text-ink">
-            {kind === "buyer" ? "Where you are buying for" : "Where you export from"}
+            {kind === "buyer"
+              ? "Which market are you buying for"
+              : "What is your country of origin"}
           </span>
           <select
             name="countryCode"
@@ -98,23 +105,11 @@ export default function LeadForm({
             className="mt-2 w-full border border-sand-deep bg-paper px-3 py-2.5 text-ink"
           >
             <option value="">Select a country</option>
-            {kind === "buyer" ? (
-              <>
-                <option value="GB">United Kingdom</option>
-                <option value="IE">Ireland</option>
-                <option value="NL">Netherlands</option>
-                <option value="DE">Germany</option>
-                <option value="FR">France</option>
-                <option value="US">United States</option>
-                <option value="AE">United Arab Emirates</option>
-              </>
-            ) : (
-              ORIGINS.map((o) => (
-                <option key={o.country} value={o.country}>
-                  {o.country}
-                </option>
-              ))
-            )}
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
           </select>
         </label>
 

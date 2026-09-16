@@ -109,7 +109,7 @@ export default function ContactPage() {
       </section>
 
       {/* Direct contact */}
-      <section className="border-t border-sand-deep">
+      <section className="band-veil border-t border-sand-deep">
         <div className="mx-auto max-w-7xl px-6 py-14">
           <div className="flex items-start gap-4">
             <HeadingIcon name="handshake" />
@@ -119,7 +119,7 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rule-top pt-5">
+            <div className="rounded-xl bg-paper/92 p-6 shadow-sm ring-1 ring-sand-deep">
               <h3 className="text-lg">Email</h3>
               <p className="mt-3">
                 <a
@@ -134,7 +134,7 @@ export default function ContactPage() {
               </p>
             </div>
 
-            <div className="rule-top pt-5">
+            <div className="rounded-xl bg-paper/92 p-6 shadow-sm ring-1 ring-sand-deep">
               <h3 className="text-lg">Telephone</h3>
               <p className="mt-3">
                 <a href="tel:+447721737556" className="link-quiet text-ink-soft">
@@ -146,7 +146,7 @@ export default function ContactPage() {
               </p>
             </div>
 
-            <div className="rule-top pt-5">
+            <div className="rounded-xl bg-paper/92 p-6 shadow-sm ring-1 ring-sand-deep">
               <h3 className="text-lg">Registered address</h3>
               <address className="mt-3 not-italic leading-relaxed text-ink-soft">
                 AfriLynq Limited
@@ -157,7 +157,7 @@ export default function ContactPage() {
               </address>
             </div>
 
-            <div className="rule-top pt-5">
+            <div className="rounded-xl bg-paper/92 p-6 shadow-sm ring-1 ring-sand-deep">
               <h3 className="text-lg">What happens next</h3>
               <p className="mt-3 leading-relaxed text-ink-soft">
                 We read every enquiry ourselves. Sourcing requests take longer to answer
@@ -169,16 +169,16 @@ export default function ContactPage() {
       </section>
 
       {/* Straight into a category */}
-      <section className="band-veil border-t border-sand-deep">
+      <section className="band-scene border-t border-sand-deep text-paper">
         <div className="mx-auto max-w-7xl px-6 py-14">
           <div className="flex items-start gap-4">
-            <HeadingIcon name="services" />
-            <h2 className="text-2xl sm:text-3xl">
+            <HeadingIcon name="services" tone="gold" />
+            <h2 className="text-2xl !text-paper sm:text-3xl">
               Or start from a <span className="text-gold">product</span>
             </h2>
           </div>
-          <p className="mt-5 max-w-2xl leading-relaxed text-ink-soft">
-            Every category page states the harvest window, the trading unit, the typical
+          <p className="mt-5 max-w-2xl leading-relaxed text-sand">
+            Every product states its harvest window, the trading unit, the typical
             minimum order and what a supplier will ask you to specify.
           </p>
           <ul className="mt-7 flex flex-wrap gap-2.5">
@@ -186,7 +186,7 @@ export default function ContactPage() {
               <li key={c.slug}>
                 <Link
                   href={`/categories/${c.slug}`}
-                  className="inline-block rounded-full border border-sand-deep bg-paper/90 px-4 py-2 text-[0.95rem] text-ink-soft transition-colors hover:border-gold hover:text-forest"
+                  className="inline-block rounded-full border border-sand-deep/50 px-4 py-2 text-[0.95rem] text-sand transition-colors hover:border-gold hover:bg-gold hover:text-forest-deep"
                 >
                   {c.name}
                 </Link>

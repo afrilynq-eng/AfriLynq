@@ -139,32 +139,57 @@ export default function RegisterForm({ kind }: { kind: Kind }) {
       </div>
 
       <form onSubmit={submit} className="px-7 py-7">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-3">
           <label>
             <span className={label}>
-              Full name <span className="text-gold">*</span>
+              Surname <span className="text-gold">*</span>
             </span>
             <input
               type="text"
-              name="fullName"
+              name="surname"
               required
-              autoComplete="name"
-              placeholder="Your full name"
+              autoComplete="family-name"
+              placeholder="Family name"
               className={field}
             />
           </label>
 
           <label>
-            <span className={label}>Phone number</span>
+            <span className={label}>
+              First name <span className="text-gold">*</span>
+            </span>
             <input
-              type="tel"
-              name="phone"
-              autoComplete="tel"
-              placeholder="Including country code"
+              type="text"
+              name="firstName"
+              required
+              autoComplete="given-name"
+              placeholder="Given name"
+              className={field}
+            />
+          </label>
+
+          <label>
+            <span className={label}>Middle name</span>
+            <input
+              type="text"
+              name="middleName"
+              autoComplete="additional-name"
+              placeholder="Optional"
               className={field}
             />
           </label>
         </div>
+
+        <label className="mt-5 block">
+          <span className={label}>Phone number</span>
+          <input
+            type="tel"
+            name="phone"
+            autoComplete="tel"
+            placeholder="Including country code"
+            className={field}
+          />
+        </label>
 
         <label className="mt-5 block">
           <span className={label}>
