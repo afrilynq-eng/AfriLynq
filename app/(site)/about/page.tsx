@@ -306,6 +306,12 @@ export default function AboutPage() {
             >
               Join us as a farmer
             </Link>
+            <Link
+              href="/for-shoppers"
+              className="inline-block rounded border border-sand-deep px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
+            >
+              I am buying for myself
+            </Link>
           </div>
         </div>
       </section>

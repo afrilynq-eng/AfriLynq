@@ -17,7 +17,7 @@ const MARKETPLACE = [
   { href: "/categories", label: "Product Categories" },
   { href: "/for-farmers", label: "For Farmers" },
   { href: "/for-retailers", label: "For Retailers" },
-  { href: "/register/shopper", label: "For Shoppers" },
+  { href: "/for-shoppers", label: "For Shoppers" },
   { href: "/categories", label: "Browse Products" },
 ];
 

@@ -28,7 +28,7 @@ const PATHS = [
     accent: "forest" as const,
   },
   {
-    href: "/register/shopper",
+    href: "/for-shoppers",
     eyebrow: "I am buying for myself",
     title: "Households, restaurants, shops and market traders",
     body: "Buying for your own use rather than to resell. There is no minimum order. Tell us the quantity that suits you and we will find a supplier who can meet it.",

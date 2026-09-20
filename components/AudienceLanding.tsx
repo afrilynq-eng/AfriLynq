@@ -22,9 +22,29 @@ const GAIN_ICONS: IconName[] = [
   "logistics",
 ];
 
-const GAIN_PHOTOS: Record<"buyer" | "supplier", string[]> = {
+const GAIN_PHOTOS: Record<Audience["kind"], string[]> = {
   buyer: ["gain-buyer-1", "gain-buyer-2", "gain-buyer-3", "gain-buyer-4", "gain-buyer-5", "gain-buyer-6"],
   supplier: ["gain-farmer-1", "gain-farmer-2", "gain-farmer-3", "gain-farmer-4", "gain-farmer-5", "gain-farmer-6"],
+  shopper: ["gain-shopper-1", "gain-shopper-2", "gain-shopper-3", "gain-shopper-4", "gain-shopper-5", "gain-shopper-6"],
+};
+
+/**
+ * The other two routes, so every audience page offers both alternatives
+ * rather than only one.
+ */
+const OTHERS: Record<Audience["kind"], { href: string; label: string }[]> = {
+  buyer: [
+    { href: "/for-farmers", label: "I am a farmer instead" },
+    { href: "/for-shoppers", label: "I am buying for myself" },
+  ],
+  supplier: [
+    { href: "/for-retailers", label: "I am a retailer instead" },
+    { href: "/for-shoppers", label: "I am buying for myself" },
+  ],
+  shopper: [
+    { href: "/for-retailers", label: "I am a retailer instead" },
+    { href: "/for-farmers", label: "I am a farmer instead" },
+  ],
 };
 
 /**
@@ -53,7 +73,7 @@ function TwoTone({ text }: { text: string }) {
  * for attention at the top.
  */
 export interface Audience {
-  kind: "buyer" | "supplier";
+  kind: "buyer" | "supplier" | "shopper";
   eyebrow: string;
   title: string;
   lede: string;
@@ -278,12 +298,15 @@ export default function AudienceLanding({ a }: { a: Audience }) {
             <Link href={a.href} className="btn-gold">
               {a.cta}
             </Link>
-            <Link
-              href={a.kind === "buyer" ? "/for-farmers" : "/for-retailers"}
-              className="inline-block rounded border border-sand-deep/50 px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
-            >
-              {a.kind === "buyer" ? "I am a farmer instead" : "I am a retailer instead"}
-            </Link>
+            {OTHERS[a.kind].map((o) => (
+              <Link
+                key={o.href}
+                href={o.href}
+                className="inline-block rounded border border-sand-deep/50 px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
+              >
+                {o.label}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

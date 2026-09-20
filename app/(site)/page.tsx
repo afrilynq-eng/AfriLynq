@@ -140,6 +140,12 @@ export default function HomePage() {
               >
                 Join us as a farmer
               </Link>
+              <Link
+                href="/for-shoppers"
+                className="inline-block rounded border border-sand-deep/60 px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
+              >
+                I am buying for myself
+              </Link>
             </div>
 
             <ul className="mt-9 flex flex-wrap gap-x-8 gap-y-3">
@@ -162,7 +168,7 @@ export default function HomePage() {
                 Join the <span className="text-gold">AfriLynq</span> marketplace
               </h2>
               <p className="mt-2 text-ink-soft">
-                Trade with verified farmers and retailers.
+                Trade with verified farmers and retailers, or buy for yourself.
               </p>
 
               <div className="mt-6 space-y-3">
@@ -178,6 +184,13 @@ export default function HomePage() {
                   className="flex items-center justify-between rounded border border-forest px-5 py-3.5 text-forest transition-colors hover:bg-forest hover:text-paper"
                 >
                   Join us as a farmer
+                  <span aria-hidden="true">&rarr;</span>
+                </Link>
+                <Link
+                  href="/register/shopper"
+                  className="flex items-center justify-between rounded border border-sand-deep px-5 py-3.5 text-ink-soft transition-colors hover:border-gold hover:text-forest"
+                >
+                  Join as a shopper
                   <span aria-hidden="true">&rarr;</span>
                 </Link>
               </div>
