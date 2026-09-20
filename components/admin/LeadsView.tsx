@@ -31,7 +31,7 @@ export default async function LeadsView({
   q,
   emptyMessage,
 }: {
-  leadType?: "buyer" | "supplier" | "other";
+  leadType?: "buyer" | "supplier" | "shopper" | "other";
   basePath: string;
   q?: string;
   emptyMessage: string;
@@ -72,6 +72,7 @@ export default async function LeadsView({
             ["All", "/admin/leads"],
             ["Buyers", "/admin/buyers"],
             ["Suppliers", "/admin/suppliers"],
+            ["Shoppers", "/admin/shoppers"],
             ["Subscribers", "/admin/subscribers"],
           ].map(([label, href]) => {
             const active = href === basePath;

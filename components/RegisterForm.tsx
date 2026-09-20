@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CATEGORIES } from "@/lib/content";
 import { COUNTRIES } from "@/lib/countries";
 
-type Kind = "buyer" | "supplier";
+type Kind = "buyer" | "supplier" | "shopper";
 
 const COPY: Record<
   Kind,
@@ -38,6 +38,21 @@ const COPY: Record<
     action: "Create my sourcing request",
     note: "Free to register. We come back to you with the suppliers we can reach for your product, and what they can commit to.",
     done: "Request received. We will review it and come back to you by email.",
+  },
+  shopper: {
+    band: "Join as a shopper",
+    bandSub: "For households, restaurants, shops and market traders",
+    company: "Business name, if you have one",
+    country: "What is your country of origin",
+    countryHelp: "The country your business is based in",
+    interest: "What you are looking to buy",
+    detail: "What you need, and how much",
+    detailHelp: "There is no minimum. Tell us the quantity that suits you",
+    placeholder:
+      "For example: two bags of white garri and 5 kg of egusi, delivered to Manchester, monthly.",
+    action: "Send my request",
+    note: "Free to register. Suppliers set their own quantities, so smaller orders are welcome. We come back to you with who can supply what you need.",
+    done: "Request received. We will come back to you by email with what we can source.",
   },
   supplier: {
     band: "Join as a farmer or exporter",

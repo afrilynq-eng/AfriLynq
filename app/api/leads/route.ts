@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   }
 
   const requested = String(body.leadType ?? "");
-  const leadType = ["supplier", "buyer", "other"].includes(requested)
+  const leadType = ["supplier", "buyer", "shopper", "other"].includes(requested)
     ? requested
     : "buyer";
   /**

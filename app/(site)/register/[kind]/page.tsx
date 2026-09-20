@@ -10,6 +10,12 @@ const KINDS = {
     lede: "Tell us what you need to source. Free, and we come back to you by email.",
     back: { href: "/for-retailers", label: "For retailers" },
   },
+  shopper: {
+    kind: "shopper" as const,
+    title: "Join AfriLynq as a shopper",
+    lede: "Buying for yourself rather than to resell. No minimum order, and free to register.",
+    back: { href: "/contact", label: "Contact" },
+  },
   farmer: {
     kind: "supplier" as const,
     title: "Join AfriLynq as a farmer or exporter",

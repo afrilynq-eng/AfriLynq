@@ -17,6 +17,7 @@ const MARKETPLACE = [
   { href: "/categories", label: "Product Categories" },
   { href: "/for-farmers", label: "For Farmers" },
   { href: "/for-retailers", label: "For Retailers" },
+  { href: "/register/shopper", label: "For Shoppers" },
   { href: "/categories", label: "Browse Products" },
 ];
 
@@ -36,10 +37,10 @@ const SUPPORT = [
  */
 const SOCIAL: { name: SocialName; label: string; href: string }[] = [
   { name: "facebook", label: "AfriLynq on Facebook", href: "https://www.facebook.com/share/1FELz8vn4Z/" },
-  { name: "instagram", label: "AfriLynq on Instagram", href: "https://instagram.com/afrilynq" },
+  { name: "instagram", label: "AfriLynq on Instagram", href: "https://www.instagram.com/afrilynqlimited" },
   { name: "linkedin", label: "AfriLynq on LinkedIn", href: "https://linkedin.com/company/afrilynq" },
   { name: "x", label: "AfriLynq on X", href: "https://x.com/afrilynq" },
-  { name: "tiktok", label: "AfriLynq on TikTok", href: "https://tiktok.com/@afrilynq" },
+  { name: "tiktok", label: "AfriLynq on TikTok", href: "https://www.tiktok.com/@afrilynqlimited" },
   { name: "youtube", label: "AfriLynq on YouTube", href: "" },
 ];
 

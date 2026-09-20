@@ -28,6 +28,14 @@ const PATHS = [
     accent: "forest" as const,
   },
   {
+    href: "/register/shopper",
+    eyebrow: "I am buying for myself",
+    title: "Households, restaurants, shops and market traders",
+    body: "Buying for your own use rather than to resell. There is no minimum order. Tell us the quantity that suits you and we will find a supplier who can meet it.",
+    action: "Join as a shopper",
+    accent: "sand" as const,
+  },
+  {
     href: "/for-farmers",
     eyebrow: "I want to sell",
     title: "Farmers, co-operatives, processors and exporters",
@@ -54,9 +62,10 @@ export default function ContactPage() {
 
       {/* Two routes */}
       <section className="mx-auto max-w-7xl px-6 py-14">
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-3">
           {PATHS.map((p) => {
             const forest = p.accent === "forest";
+            const sand = p.accent === "sand";
             return (
               <article
                 key={p.href}
@@ -64,20 +73,23 @@ export default function ContactPage() {
                   "flex flex-col rounded-xl p-8 shadow-sm ring-1 " +
                   (forest
                     ? "bg-forest-deep text-paper ring-forest"
-                    : "bg-gold text-forest-deep ring-gold-deep")
+                    : sand
+                      ? "bg-paper text-ink ring-sand-deep"
+                      : "bg-gold text-forest-deep ring-gold-deep")
                 }
               >
                 <span
                   className={
                     "text-[0.72rem] font-semibold tracking-widest uppercase " +
-                    (forest ? "text-gold" : "text-forest-deep/75")
+                    (forest ? "text-gold" : sand ? "text-gold" : "text-forest-deep/75")
                   }
                 >
                   {p.eyebrow}
                 </span>
                 <h2
                   className={
-                    "mt-3 text-2xl " + (forest ? "!text-paper" : "!text-forest-deep")
+                    "mt-3 text-2xl " +
+                    (forest ? "!text-paper" : sand ? "" : "!text-forest-deep")
                   }
                 >
                   {p.title}
@@ -85,7 +97,11 @@ export default function ContactPage() {
                 <p
                   className={
                     "mt-4 flex-1 leading-relaxed " +
-                    (forest ? "text-sand-deep" : "text-forest-deep/85")
+                    (forest
+                      ? "text-sand-deep"
+                      : sand
+                        ? "text-ink-soft"
+                        : "text-forest-deep/85")
                   }
                 >
                   {p.body}
@@ -96,7 +112,9 @@ export default function ContactPage() {
                     className={
                       forest
                         ? "btn-gold"
-                        : "inline-block rounded bg-forest-deep px-6 py-3 font-medium text-paper transition-colors hover:bg-forest"
+                        : sand
+                          ? "btn-primary"
+                          : "inline-block rounded bg-forest-deep px-6 py-3 font-medium text-paper transition-colors hover:bg-forest"
                     }
                   >
                     {p.action}

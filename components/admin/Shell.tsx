@@ -20,6 +20,7 @@ const NAV = [
       { href: "/admin/leads", label: "All leads", icon: "list" },
       { href: "/admin/buyers", label: "Buyers", icon: "cart" },
       { href: "/admin/suppliers", label: "Suppliers", icon: "leaf" },
+      { href: "/admin/shoppers", label: "Shoppers", icon: "basket" },
       { href: "/admin/subscribers", label: "Subscribers", icon: "mail" },
     ],
   },
@@ -57,6 +58,13 @@ function Icon({ name }: { name: string }) {
           <circle cx="10" cy="10" r="7.5" {...common} />
           <ellipse cx="10" cy="10" rx="3.2" ry="7.5" {...common} />
           <path d="M2.7 10h14.6" {...common} />
+        </>
+      )}
+      {name === "basket" && (
+        <>
+          <path d="M3 7.5h14l-1.4 8.2a1.5 1.5 0 0 1-1.5 1.3H5.9a1.5 1.5 0 0 1-1.5-1.3z" {...common} strokeLinejoin="round" />
+          <path d="M7 7.5 9.2 3M13 7.5 10.8 3" {...common} strokeLinecap="round" />
+          <path d="M8 10.6v3.2M12 10.6v3.2" {...common} strokeLinecap="round" />
         </>
       )}
       {name === "cart" && (
