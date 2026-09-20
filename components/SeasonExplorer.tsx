@@ -152,8 +152,11 @@ export default function SeasonExplorer({
             </Link>
 
             <p className="mt-1 text-sm text-stone">{entry.origins.join(", ")}</p>
+            {/* Was "From <minimum order>", which read as a floor and put off
+                anyone wanting a small quantity. The trading unit is the useful
+                fact here; volumes are agreed with the supplier. */}
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              From {entry.minimumOrder}
+              Traded in {entry.unit}
             </p>
           </article>
         ))}

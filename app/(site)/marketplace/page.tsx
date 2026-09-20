@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIES, ORIGINS } from "@/lib/content";
-import { HeadingIcon } from "@/components/HeadingIcon";
+import { HeadingIcon, type IconName } from "@/components/HeadingIcon";
 import { sitePhoto } from "@/lib/photos";
 import { Photo } from "@/components/Photo";
 import Image from "next/image";
@@ -22,27 +22,35 @@ export const metadata: Metadata = {
  * being built.
  */
 
-const COMING = [
+const COMING: {
+  icon: IconName;
+  slug: string;
+  title: string;
+  body: string;
+  /** A badge or mark has to be shown whole. A photograph can be cropped. */
+  fit?: "cover" | "contain";
+}[] = [
   {
-    icon: "services" as const,
+    icon: "services",
     slug: "marketplace-listings",
     title: "Live supplier listings",
     body: "Products listed by verified suppliers themselves, with their own quantities, harvest windows and certifications against each one.",
   },
   {
-    icon: "verified" as const,
+    icon: "verified",
     slug: "marketplace-verification",
+    fit: "contain",
     title: "Verification badges",
     body: "Every supplier carrying a badge that states which checks they have passed, so the claim is visible rather than taken on trust.",
   },
   {
-    icon: "connections" as const,
+    icon: "connections",
     slug: "marketplace-accounts",
     title: "Buyer and supplier accounts",
     body: "Sign in to manage your listings, track the enquiries you have sent, and pick up conversations where you left them.",
   },
   {
-    icon: "trade-support" as const,
+    icon: "trade-support",
     slug: "marketplace-quotations",
     title: "Enquiries and quotations",
     body: "Send one specification to the suppliers who can meet it, and compare priced quotations side by side.",
@@ -119,6 +127,7 @@ export default function MarketplacePage() {
                     label={item.title}
                     className="aspect-[16/10] w-full"
                     sizes="(min-width: 1024px) 460px, 100vw"
+                    fit={item.fit ?? "cover"}
                   />
                   <span className="absolute -bottom-7 left-6">
                     <HeadingIcon name={item.icon} size="sm" />

@@ -95,9 +95,7 @@ export default function LeadForm({
 
         <label className="block">
           <span className="text-sm font-medium text-ink">
-            {kind === "buyer"
-              ? "Where do you want to buy from"
-              : "What is your country of origin"}
+            What is your country of origin
           </span>
           <select
             name="countryCode"
@@ -111,6 +109,9 @@ export default function LeadForm({
               </option>
             ))}
           </select>
+          <span className="mt-1.5 block text-xs text-stone">
+            The country your business is based in
+          </span>
         </label>
 
         <fieldset>

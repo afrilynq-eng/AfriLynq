@@ -139,8 +139,21 @@ export default async function CategoryPage({
                     <dd className="mt-0.5 text-ink">{product.unit}</dd>
                   </div>
                   <div>
-                    <dt className="text-stone">Typical minimum order</dt>
+                    {/* "Minimum order" read as a locked gate and was turning
+                        smaller buyers away. The figure still matters to a
+                        container buyer, so it stays, framed as what a full
+                        export load looks like rather than a floor. */}
+                    <dt className="text-stone">Typical export load</dt>
                     <dd className="mt-0.5 text-ink">{product.minimumOrder}</dd>
+                  </div>
+                  <div className="rounded-lg bg-forest/6 px-3.5 py-3 ring-1 ring-forest/12">
+                    <p className="leading-relaxed text-ink-soft">
+                      <span className="font-semibold text-forest">
+                        Need a smaller quantity?
+                      </span>{" "}
+                      Suppliers set their own volumes. Tell us what you need and
+                      we will find someone who can supply it.
+                    </p>
                   </div>
                 </dl>
               </article>

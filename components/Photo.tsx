@@ -14,6 +14,7 @@ export function Photo({
   className = "",
   sizes = "(min-width: 1024px) 33vw, 100vw",
   priority = false,
+  fit = "cover",
 }: {
   src: string | null;
   alt: string;
@@ -22,6 +23,12 @@ export function Photo({
   className?: string;
   sizes?: string;
   priority?: boolean;
+  /**
+   * "cover" fills the frame and crops, which suits a photograph. "contain"
+   * shows the whole image inside the frame, which is what a badge, a logo or
+   * a certificate needs, since cropping one destroys it.
+   */
+  fit?: "cover" | "contain";
 }) {
   if (!src) {
     return (
@@ -45,14 +52,18 @@ export function Photo({
   }
 
   return (
-    <div className={`relative overflow-hidden bg-sand ${className}`}>
+    <div
+      className={`relative overflow-hidden ${
+        fit === "contain" ? "bg-paper p-4" : "bg-sand"
+      } ${className}`}
+    >
       <Image
         src={src}
         alt={alt}
         fill
         sizes={sizes}
         priority={priority}
-        className="object-cover"
+        className={fit === "contain" ? "object-contain p-2" : "object-cover"}
       />
     </div>
   );
