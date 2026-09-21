@@ -13,6 +13,14 @@ const STEP_PHOTOS = ["discover", "connect", "trade", "deliver"];
  * suppliers get their own photo slugs, since the two audiences want to see
  * different things.
  */
+/**
+ * Photographs that crop badly from the centre, anchored to keep what
+ * matters. Add a slug here if a picture loses a face or its subject.
+ */
+const FOCUS: Record<string, "top" | "bottom"> = {
+  "gain-shopper-2": "top",
+  "gain-shopper-5": "top",
+};
 const GAIN_ICONS: IconName[] = [
   "verified",
   "trade-support",

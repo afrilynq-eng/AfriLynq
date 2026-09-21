@@ -15,6 +15,7 @@ export function Photo({
   sizes = "(min-width: 1024px) 33vw, 100vw",
   priority = false,
   fit = "cover",
+  position = "center",
 }: {
   src: string | null;
   alt: string;
@@ -29,6 +30,12 @@ export function Photo({
    * a certificate needs, since cropping one destroys it.
    */
   fit?: "cover" | "contain";
+  /**
+   * Which part of a cropped photograph to keep. A portrait shot of a person
+   * in a landscape frame loses the face if cropped from the centre, so
+   * anchor it to the top.
+   */
+  position?: "center" | "top" | "bottom";
 }) {
   if (!src) {
     return (
@@ -63,7 +70,17 @@ export function Photo({
         fill
         sizes={sizes}
         priority={priority}
-        className={fit === "contain" ? "object-contain p-2" : "object-cover"}
+        className={
+          fit === "contain"
+            ? "object-contain p-2"
+            : `object-cover ${
+                position === "top"
+                  ? "object-top"
+                  : position === "bottom"
+                    ? "object-bottom"
+                    : "object-center"
+              }`
+        }
       />
     </div>
   );
