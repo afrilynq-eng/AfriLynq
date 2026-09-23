@@ -4,10 +4,14 @@ import { Logo } from "./Logo";
 /**
  * Site header.
  *
- * Full navigation on the left, a language picker, and the two account actions
- * on the right. Every link resolves to a page that exists: Marketplace goes to
- * the holding page rather than nowhere, and Sign in goes to the same place,
- * because accounts arrive with the marketplace in Stage 2.
+ * Everything sits on one line from 1024px up: logo, navigation, language
+ * picker and the two account actions. Below that the navigation drops to its
+ * own row, which is the only sensible thing to do on a narrow screen.
+ *
+ * The strapline stays under the wordmark. It is the widest part of the lockup,
+ * so the room for it comes from the navigation and the actions instead:
+ * smaller nav text, tighter gaps, shorter buttons and a compact language
+ * picker. lg:flex-nowrap then stops the row breaking at all above 1024px.
  */
 const NAV = [
   { href: "/", label: "Home" },
@@ -38,13 +42,13 @@ const LANGUAGES = [
 export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-sand-deep bg-paper/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-4 px-6 py-3">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-5 gap-y-3 px-6 py-3 lg:flex-nowrap">
         <Link href="/" aria-label="AfriLynq home" className="shrink-0">
           <Logo size="lg" />
         </Link>
 
         <nav
-          className="order-last flex w-full flex-wrap items-center gap-x-5 gap-y-2 border-t border-sand pt-3.5 text-[0.95rem] font-medium xl:order-none xl:w-auto xl:border-0 xl:pt-0"
+          className="order-last flex w-full flex-wrap items-center gap-x-4 gap-y-2 border-t border-sand pt-3 text-[0.9rem] font-medium lg:order-none lg:w-auto lg:flex-nowrap lg:border-0 lg:pt-0"
           aria-label="Main"
         >
           {NAV.map((item) => (
@@ -58,17 +62,17 @@ export default function SiteHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2.5">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           {/* Native disclosure, so the picker works without any JavaScript. */}
           <details className="relative hidden sm:block">
-            <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded px-2.5 py-2 text-sm font-medium text-ink-soft transition-colors hover:bg-sand">
+            <summary className="flex cursor-pointer list-none items-center gap-1 rounded px-2 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:bg-sand">
               <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
                 <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
                 <ellipse cx="10" cy="10" rx="3.4" ry="8" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M2.4 10h15.2" stroke="currentColor" strokeWidth="1.5" />
               </svg>
               EN
-              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
+              <svg viewBox="0 0 20 20" className="h-3 w-3" fill="none" aria-hidden="true">
                 <path
                   d="M5.5 8l4.5 4.5L14.5 8"
                   stroke="currentColor"
@@ -116,14 +120,14 @@ export default function SiteHeader() {
 
           <Link
             href="/marketplace"
-            className="hidden rounded border border-forest px-4 py-2 text-[0.95rem] font-medium text-forest transition-colors hover:bg-forest hover:text-paper sm:inline-block"
+            className="btn-lift hidden rounded border border-forest px-3.5 py-1.5 text-[0.9rem] font-medium text-forest transition-colors hover:bg-forest hover:text-paper sm:inline-block"
           >
             Sign In
           </Link>
 
           <Link
             href="/contact"
-            className="rounded bg-forest px-5 py-2 text-[0.95rem] font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep"
+            className="btn-lift rounded bg-forest px-4 py-1.5 text-[0.9rem] font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep"
           >
             Sign Up
           </Link>

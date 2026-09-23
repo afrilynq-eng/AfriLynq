@@ -298,3 +298,73 @@ body {
     ),
     url("/backdrop.svg");
 }
+/* ------------------------------------------------------------------
+   Button motion
+   ------------------------------------------------------------------
+   Add .btn-lift to any link or button that should respond to being
+   used. It covers three cases that behave differently:
+
+   Mouse        the button lifts and its shadow deepens on hover
+   Touch        there is no hover, so the press state does the work
+   Keyboard     a visible focus ring, since neither of the above fires
+
+   The hover rule is wrapped in @media (hover: hover) so that a phone
+   never inherits a hover state and leaves it stuck on after a tap,
+   which is what happens when hover styles are applied unconditionally.
+   ------------------------------------------------------------------ */
+
+.btn-lift {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -8px rgba(4, 40, 26, 0.45);
+  }
+}
+
+/* Fires on tap as well as click, so a phone gets the same feedback. */
+.btn-lift:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: 0 2px 6px -2px rgba(4, 40, 26, 0.4);
+}
+
+.btn-lift:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* An arrow inside a lifting button slides forward with it. */
+.btn-lift span[aria-hidden="true"] {
+  display: inline-block;
+  transition: transform 160ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-lift:hover span[aria-hidden="true"] {
+    transform: translateX(3px);
+  }
+}
+
+/* Anyone who has asked their device to reduce motion gets the colour
+   change and the focus ring, and none of the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .btn-lift,
+  .btn-lift span[aria-hidden="true"] {
+    transition: background-color 160ms ease, color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .btn-lift:hover,
+  .btn-lift:active,
+  .btn-lift:hover span[aria-hidden="true"] {
+    transform: none;
+  }
+}

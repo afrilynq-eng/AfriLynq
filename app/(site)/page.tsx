@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Image from "next/image";
 import { CATEGORIES, ORIGINS } from "@/lib/content";
 import { productPhoto, sitePhoto } from "@/lib/photos";
@@ -131,18 +131,18 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/for-retailers" className="btn-primary bg-forest-soft">
+              <Link href="/for-retailers" className="btn-lift inline-block rounded bg-forest-soft px-6 py-3 font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep">
                 Join us as a retailer
               </Link>
               <Link
                 href="/for-farmers"
-                className="inline-block rounded bg-paper px-6 py-3 text-forest transition-colors hover:bg-gold hover:text-forest-deep"
+                className="btn-lift inline-block rounded bg-paper px-6 py-3 text-forest transition-colors hover:bg-gold hover:text-forest-deep"
               >
                 Join us as a farmer
               </Link>
               <Link
                 href="/for-shoppers"
-                className="inline-block rounded border border-sand-deep/60 px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
+                className="btn-lift inline-block rounded border border-sand-deep/60 px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
               >
                 I am buying for myself
               </Link>
@@ -174,21 +174,21 @@ export default function HomePage() {
               <div className="mt-6 space-y-3">
                 <Link
                   href="/register/retailer"
-                  className="flex items-center justify-between rounded bg-forest px-5 py-3.5 text-paper transition-colors hover:bg-gold hover:text-forest-deep"
+                  className="btn-lift flex items-center justify-between rounded bg-forest px-5 py-3.5 text-paper transition-colors hover:bg-gold hover:text-forest-deep"
                 >
                   Join us as a retailer
                   <span aria-hidden="true">&rarr;</span>
                 </Link>
                 <Link
                   href="/register/farmer"
-                  className="flex items-center justify-between rounded border border-forest px-5 py-3.5 text-forest transition-colors hover:bg-forest hover:text-paper"
+                  className="btn-lift flex items-center justify-between rounded border border-forest px-5 py-3.5 text-forest transition-colors hover:bg-forest hover:text-paper"
                 >
                   Join us as a farmer
                   <span aria-hidden="true">&rarr;</span>
                 </Link>
                 <Link
                   href="/register/shopper"
-                  className="flex items-center justify-between rounded border border-sand-deep px-5 py-3.5 text-ink-soft transition-colors hover:border-gold hover:text-forest"
+                  className="btn-lift flex items-center justify-between rounded border border-sand-deep px-5 py-3.5 text-ink-soft transition-colors hover:border-gold hover:text-forest"
                 >
                   Join as a shopper
                   <span aria-hidden="true">&rarr;</span>
