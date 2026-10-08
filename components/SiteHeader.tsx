@@ -119,14 +119,14 @@ export default function SiteHeader() {
           </details>
 
           <Link
-            href="/marketplace"
+            href="/sign-in"
             className="btn-lift hidden rounded border border-forest px-3.5 py-1.5 text-[0.9rem] font-medium text-forest transition-colors hover:bg-forest hover:text-paper sm:inline-block"
           >
             Sign In
           </Link>
 
           <Link
-            href="/contact"
+            href="/sign-up"
             className="btn-lift rounded bg-forest px-4 py-1.5 text-[0.9rem] font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep"
           >
             Sign Up

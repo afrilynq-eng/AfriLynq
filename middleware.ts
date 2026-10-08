@@ -2,10 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Refreshes the Supabase session cookie on admin routes.
+ * Refreshes the Supabase session cookie on signed in routes.
  *
- * Without this the access token expires mid session and the admin area starts
+ * Without this the access token expires mid session and the area starts
  * bouncing people to the sign in page for no visible reason.
+ *
+ * This refreshes only. It does not decide who may see what. Each page does
+ * that for itself through requireAdmin or currentUser, because the answer
+ * depends on a database read of platform_role and company membership, and the
+ * edge is the wrong place to be querying for that.
  */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -40,5 +45,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*", "/dashboard/:path*"],
 };

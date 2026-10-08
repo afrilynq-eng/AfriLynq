@@ -63,3 +63,100 @@ export async function requireAdmin() {
   if (!profile || profile.platform_role !== "admin") return null;
   return profile;
 }
+
+/* ------------------------------------------------------------------
+   Stage 2: accounts for everyone, not just administrators
+   ------------------------------------------------------------------ */
+
+export interface CurrentUser {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  phone: string | null;
+  avatar_path: string | null;
+  platform_role: string;
+  country_code: string | null;
+}
+
+/**
+ * The signed in user's profile, whoever they are.
+ *
+ * Unlike requireAdmin this makes no claim about privilege. It answers one
+ * question: is somebody signed in, and who. Pages decide what that entitles
+ * them to.
+ */
+export async function currentUser(): Promise<CurrentUser | null> {
+  if (!isConfigured()) return null;
+  const supabase = await sessionClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select(
+      "id, email, full_name, phone, avatar_path, platform_role, country_code"
+    )
+    .eq("id", user.id)
+    .single();
+
+  return (data as CurrentUser) ?? null;
+}
+
+export interface MemberCompany {
+  id: string;
+  slug: string | null;
+  legal_name: string;
+  trading_name: string | null;
+  company_type: string;
+  verification_status: string;
+  is_listed: boolean;
+  logo_path: string | null;
+  country_code: string | null;
+  /** The signed in user's role in this company: owner, admin or member. */
+  member_role: string;
+}
+
+/**
+ * Every company the signed in user actively belongs to.
+ *
+ * Invited but not yet accepted members are excluded, because an invitation is
+ * not membership and the policies treat it that way too.
+ *
+ * Returns an empty array rather than null when nobody is signed in, so callers
+ * can map over the result without a guard.
+ */
+export async function userCompanies(): Promise<MemberCompany[]> {
+  if (!isConfigured()) return [];
+  const supabase = await sessionClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("company_members")
+    .select(
+      `member_role,
+       company:company_id (
+         id, slug, legal_name, trading_name, company_type,
+         verification_status, is_listed, logo_path, country_code
+       )`
+    )
+    .eq("user_id", user.id)
+    .eq("status", "active");
+
+  if (!data) return [];
+
+  // Supabase types an embedded one-to-one as an array. It is a single row
+  // here because company_id is a foreign key, so flatten it.
+  return data.flatMap((row) => {
+    const raw = row as unknown as {
+      member_role: string;
+      company: Omit<MemberCompany, "member_role"> | Omit<MemberCompany, "member_role">[] | null;
+    };
+    const company = Array.isArray(raw.company) ? raw.company[0] : raw.company;
+    return company ? [{ ...company, member_role: raw.member_role }] : [];
+  });
+}
