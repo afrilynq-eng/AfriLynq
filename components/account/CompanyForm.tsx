@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { browserClient } from "@/lib/supabase-browser";
 import { COUNTRIES } from "@/lib/countries";
+import { createCompany } from "@/app/(site)/account/company/new/actions";
 
 const TYPES = [
   {
@@ -23,28 +23,6 @@ const TYPES = [
   },
 ] as const;
 
-/**
- * Turn a company name into a URL safe slug.
- *
- * A short random suffix is appended because slug is unique across the table
- * and two companies with the same trading name is ordinary, not an error. The
- * alternative, a round trip to check and retry, costs more than four
- * characters of noise in a URL nobody types by hand.
- */
-function toSlug(name: string) {
-  const base = name
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
-
-  const suffix = Math.random().toString(36).slice(2, 6);
-  return `${base || "company"}-${suffix}`;
-}
-
 export default function CompanyForm({
   defaultEmail,
 }: {
@@ -55,56 +33,41 @@ export default function CompanyForm({
   const [state, setState] = useState<"idle" | "saving">("idle");
   const [error, setError] = useState("");
 
+  /**
+   * The write happens on the server, in createCompany.
+   *
+   * The browser does not talk to Supabase here. It hands the typed values to
+   * a server action, which reads the session from the cookie and sets
+   * created_by itself. That is what makes the companies_insert policy pass,
+   * and it keeps the client from being able to name whose company this is.
+   */
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-
-    const legalName = String(data.get("legalName") ?? "").trim();
-    const tradingName = String(data.get("tradingName") ?? "").trim();
+    const text = (name: string) => String(data.get(name) ?? "");
 
     setState("saving");
     setError("");
 
-    const supabase = browserClient();
+    const result = await createCompany({
+      companyType: type,
+      legalName: text("legalName"),
+      tradingName: text("tradingName"),
+      countryCode: text("countryCode"),
+      city: text("city"),
+      registrationNumber: text("registrationNumber"),
+      contactEmail: text("contactEmail"),
+      contactPhone: text("contactPhone"),
+      shortDescription: text("shortDescription"),
+    }).catch(() => ({
+      ok: false as const,
+      message:
+        "We could not reach the server just now. Please try again, or email info@afrilynq.co.uk.",
+    }));
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    if (!result.ok) {
       setState("idle");
-      setError("Your session has expired. Please sign in again.");
-      return;
-    }
-
-    const { data: created, error: err } = await supabase
-      .from("companies")
-      .insert({
-        legal_name: legalName,
-        trading_name: tradingName || null,
-        slug: toSlug(tradingName || legalName),
-        company_type: type,
-        country_code: String(data.get("countryCode") ?? "") || null,
-        city: String(data.get("city") ?? "").trim() || null,
-        registration_number:
-          String(data.get("registrationNumber") ?? "").trim() || null,
-        contact_email: String(data.get("contactEmail") ?? "").trim() || null,
-        contact_phone: String(data.get("contactPhone") ?? "").trim() || null,
-        short_description:
-          String(data.get("shortDescription") ?? "").trim() || null,
-        // Required by the companies_insert policy, and read by the
-        // companies_create_owner trigger to make you the owner.
-        created_by: user.id,
-      })
-      .select("id")
-      .single();
-
-    if (err || !created) {
-      setState("idle");
-      setError(
-        err?.message ??
-          "We could not save that just now. Please try again, or email info@afrilynq.co.uk."
-      );
+      setError(result.message);
       return;
     }
 
