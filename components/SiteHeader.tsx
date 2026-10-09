@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
+import AccountNav from "./AccountNav";
 
 /**
  * Site header.
@@ -118,19 +119,10 @@ export default function SiteHeader() {
             </div>
           </details>
 
-          <Link
-            href="/sign-in"
-            className="btn-lift hidden rounded border border-forest px-3.5 py-1.5 text-[0.9rem] font-medium text-forest transition-colors hover:bg-forest hover:text-paper sm:inline-block"
-          >
-            Sign In
-          </Link>
-
-          <Link
-            href="/sign-up"
-            className="btn-lift rounded bg-forest px-4 py-1.5 text-[0.9rem] font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep"
-          >
-            Sign Up
-          </Link>
+          {/* Sign In and Sign Up when signed out, your name and a menu when
+              signed in. Kept in its own client component so the header, and
+              every static page under it, can stay server rendered. */}
+          <AccountNav />
         </div>
       </div>
     </header>

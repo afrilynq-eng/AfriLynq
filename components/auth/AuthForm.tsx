@@ -61,7 +61,8 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
     const email = String(data.get("email") ?? "").trim();
     const password = String(data.get("password") ?? "");
-    const fullName = String(data.get("fullName") ?? "").trim();
+    const firstName = String(data.get("firstName") ?? "").trim();
+    const lastName = String(data.get("lastName") ?? "").trim();
 
     setError("");
 
@@ -88,8 +89,9 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           password,
           options: {
             // Read by the on_auth_user_created trigger when it builds the
-            // profiles row.
-            data: { full_name: fullName },
+            // profiles row. It stores the two parts and joins them into
+            // full_name itself, so full_name is not sent from here.
+            data: { first_name: firstName, last_name: lastName },
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
@@ -172,20 +174,40 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       </div>
 
       <form onSubmit={submit} className="px-7 py-7">
+        {/* First and last kept apart rather than one Full name box. A
+            marketplace addresses people by first name in email and greets
+            them by it on the portal, and splitting a single string on the
+            space gets that wrong for anyone with two given names. */}
         {mode === "sign-up" && (
-          <label className="block">
-            <span className={label}>
-              Full name <span className="text-gold">*</span>
-            </span>
-            <input
-              type="text"
-              name="fullName"
-              required
-              autoComplete="name"
-              placeholder="Your full name"
-              className={field}
-            />
-          </label>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="block">
+              <span className={label}>
+                First name <span className="text-gold">*</span>
+              </span>
+              <input
+                type="text"
+                name="firstName"
+                required
+                autoComplete="given-name"
+                placeholder="Your first name"
+                className={field}
+              />
+            </label>
+
+            <label className="block">
+              <span className={label}>
+                Last name <span className="text-gold">*</span>
+              </span>
+              <input
+                type="text"
+                name="lastName"
+                required
+                autoComplete="family-name"
+                placeholder="Your last name"
+                className={field}
+              />
+            </label>
+          </div>
         )}
 
         <label className={mode === "sign-up" ? "mt-5 block" : "block"}>

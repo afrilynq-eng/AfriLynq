@@ -72,6 +72,8 @@ export interface CurrentUser {
   id: string;
   email: string | null;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   phone: string | null;
   avatar_path: string | null;
   platform_role: string;
@@ -96,12 +98,27 @@ export async function currentUser(): Promise<CurrentUser | null> {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "id, email, full_name, phone, avatar_path, platform_role, country_code"
+      "id, email, full_name, first_name, last_name, phone, avatar_path, platform_role, country_code"
     )
     .eq("id", user.id)
     .single();
 
   return (data as CurrentUser) ?? null;
+}
+
+/**
+ * What to call someone.
+ *
+ * first_name where we have it, the leading word of full_name for the accounts
+ * created before the name was split, and "there" when we have neither rather
+ * than an empty greeting.
+ */
+export function greetingName(user: CurrentUser | null): string {
+  if (!user) return "there";
+  const first = user.first_name?.trim();
+  if (first) return first;
+  const legacy = user.full_name?.trim().split(/\s+/)[0];
+  return legacy || "there";
 }
 
 export interface MemberCompany {
@@ -159,4 +176,68 @@ export async function userCompanies(): Promise<MemberCompany[]> {
     const company = Array.isArray(raw.company) ? raw.company[0] : raw.company;
     return company ? [{ ...company, member_role: raw.member_role }] : [];
   });
+}
+
+export interface Certification {
+  id: string;
+  company_id: string;
+  name: string;
+  issuing_body: string | null;
+  reference: string | null;
+  document_path: string | null;
+  issued_on: string | null;
+  expires_on: string | null;
+  status: string;
+  review_notes: string | null;
+  created_at: string;
+}
+
+/**
+ * Documents held against one company.
+ *
+ * certifications_member_read already limits this to companies the signed in
+ * user belongs to, so there is no membership check here. Passing a company id
+ * that is not theirs returns nothing rather than an error, which is how row
+ * level security is meant to behave.
+ */
+export async function companyCertifications(
+  companyId: string
+): Promise<Certification[]> {
+  if (!isConfigured()) return [];
+  const supabase = await sessionClient();
+
+  const { data } = await supabase
+    .from("certifications")
+    .select(
+      "id, company_id, name, issuing_body, reference, document_path, issued_on, expires_on, status, review_notes, created_at"
+    )
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false });
+
+  return (data as Certification[]) ?? [];
+}
+
+/**
+ * How many documents each of these companies holds.
+ *
+ * One query for all of them rather than one per company, because the portal
+ * header needs this on every page and the count is only used to decide
+ * whether a step in the progress strip is done.
+ */
+export async function certificationCounts(
+  companyIds: string[]
+): Promise<Record<string, number>> {
+  if (!isConfigured() || companyIds.length === 0) return {};
+  const supabase = await sessionClient();
+
+  const { data } = await supabase
+    .from("certifications")
+    .select("company_id")
+    .in("company_id", companyIds);
+
+  const counts: Record<string, number> = {};
+  for (const row of (data ?? []) as { company_id: string }[]) {
+    counts[row.company_id] = (counts[row.company_id] ?? 0) + 1;
+  }
+  return counts;
 }
