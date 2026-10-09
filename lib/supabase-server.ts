@@ -128,6 +128,7 @@ export interface MemberCompany {
   trading_name: string | null;
   company_type: string;
   verification_status: string;
+  verification_notes: string | null;
   is_listed: boolean;
   logo_path: string | null;
   country_code: string | null;
@@ -158,7 +159,8 @@ export async function userCompanies(): Promise<MemberCompany[]> {
       `member_role,
        company:company_id (
          id, slug, legal_name, trading_name, company_type,
-         verification_status, is_listed, logo_path, country_code
+         verification_status, verification_notes, is_listed,
+         logo_path, country_code
        )`
     )
     .eq("user_id", user.id)

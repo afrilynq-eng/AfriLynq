@@ -128,7 +128,34 @@ export default async function AdminDashboard() {
       (!l.categories_of_interest || l.categories_of_interest.length === 0)
   ).length;
 
+  /**
+   * Accounts and companies.
+   *
+   * Everything above this counts leads, which is the marketing form. These
+   * are the people who actually signed up, and a company sitting in
+   * 'pending' is the one thing on this page that is genuinely waiting on
+   * somebody here rather than just worth knowing.
+   */
+  const [{ count: accountCount }, { data: companyRows }] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("companies").select("id, verification_status"),
+  ]);
+
+  const companies = (companyRows ?? []) as { verification_status: string }[];
+  const awaitingReview = companies.filter(
+    (c) => c.verification_status === "pending"
+  ).length;
+  const verifiedCount = companies.filter(
+    (c) => c.verification_status === "verified"
+  ).length;
+
   const actions = [
+    {
+      n: awaitingReview,
+      label: "companies waiting on a verification decision",
+      href: "/admin/verification",
+      tone: "gold" as const,
+    },
     {
       n: newRegistrations,
       label: "registrations in the last 48 hours to review",
@@ -167,13 +194,43 @@ export default async function AdminDashboard() {
       title="Platform overview"
       subtitle="Live activity across the AfriLynq website"
     >
+      {/* Accounts and companies first. A lead is interest; an account with a
+          company behind it is a business on the platform, and that is the
+          number that says whether AfriLynq is working. */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard value={leads.length} label="Total leads" caption="all time" accent="gold" />
-        <StatCard value={buyers} label="Buyers" caption="sourcing requests" accent="green" />
-        <StatCard value={suppliers} label="Suppliers" caption="registered interest" accent="blue" />
+        <StatCard
+          value={accountCount ?? 0}
+          label="Accounts"
+          caption="signed up and confirmed"
+          accent="gold"
+        />
+        <StatCard
+          value={companies.length}
+          label="Companies"
+          caption={`${verifiedCount} verified`}
+          accent="green"
+        />
+        <StatCard
+          value={awaitingReview}
+          label="Awaiting verification"
+          caption={awaitingReview > 0 ? "Waiting on you" : "Nothing waiting"}
+          accent={awaitingReview > 0 ? "red" : "slate"}
+        />
+        <StatCard
+          value={leads.length}
+          label="Total leads"
+          caption="from the registration forms"
+          accent="blue"
+        />
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard value={buyers} label="Buyer leads" caption="sourcing requests" accent="slate" />
+        <StatCard value={suppliers} label="Supplier leads" caption="registered interest" accent="slate" />
+        <StatCard value={others} label="Shopper leads" caption="buying for themselves" accent="slate" />
         <StatCard
           value={newThisWeek}
-          label="New registrations this week"
+          label="New leads this week"
           caption={weekTrend}
           accent="slate"
         />

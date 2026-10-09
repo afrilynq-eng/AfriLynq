@@ -14,7 +14,17 @@ import SignOutButton from "@/app/admin/SignOutButton";
 
 const NAV = [
   {
-    heading: "Platform",
+    // Real accounts and real companies, as opposed to the marketing capture
+    // below. These were invisible in administration until now.
+    heading: "Marketplace",
+    items: [
+      { href: "/admin/verification", label: "Verification", icon: "shield" },
+      { href: "/admin/companies", label: "Companies", icon: "building" },
+      { href: "/admin/accounts", label: "Accounts", icon: "people" },
+    ],
+  },
+  {
+    heading: "Registrations",
     items: [
       { href: "/admin", label: "Dashboard", icon: "grid" },
       { href: "/admin/leads", label: "All leads", icon: "list" },
@@ -84,6 +94,26 @@ function Icon({ name }: { name: string }) {
         <>
           <rect x="2.5" y="4.5" width="15" height="11" rx="1.6" {...common} />
           <path d="M3 5.6 10 11l7-5.4" {...common} strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+      {name === "shield" && (
+        <>
+          <path d="M10 2.4 16.2 4.8v5c0 4-2.6 6.6-6.2 7.8-3.6-1.2-6.2-3.8-6.2-7.8v-5z" {...common} strokeLinejoin="round" />
+          <path d="M7.3 9.9 9.3 12l3.6-4" {...common} strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+      {name === "building" && (
+        <>
+          <rect x="3" y="3" width="8.5" height="14" rx="1.2" {...common} />
+          <path d="M11.5 8h5a1 1 0 0 1 1 1v8h-6" {...common} strokeLinejoin="round" />
+          <path d="M5.6 6.2h3.3M5.6 9.3h3.3M5.6 12.4h3.3" {...common} strokeLinecap="round" />
+        </>
+      )}
+      {name === "people" && (
+        <>
+          <circle cx="7.6" cy="7" r="2.8" {...common} />
+          <path d="M2.6 16.6c0-2.6 2.2-4.4 5-4.4s5 1.8 5 4.4" {...common} strokeLinecap="round" />
+          <path d="M13.2 4.6a2.8 2.8 0 0 1 0 5.2M14.4 12.6c1.8.5 3 1.9 3 4" {...common} strokeLinecap="round" />
         </>
       )}
       {name === "tag" && (

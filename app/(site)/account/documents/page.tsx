@@ -41,7 +41,7 @@ const COMPANY_STATE: Record<string, { title: string; note: string }> = {
   },
   rejected: {
     title: "Not accepted",
-    note: "Have a look at the notes on the documents below, upload what is missing, and submit again.",
+    note: "Upload what is missing and submit again. There is no limit on how many times you can.",
   },
   suspended: {
     title: "Suspended",
@@ -100,6 +100,20 @@ export default async function DocumentsPage() {
         </p>
         <h2 className="mt-2 text-2xl">{state.title}</h2>
         <p className="mt-3 max-w-2xl leading-relaxed text-ink-soft">{state.note}</p>
+
+        {/* What the reviewer actually wrote. Shown in full rather than
+            summarised, because a rejection the supplier cannot act on is a
+            rejection they will email you about. */}
+        {company.verification_notes && (
+          <div className="mt-4 max-w-2xl rounded-lg border-l-2 border-gold bg-sand px-4 py-3.5">
+            <p className="text-[0.7rem] font-semibold tracking-widest text-stone uppercase">
+              From the review
+            </p>
+            <p className="mt-1.5 leading-relaxed text-ink">
+              {company.verification_notes}
+            </p>
+          </div>
+        )}
 
         {canSubmit && (
           <div className="mt-6">
