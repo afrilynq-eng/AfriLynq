@@ -133,6 +133,12 @@ export default function AccountNav() {
           Your account
         </Link>
         <Link
+          href="/account/company"
+          className="block rounded px-3 py-2 text-sm text-ink-soft hover:bg-sand hover:text-forest"
+        >
+          Company profile
+        </Link>
+        <Link
           href="/account/documents"
           className="block rounded px-3 py-2 text-sm text-ink-soft hover:bg-sand hover:text-forest"
         >

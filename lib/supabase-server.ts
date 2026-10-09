@@ -180,6 +180,58 @@ export async function userCompanies(): Promise<MemberCompany[]> {
   });
 }
 
+/** Every field on a company profile that its owner can see or edit. */
+export interface CompanyDetail {
+  id: string;
+  slug: string | null;
+  legal_name: string;
+  trading_name: string | null;
+  company_type: string;
+  registration_number: string | null;
+  tax_number: string | null;
+  country_code: string | null;
+  state_or_region: string | null;
+  city: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  postcode: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  website_url: string | null;
+  logo_path: string | null;
+  short_description: string | null;
+  about: string | null;
+  year_established: number | null;
+  employee_band: string | null;
+  verification_status: string;
+  is_listed: boolean;
+}
+
+const COMPANY_DETAIL_COLUMNS =
+  "id, slug, legal_name, trading_name, company_type, registration_number, tax_number, country_code, state_or_region, city, address_line1, address_line2, postcode, contact_email, contact_phone, website_url, logo_path, short_description, about, year_established, employee_band, verification_status, is_listed";
+
+/**
+ * One company in full, if the signed in user may see it.
+ *
+ * No membership check here: companies_member_read already limits the read
+ * to companies they belong to, so an id that is not theirs returns nothing
+ * rather than an error.
+ */
+export async function companyDetail(
+  companyId: string
+): Promise<CompanyDetail | null> {
+  if (!isConfigured()) return null;
+  const supabase = await sessionClient();
+
+  const { data } = await supabase
+    .from("companies")
+    .select(COMPANY_DETAIL_COLUMNS)
+    .eq("id", companyId)
+    .maybeSingle();
+
+  return (data as CompanyDetail | null) ?? null;
+}
+
 export interface Certification {
   id: string;
   company_id: string;

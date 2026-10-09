@@ -119,6 +119,12 @@ function CompanyCard({
             ? "Add documents"
             : "Documents and verification"}
         </Link>
+        <Link
+          href="/account/company"
+          className="btn-lift rounded-lg border border-sand-deep px-5 py-2.5 text-sm font-medium text-forest transition-colors hover:border-forest"
+        >
+          Company profile
+        </Link>
       </div>
     </article>
   );

@@ -44,45 +44,25 @@ export async function decideCompany(
 
   const supabase = await sessionClient();
 
-  const { error } = await supabase
-    .from("companies")
-    .update({
-      verification_status: decision,
-      verification_notes: note || null,
-      verified_at: new Date().toISOString(),
-      verified_by: admin.id,
-      // Approval is what puts a company in the public directory. Without
-      // this an approved supplier is verified and still invisible.
-      is_listed: decision === "verified",
-    })
-    .eq("id", companyId);
+  /**
+   * One call, one transaction.
+   *
+   * The company status, the listing flag and every pending document move
+   * together inside the database. Done as two separate updates from here,
+   * a failure between them would leave a company approved with its
+   * documents still reading "Awaiting review" on the supplier's own page.
+   *
+   * The function also re-checks that the caller is a platform
+   * administrator, so the rule holds even against a request that never
+   * went through this action.
+   */
+  const { error } = await supabase.rpc("admin_decide_company", {
+    p_company_id: companyId,
+    p_status: decision,
+    p_notes: note,
+  });
 
   if (error) return { ok: false, message: error.message };
-
-  /**
-   * Move the documents along with the company.
-   *
-   * Without this every certificate stays on "Awaiting review" forever on
-   * the supplier's own page, which reads as though you never looked.
-   */
-  const { error: docErr } = await supabase
-    .from("certifications")
-    .update({
-      status: decision,
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: admin.id,
-    })
-    .eq("company_id", companyId)
-    .eq("status", "pending");
-
-  // A failure here is worth knowing about but must not undo the decision
-  // already written above, so it is reported rather than thrown.
-  if (docErr) {
-    return {
-      ok: false,
-      message: `The company was ${decision}, but its documents could not be updated: ${docErr.message}`,
-    };
-  }
 
   revalidatePath("/admin/verification");
   revalidatePath("/admin/companies");

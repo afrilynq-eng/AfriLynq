@@ -32,11 +32,9 @@ interface Props {
   children: React.ReactNode;
 }
 
-// Company profile editing arrives with the next set of pages. It is left out
-// rather than shown greyed, because a link that is permanently disabled
-// teaches people to stop reading the sidebar.
 const LINKS = [
   { href: "/account", label: "Overview", needsCompany: false },
+  { href: "/account/company", label: "Company profile", needsCompany: true },
   { href: "/account/documents", label: "Documents and verification", needsCompany: true },
   { href: "/account/settings", label: "Settings", needsCompany: false },
 ];

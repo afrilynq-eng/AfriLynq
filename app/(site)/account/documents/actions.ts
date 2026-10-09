@@ -167,22 +167,18 @@ export async function submitForVerification(
 
   const supabase = await sessionClient();
 
-  const { count } = await supabase
-    .from("certifications")
-    .select("id", { count: "exact", head: true })
-    .eq("company_id", companyId);
-
-  if (!count) {
-    return {
-      ok: false,
-      message: "Upload at least one document before submitting for verification.",
-    };
-  }
-
-  const { error } = await supabase
-    .from("companies")
-    .update({ verification_status: "pending" })
-    .eq("id", companyId);
+  /**
+   * The move to 'pending' happens inside the database.
+   *
+   * verification_status is not writable from the Data API by anyone: if it
+   * were, a supplier could set their own company to verified and listed
+   * without a document ever being looked at. The function runs with the
+   * table owner's rights and checks for itself that the caller manages
+   * this company and that something has actually been uploaded.
+   */
+  const { error } = await supabase.rpc("submit_company_for_verification", {
+    p_company_id: companyId,
+  });
 
   if (error) return { ok: false, message: error.message };
 
