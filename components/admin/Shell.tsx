@@ -20,6 +20,7 @@ const NAV = [
     items: [
       { href: "/admin/verification", label: "Verification", icon: "shield" },
       { href: "/admin/companies", label: "Companies", icon: "building" },
+      { href: "/admin/products", label: "Listings", icon: "tag" },
       { href: "/admin/accounts", label: "Accounts", icon: "people" },
     ],
   },

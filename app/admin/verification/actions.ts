@@ -17,7 +17,7 @@ import { requireAdmin, sessionClient } from "@/lib/supabase-server";
  * who is doing it and the audit trail is true.
  */
 
-export type Decision = "verified" | "rejected";
+export type Decision = "verified" | "rejected" | "suspended";
 
 export type DecisionResult = { ok: true } | { ok: false; message: string };
 
@@ -33,12 +33,15 @@ export async function decideCompany(
 
   const note = notes.trim();
 
-  // A rejection with no reason is useless to the supplier and generates an
-  // email to you asking what was wrong. Required.
-  if (decision === "rejected" && !note) {
+  // A negative decision with no reason is useless to the supplier and
+  // generates an email to you asking what was wrong. Required.
+  if (decision !== "verified" && !note) {
     return {
       ok: false,
-      message: "Say why it was not accepted. The supplier sees this and acts on it.",
+      message:
+        decision === "suspended"
+          ? "Say why it is being suspended. The supplier sees this."
+          : "Say why it was not accepted. The supplier sees this and acts on it.",
     };
   }
 

@@ -150,7 +150,12 @@ export default async function AdminCompaniesPage() {
                           })}
                         </td>
                         <td className="py-3.5 pr-4 text-white">
-                          {c.trading_name || c.legal_name}
+                          <Link
+                            href={`/admin/companies/${c.id}`}
+                            className="hover:text-gold"
+                          >
+                            {c.trading_name || c.legal_name}
+                          </Link>
                           {c.trading_name && (
                             <span className="block text-xs text-white/40">
                               {c.legal_name}
