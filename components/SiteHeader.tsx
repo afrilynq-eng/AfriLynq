@@ -19,6 +19,7 @@ const NAV = [
   { href: "/about", label: "About Us" },
   { href: "/#how-it-works", label: "How It Works" },
   { href: "/marketplace", label: "Marketplace" },
+  { href: "/suppliers", label: "Suppliers" },
   { href: "/for-farmers", label: "For Farmers" },
   { href: "/for-retailers", label: "For Retailers" },
   { href: "/for-shoppers", label: "For Shoppers" },
