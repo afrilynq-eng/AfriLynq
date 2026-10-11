@@ -35,6 +35,7 @@ interface Props {
 const LINKS = [
   { href: "/account", label: "Overview", needsCompany: false },
   { href: "/account/company", label: "Company profile", needsCompany: true },
+  { href: "/account/products", label: "Listings", needsCompany: true },
   { href: "/account/documents", label: "Documents and verification", needsCompany: true },
   { href: "/account/settings", label: "Settings", needsCompany: false },
 ];

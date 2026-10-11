@@ -1,0 +1,118 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  setProductStatus,
+  deleteProduct,
+} from "@/app/(site)/account/products/actions";
+
+/**
+ * Publish, take down or delete, from the list.
+ *
+ * Changing whether a listing is live is the thing a supplier does most
+ * often and it should not require opening a form with thirty fields in
+ * it. Deleting does, in the sense that it asks first: a listing carries
+ * photographs and a history of enquiries, and there is no undo.
+ */
+export default function ProductRowActions({
+  companyId,
+  productId,
+  status,
+}: {
+  companyId: string;
+  productId: string;
+  status: string;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState("");
+
+  async function move(next: string) {
+    setBusy(true);
+    setError("");
+    const result = await setProductStatus(companyId, productId, next).catch(() => ({
+      ok: false as const,
+      message: "Could not reach the server. Try again.",
+    }));
+    if (!result.ok) setError(result.message);
+    setBusy(false);
+    router.refresh();
+  }
+
+  async function destroy() {
+    setBusy(true);
+    setError("");
+    const result = await deleteProduct(companyId, productId).catch(() => ({
+      ok: false as const,
+      message: "Could not reach the server. Try again.",
+    }));
+    if (!result.ok) {
+      setError(result.message);
+      setBusy(false);
+      return;
+    }
+    setBusy(false);
+    setConfirming(false);
+    router.refresh();
+  }
+
+  const button =
+    "rounded-lg border border-sand-deep px-3.5 py-1.5 text-sm text-forest transition-colors hover:border-forest disabled:opacity-40";
+
+  if (confirming) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-ink-soft">Delete for good?</span>
+        <button
+          type="button"
+          onClick={destroy}
+          disabled={busy}
+          className="rounded-lg bg-[#8c3b2c] px-3.5 py-1.5 text-sm font-medium text-paper transition-opacity hover:opacity-85 disabled:opacity-40"
+        >
+          Yes, delete
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirming(false)}
+          className={button}
+        >
+          Keep it
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {status !== "active" && (
+        <button type="button" onClick={() => move("active")} disabled={busy} className={button}>
+          Publish
+        </button>
+      )}
+      {status === "active" && (
+        <button type="button" onClick={() => move("draft")} disabled={busy} className={button}>
+          Take down
+        </button>
+      )}
+      {status !== "archived" && (
+        <button type="button" onClick={() => move("archived")} disabled={busy} className={button}>
+          Archive
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        disabled={busy}
+        className={button}
+      >
+        Delete
+      </button>
+
+      {error && (
+        <span className="block w-full text-sm text-[#8c3b2c]">{error}</span>
+      )}
+    </div>
+  );
+}

@@ -295,3 +295,151 @@ export async function certificationCounts(
   }
   return counts;
 }
+
+/* ------------------------------------------------------------------
+   Listings
+   ------------------------------------------------------------------ */
+
+export interface ProductSummary {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  summary: string | null;
+  unit_code: string;
+  price_currency: string | null;
+  price_min_minor: number | null;
+  price_max_minor: number | null;
+  price_is_public: boolean;
+  is_featured: boolean;
+  view_count: number;
+  enquiry_count: number;
+  category_id: string;
+  updated_at: string;
+}
+
+export interface ProductDetail extends ProductSummary {
+  company_id: string;
+  description: string | null;
+  min_order_quantity: number | null;
+  max_monthly_capacity: number | null;
+  lead_time_days: number | null;
+  origin_country_code: string | null;
+  origin_region: string | null;
+  harvest_months: number[] | null;
+  packaging: string | null;
+  shelf_life_days: number | null;
+  incoterms: string[] | null;
+}
+
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  storage_path: string;
+  alt_text: string | null;
+  sort_order: number;
+}
+
+const PRODUCT_SUMMARY_COLUMNS =
+  "id, name, slug, status, summary, unit_code, price_currency, price_min_minor, price_max_minor, price_is_public, is_featured, view_count, enquiry_count, category_id, updated_at";
+
+const PRODUCT_DETAIL_COLUMNS = `${PRODUCT_SUMMARY_COLUMNS}, company_id, description, min_order_quantity, max_monthly_capacity, lead_time_days, origin_country_code, origin_region, harvest_months, packaging, shelf_life_days, incoterms`;
+
+/**
+ * Every listing belonging to one company, newest change first.
+ *
+ * products_member_read limits this to companies the signed in user
+ * belongs to, so an id that is not theirs returns an empty list.
+ */
+export async function companyProducts(
+  companyId: string
+): Promise<ProductSummary[]> {
+  if (!isConfigured()) return [];
+  const supabase = await sessionClient();
+
+  const { data } = await supabase
+    .from("products")
+    .select(PRODUCT_SUMMARY_COLUMNS)
+    .eq("company_id", companyId)
+    .order("updated_at", { ascending: false });
+
+  return (data as ProductSummary[]) ?? [];
+}
+
+export async function productDetail(
+  productId: string
+): Promise<ProductDetail | null> {
+  if (!isConfigured()) return null;
+  const supabase = await sessionClient();
+
+  const { data } = await supabase
+    .from("products")
+    .select(PRODUCT_DETAIL_COLUMNS)
+    .eq("id", productId)
+    .maybeSingle();
+
+  return (data as ProductDetail | null) ?? null;
+}
+
+export async function productImages(productId: string): Promise<ProductImage[]> {
+  if (!isConfigured()) return [];
+  const supabase = await sessionClient();
+
+  const { data } = await supabase
+    .from("product_images")
+    .select("id, product_id, storage_path, alt_text, sort_order")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: true });
+
+  return (data as ProductImage[]) ?? [];
+}
+
+/** How many images each of these products has, in one query. */
+export async function productImageCounts(
+  productIds: string[]
+): Promise<Record<string, number>> {
+  if (!isConfigured() || productIds.length === 0) return {};
+  const supabase = await sessionClient();
+
+  const { data } = await supabase
+    .from("product_images")
+    .select("product_id")
+    .in("product_id", productIds);
+
+  const counts: Record<string, number> = {};
+  for (const row of (data ?? []) as { product_id: string }[]) {
+    counts[row.product_id] = (counts[row.product_id] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export interface Reference {
+  categories: { id: string; name: string; slug: string }[];
+  units: { code: string; name: string; plural_name: string }[];
+  currencies: { code: string; name: string; symbol: string; minor_units: number }[];
+}
+
+/**
+ * The lists the listing form is built from.
+ *
+ * Read from the database rather than hard coded, so adding a category in
+ * the admin area makes it selectable without a deploy. All three tables
+ * are readable by anyone and filtered to is_active by their own policies.
+ */
+export async function reference(): Promise<Reference> {
+  const empty: Reference = { categories: [], units: [], currencies: [] };
+  if (!isConfigured()) return empty;
+  const supabase = await sessionClient();
+
+  const [cats, units, currencies] = await Promise.all([
+    supabase.from("categories").select("id, name, slug").order("sort_order"),
+    supabase.from("units").select("code, name, plural_name").order("sort_order"),
+    supabase.from("currencies").select("code, name, symbol, minor_units").order("code"),
+  ]);
+
+  return {
+    categories: (cats.data as Reference["categories"]) ?? [],
+    units: (units.data as Reference["units"]) ?? [],
+    currencies: (currencies.data as Reference["currencies"]) ?? [],
+  };
+}
