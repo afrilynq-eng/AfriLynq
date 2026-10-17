@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import mark from "@/public/brand/mark-reverse.png";
 import SignOutButton from "@/app/admin/SignOutButton";
+import { serviceClient } from "@/lib/supabase";
 
 /**
  * Administration shell.
@@ -40,6 +41,7 @@ const NAV = [
     items: [
       { href: "/", label: "View website", icon: "globe" },
       { href: "/categories", label: "Categories", icon: "tag" },
+      { href: "/admin/audit", label: "Audit log", icon: "list" },
     ],
   },
 ];
@@ -127,7 +129,7 @@ function Icon({ name }: { name: string }) {
   );
 }
 
-export default function AdminShell({
+export default async function AdminShell({
   admin,
   title,
   subtitle,
@@ -138,6 +140,11 @@ export default function AdminShell({
   subtitle: string;
   children: React.ReactNode;
 }) {
+  const { count: waiting } = await serviceClient()
+    .from("companies")
+    .select("id", { count: "exact", head: true })
+    .eq("verification_status", "pending");
+
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
     day: "numeric",
@@ -180,6 +187,11 @@ export default function AdminShell({
                     >
                       <Icon name={item.icon} />
                       {item.label}
+                      {item.href === "/admin/verification" && waiting ? (
+                        <span className="ml-auto rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-[#042115]">
+                          {waiting}
+                        </span>
+                      ) : null}
                     </Link>
                   </li>
                 ))}

@@ -39,7 +39,7 @@ export default async function AccountLayout({
     account: true,
     company: Boolean(primary),
     documents: documents > 0,
-    submitted: ["pending", "verified", "rejected"].includes(status),
+    submitted: ["pending", "verified"].includes(status),
     verified: status === "verified",
   };
 
@@ -47,7 +47,14 @@ export default async function AccountLayout({
     ["account", "Account created"],
     ["company", "Company added"],
     ["documents", "Documents uploaded"],
-    ["submitted", "Submitted for review"],
+    ["submitted",
+      status === "pending" || status === "verified"
+        ? "Submitted for review"
+        : status === "rejected"
+          ? "Resubmit after changes"
+          : status === "suspended"
+            ? "Suspended, contact AfriLynq"
+            : "Submit for review"],
     ["verified", "Verified"],
   ];
 

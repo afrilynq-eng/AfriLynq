@@ -94,6 +94,25 @@ export default async function VerificationPage() {
   ]);
 
   const pending = (pendingRaw ?? []) as Row[];
+
+  // Companies that uploaded documents but never pressed Submit. Nothing
+  // reaches the queue above until they do, so show them here instead of
+  // letting them sit unseen.
+  const { data: stalledRaw } = await svc
+    .from("admin_company_queue")
+    .select("id, legal_name, trading_name, company_type, country_code, created_at, documents_total, last_document_at")
+    .eq("queue_state", "documents_not_submitted")
+    .order("last_document_at", { ascending: true });
+  const stalled = (stalledRaw ?? []) as {
+    id: string;
+    legal_name: string;
+    trading_name: string | null;
+    company_type: string;
+    country_code: string | null;
+    created_at: string;
+    documents_total: number;
+    last_document_at: string | null;
+  }[];
   const decided = (decidedRaw ?? []) as Row[];
   const ids = pending.map((c) => c.id);
 
@@ -293,6 +312,45 @@ export default async function VerificationPage() {
           </div>
         )}
       </Panel>
+
+      <div className="mt-6">
+        <Panel title={`Uploaded but not submitted (${stalled.length})`}>
+          {stalled.length === 0 ? (
+            <p className="py-8 text-center text-white/45">
+              Every company with documents has submitted them.
+            </p>
+          ) : (
+            <ul className="divide-y divide-white/6">
+              {stalled.map((c) => (
+                <li
+                  key={c.id}
+                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 first:pt-0 last:pb-0"
+                >
+                  <span className="min-w-0">
+                    <span className="text-white/80">{c.trading_name || c.legal_name}</span>
+                    <span className="block text-xs text-white/35">
+                      {[
+                        TYPE_LABEL[c.company_type] ?? c.company_type,
+                        c.country_code ? (COUNTRY.get(c.country_code) ?? c.country_code) : null,
+                        `${c.documents_total} document${c.documents_total === 1 ? "" : "s"} on file`,
+                        c.last_document_at ? `last upload ${fmt(c.last_document_at)}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" . ")}
+                    </span>
+                  </span>
+                  <a
+                    href={`/admin/companies/${c.id}`}
+                    className="shrink-0 text-sm text-gold hover:underline"
+                  >
+                    Open company
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
 
       <div className="mt-6">
         <Panel title="Recently decided">
