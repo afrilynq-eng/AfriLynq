@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import OverviewExtras from "@/components/account/OverviewExtras";
 import {
   userCompanies,
   certificationCounts,
@@ -158,7 +159,9 @@ export default async function AccountPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <OverviewExtras companyIds={companies.map((c) => c.id)} primary={companies[0]} />
+
+      <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <h2 className="text-2xl">
           {companies.length === 1 ? "Your company" : "Your companies"}
         </h2>
