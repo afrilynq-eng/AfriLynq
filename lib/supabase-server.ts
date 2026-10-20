@@ -315,6 +315,8 @@ export interface ProductSummary {
   view_count: number;
   enquiry_count: number;
   category_id: string;
+  origin_country_code: string | null;
+  harvest_months: number[] | null;
   updated_at: string;
 }
 
@@ -324,9 +326,7 @@ export interface ProductDetail extends ProductSummary {
   min_order_quantity: number | null;
   max_monthly_capacity: number | null;
   lead_time_days: number | null;
-  origin_country_code: string | null;
   origin_region: string | null;
-  harvest_months: number[] | null;
   packaging: string | null;
   shelf_life_days: number | null;
   incoterms: string[] | null;
@@ -341,9 +341,9 @@ export interface ProductImage {
 }
 
 const PRODUCT_SUMMARY_COLUMNS =
-  "id, name, slug, status, summary, unit_code, price_currency, price_min_minor, price_max_minor, price_is_public, is_featured, view_count, enquiry_count, category_id, updated_at";
+  "id, name, slug, status, summary, unit_code, price_currency, price_min_minor, price_max_minor, price_is_public, is_featured, view_count, enquiry_count, category_id, origin_country_code, harvest_months, updated_at";
 
-const PRODUCT_DETAIL_COLUMNS = `${PRODUCT_SUMMARY_COLUMNS}, company_id, description, min_order_quantity, max_monthly_capacity, lead_time_days, origin_country_code, origin_region, harvest_months, packaging, shelf_life_days, incoterms`;
+const PRODUCT_DETAIL_COLUMNS = `${PRODUCT_SUMMARY_COLUMNS}, company_id, description, min_order_quantity, max_monthly_capacity, lead_time_days, origin_region, packaging, shelf_life_days, incoterms`;
 
 /**
  * Every listing belonging to one company, newest change first.
@@ -392,6 +392,32 @@ export async function productImages(productId: string): Promise<ProductImage[]> 
     .order("sort_order", { ascending: true });
 
   return (data as ProductImage[]) ?? [];
+}
+
+/**
+ * The lead photograph for each of these listings, in one query.
+ *
+ * The bucket is public, so a plain URL is enough and no signing round trip
+ * is needed to show a thumbnail in a list.
+ */
+export async function productFirstImages(
+  productIds: string[]
+): Promise<Record<string, string>> {
+  if (!isConfigured() || productIds.length === 0) return {};
+  const supabase = await sessionClient();
+  const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product-images`;
+
+  const { data } = await supabase
+    .from("product_images")
+    .select("product_id, storage_path, sort_order")
+    .in("product_id", productIds)
+    .order("sort_order", { ascending: true });
+
+  const out: Record<string, string> = {};
+  for (const row of (data ?? []) as { product_id: string; storage_path: string }[]) {
+    if (!out[row.product_id]) out[row.product_id] = `${base}/${row.storage_path}`;
+  }
+  return out;
 }
 
 /** How many images each of these products has, in one query. */

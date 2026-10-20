@@ -327,6 +327,44 @@ export async function setProductStatus(
   return { ok: true };
 }
 
+/**
+ * Move a live listing back to the top of the catalogue.
+ *
+ * The catalogue and the supplier directory both order by published_at, so
+ * this is a real change and not a cosmetic one: a listing added in March
+ * sinks under everything added since, and renewing it brings it back up.
+ *
+ * Only active listings can be renewed. Renewing a draft would set a
+ * publication date on something that was never published.
+ */
+export async function renewProduct(
+  companyId: string,
+  productId: string
+): Promise<SimpleResult> {
+  const { user, ok, supabase } = await member(companyId);
+  if (!user) {
+    return { ok: false, message: "Your session has expired. Please sign in again." };
+  }
+  if (!ok) {
+    return { ok: false, message: "You do not have permission to change this listing." };
+  }
+
+  const { error, count } = await supabase
+    .from("products")
+    .update({ published_at: new Date().toISOString() }, { count: "exact" })
+    .eq("id", productId)
+    .eq("company_id", companyId)
+    .eq("status", "active");
+
+  if (error) return { ok: false, message: error.message };
+  if (!count) {
+    return { ok: false, message: "Only a published listing can be renewed." };
+  }
+
+  revalidatePath("/account/products");
+  return { ok: true };
+}
+
 export async function deleteProduct(
   companyId: string,
   productId: string
