@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { browserClient } from "@/lib/supabase-browser";
+import SocialButtons from "./SocialButtons";
 
 type Mode = "sign-up" | "sign-in";
 
@@ -47,12 +48,20 @@ const COPY: Record<
  * company, not of them. A trader who does both would otherwise need two
  * accounts.
  */
-export default function AuthForm({ mode }: { mode: Mode }) {
+export default function AuthForm({
+  mode,
+  initialError = "",
+}: {
+  mode: Mode;
+  /** A failure that happened before this form rendered, such as an OAuth
+   *  provider refusing or a confirmation link having expired. */
+  initialError?: string;
+}) {
   const router = useRouter();
   const copy = COPY[mode];
 
   const [state, setState] = useState<"idle" | "sending" | "check-email">("idle");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -173,7 +182,11 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         <p className="mt-1 text-sm text-sand-deep">{copy.bandSub}</p>
       </div>
 
-      <form onSubmit={submit} className="px-7 py-7">
+      <div className="px-7 pt-7">
+        <SocialButtons />
+      </div>
+
+      <form onSubmit={submit} className="px-7 pb-7">
         {/* First and last kept apart rather than one Full name box. A
             marketplace addresses people by first name in email and greets
             them by it on the portal, and splitting a single string on the

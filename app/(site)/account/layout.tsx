@@ -4,10 +4,20 @@ import {
   userCompanies,
   certificationCounts,
   greetingName,
+  sessionClient,
 } from "@/lib/supabase-server";
-import PortalShell, { type PortalStep } from "@/components/account/PortalShell";
+import PortalShell, {
+  type PortalStep,
+  type PortalCounts,
+} from "@/components/account/PortalShell";
 
 export const dynamic = "force-dynamic";
+
+const TYPE_LABEL: Record<string, string> = {
+  supplier: "Supplier",
+  buyer: "Buyer",
+  both: "Supplier and buyer",
+};
 
 /**
  * Everything under /account runs behind this.
@@ -39,7 +49,7 @@ export default async function AccountLayout({
     account: true,
     company: Boolean(primary),
     documents: documents > 0,
-    submitted: ["pending", "verified"].includes(status),
+    submitted: ["pending", "verified", "rejected"].includes(status),
     verified: status === "verified",
   };
 
@@ -47,14 +57,7 @@ export default async function AccountLayout({
     ["account", "Account created"],
     ["company", "Company added"],
     ["documents", "Documents uploaded"],
-    ["submitted",
-      status === "pending" || status === "verified"
-        ? "Submitted for review"
-        : status === "rejected"
-          ? "Resubmit after changes"
-          : status === "suspended"
-            ? "Suspended, contact AfriLynq"
-            : "Submit for review"],
+    ["submitted", "Submitted for review"],
     ["verified", "Verified"],
   ];
 
@@ -68,15 +71,73 @@ export default async function AccountLayout({
     current: i === firstOpen,
   }));
 
+  const badges = primary
+    ? await sidebarCounts(companies.map((c) => c.id))
+    : ({} as PortalCounts);
+
   return (
     <PortalShell
       name={greetingName(user)}
       email={user.email}
+      companyLine={
+        primary
+          ? `${primary.trading_name || primary.legal_name} (${TYPE_LABEL[primary.company_type] ?? primary.company_type})`
+          : null
+      }
       isAdmin={user.platform_role === "admin"}
       hasCompany={Boolean(primary)}
       steps={steps}
+      counts={badges}
     >
       {children}
     </PortalShell>
   );
+}
+
+/**
+ * The numbers beside the sidebar links.
+ *
+ * A badge means "something here is waiting on you", not "here is a total":
+ * listings counts drafts rather than everything, documents counts the ones
+ * that need action. A badge that only ever grows gets ignored within a week.
+ *
+ * Every query runs through the session client, so row level security keeps
+ * this to companies the person actually belongs to.
+ */
+async function sidebarCounts(companyIds: string[]): Promise<PortalCounts> {
+  const supabase = await sessionClient();
+  const head = { count: "exact" as const, head: true };
+
+  const [drafts, enquiries, docs, threads] = await Promise.all([
+    supabase.from("products").select("id", head).in("company_id", companyIds).eq("status", "draft"),
+    supabase.from("enquiries").select("id", head).in("supplier_company_id", companyIds).eq("status", "open"),
+    supabase
+      .from("certifications")
+      .select("id", head)
+      .in("company_id", companyIds)
+      .in("status", ["pending", "rejected", "expired"]),
+    supabase.from("message_threads").select("id").in("supplier_company_id", companyIds),
+  ]);
+
+  // Unread is counted over the person's own threads rather than with a join,
+  // because a head count through an embedded table cannot be filtered the way
+  // this needs and two small queries are cheaper than getting that wrong.
+  let unread = 0;
+  const threadIds = (threads.data ?? []).map((t) => t.id as string);
+  if (threadIds.length > 0) {
+    const { count } = await supabase
+      .from("messages")
+      .select("id", head)
+      .in("thread_id", threadIds)
+      .not("sender_company_id", "in", `(${companyIds.join(",")})`)
+      .is("read_by_supplier_at", null);
+    unread = count ?? 0;
+  }
+
+  return {
+    "/account/products": drafts.count ?? 0,
+    "/account/enquiries": enquiries.count ?? 0,
+    "/account/documents": docs.count ?? 0,
+    "/account/messages": unread,
+  };
 }
