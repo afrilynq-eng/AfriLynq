@@ -27,7 +27,10 @@ export interface PortalStep {
 /** Badge numbers, keyed by the link they belong to. Zero hides the badge. */
 export type PortalCounts = Partial<Record<string, number>>;
 
+export type PortalRole = "supplier" | "buyer" | "both";
+
 interface Props {
+  role: PortalRole;
   name: string;
   email: string | null;
   companyLine: string | null;
@@ -72,6 +75,9 @@ function Icon({ name }: { name: string }) {
           <path d="M11 3.6v4h4" {...s} />
         </>
       )}
+      {name === "bookmark" && (
+        <path d="M5.4 3.6h9.2a.6.6 0 0 1 .6.6v12.4l-5.2-3.4-5.2 3.4V4.2a.6.6 0 0 1 .6-.6Z" {...s} />
+      )}
       {name === "bolt" && <path d="M11.2 2.6 4.6 11h4.2l-.8 6.4L15.4 9h-4.2Z" {...s} />}
       {name === "sliders" && (
         <path d="M3.4 6.4h3.2M9.8 6.4h6.8M3.4 13.6h6.8M13.8 13.6h2.8M8.2 4.6v3.6M12.4 11.8v3.6" {...s} strokeLinecap="round" />
@@ -89,7 +95,7 @@ type Entry = {
   soon?: boolean;
 };
 
-const LINKS: Entry[] = [
+const SUPPLIER_LINKS: Entry[] = [
   { href: "/account", label: "Overview", icon: "home", needsCompany: false },
   { href: "/account/company", label: "Company profile", icon: "building", needsCompany: true },
   { href: "/account/products", label: "Listings", icon: "box", needsCompany: true },
@@ -100,6 +106,35 @@ const LINKS: Entry[] = [
   { href: "/account/promote", label: "Promote", icon: "bolt", needsCompany: true, soon: true },
   { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
 ];
+
+/**
+ * A retailer is in the same portal but doing the opposite job, so the
+ * sidebar is not the supplier one with items hidden. They post requests
+ * and read quotes; they have no listings to manage and nothing to promote.
+ */
+const BUYER_LINKS: Entry[] = [
+  { href: "/account", label: "Overview", icon: "home", needsCompany: false },
+  { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: true },
+  { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: true, soon: true },
+  { href: "/account/saved", label: "Saved suppliers", icon: "bookmark", needsCompany: true, soon: true },
+  { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: true, soon: true },
+  { href: "/account/orders", label: "Orders and contracts", icon: "box", needsCompany: true, soon: true },
+  { href: "/account/company", label: "Company profile", icon: "building", needsCompany: true },
+  { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
+];
+
+/** Somebody who both sells and buys gets their requests alongside the rest. */
+const BOTH_LINKS: Entry[] = [
+  ...SUPPLIER_LINKS.slice(0, 4),
+  { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: true },
+  ...SUPPLIER_LINKS.slice(4),
+];
+
+const NAV: Record<PortalRole, Entry[]> = {
+  supplier: SUPPLIER_LINKS,
+  buyer: BUYER_LINKS,
+  both: BOTH_LINKS,
+};
 
 function Tick() {
   return (
@@ -129,6 +164,7 @@ function Badge({ n, muted }: { n: number; muted?: boolean }) {
 }
 
 export default function PortalShell({
+  role,
   name,
   email,
   companyLine,
@@ -218,7 +254,7 @@ export default function PortalShell({
       <div className="mx-auto max-w-6xl gap-10 px-6 py-10 lg:flex">
         <nav aria-label="Your account" className="mb-8 shrink-0 lg:mb-0 lg:w-60">
           <ul className="flex gap-1 overflow-x-auto border-b border-sand-deep pb-2 lg:block lg:space-y-0.5 lg:overflow-visible lg:border-0 lg:pb-0">
-            {LINKS.map((link) => {
+            {NAV[role].map((link) => {
               const active =
                 link.href === "/account"
                   ? pathname === "/account"

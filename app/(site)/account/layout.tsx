@@ -9,6 +9,7 @@ import {
 import PortalShell, {
   type PortalStep,
   type PortalCounts,
+  type PortalRole,
 } from "@/components/account/PortalShell";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,15 @@ export default async function AccountLayout({
   const documents = primary ? (counts[primary.id] ?? 0) : 0;
   const status = primary?.verification_status ?? "unverified";
 
+  // Which half of the market this person is on. A company that trades both
+  // ways gets both sets of links rather than being forced to pick.
+  const role: PortalRole =
+    primary?.company_type === "buyer"
+      ? "buyer"
+      : primary?.company_type === "both"
+        ? "both"
+        : "supplier";
+
   const done = {
     account: true,
     company: Boolean(primary),
@@ -53,13 +63,24 @@ export default async function AccountLayout({
     verified: status === "verified",
   };
 
-  const labels: [keyof typeof done, string][] = [
-    ["account", "Account created"],
-    ["company", "Company added"],
-    ["documents", "Documents uploaded"],
-    ["submitted", "Submitted for review"],
-    ["verified", "Verified"],
-  ];
+  // A retailer uploads nothing and submits nothing: we check them, and they
+  // either pass or they are waiting on us. Showing them a supplier's five
+  // steps would be asking for work that does not exist.
+  const labels: [keyof typeof done, string][] =
+    role === "buyer"
+      ? [
+          ["account", "Account created"],
+          ["company", "Company added"],
+          ["submitted", "Buyer check"],
+          ["verified", "Verified buyer"],
+        ]
+      : [
+          ["account", "Account created"],
+          ["company", "Company added"],
+          ["documents", "Documents uploaded"],
+          ["submitted", "Submitted for review"],
+          ["verified", "Verified"],
+        ];
 
   // The first thing not yet done is the thing to do next. Marking only one
   // step current is what stops the strip reading as a list of demands.
@@ -72,11 +93,12 @@ export default async function AccountLayout({
   }));
 
   const badges = primary
-    ? await sidebarCounts(companies.map((c) => c.id))
+    ? await sidebarCounts(companies.map((c) => c.id), role)
     : ({} as PortalCounts);
 
   return (
     <PortalShell
+      role={role}
       name={greetingName(user)}
       email={user.email}
       companyLine={
@@ -104,9 +126,21 @@ export default async function AccountLayout({
  * Every query runs through the session client, so row level security keeps
  * this to companies the person actually belongs to.
  */
-async function sidebarCounts(companyIds: string[]): Promise<PortalCounts> {
+async function sidebarCounts(
+  companyIds: string[],
+  role: PortalRole
+): Promise<PortalCounts> {
   const supabase = await sessionClient();
   const head = { count: "exact" as const, head: true };
+
+  // A retailer's badge is the requests that have come BACK, not the ones
+  // still out. A badge means something is waiting on you, and a request
+  // sitting with a supplier is waiting on them.
+  const mine = await supabase
+    .from("enquiries")
+    .select("id", head)
+    .in("buyer_company_id", companyIds)
+    .eq("status", "quoted");
 
   const [drafts, enquiries, docs, threads] = await Promise.all([
     supabase.from("products").select("id", head).in("company_id", companyIds).eq("status", "draft"),
@@ -136,7 +170,8 @@ async function sidebarCounts(companyIds: string[]): Promise<PortalCounts> {
 
   return {
     "/account/products": drafts.count ?? 0,
-    "/account/enquiries": enquiries.count ?? 0,
+    "/account/enquiries": role === "buyer" ? 0 : (enquiries.count ?? 0),
+    "/account/requests": mine.count ?? 0,
     "/account/documents": docs.count ?? 0,
     "/account/messages": unread,
   };

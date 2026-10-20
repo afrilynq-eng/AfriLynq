@@ -6,6 +6,7 @@ import { publicListing, catalogueLabels } from "@/lib/catalogue";
 import { COUNTRIES } from "@/lib/countries";
 import { priceLabel, season } from "@/components/catalogue/ListingCard";
 import { currentUser } from "@/lib/supabase-server";
+import EnquiryForm from "@/components/catalogue/EnquiryForm";
 
 export const dynamic = "force-dynamic";
 
@@ -199,16 +200,28 @@ export default async function ListingPage({
                 openly they are scraped inside a week and the supplier
                 blames AfriLynq for the calls. */}
             {user ? (
-              <div className="mt-5 flex flex-wrap gap-3">
+              <>
+                <EnquiryForm
+                  productId={listing.id}
+                  productName={listing.name}
+                  supplierCompanyId={listing.company.id}
+                  supplierName={listing.company.name}
+                  unitCode={listing.unitCode}
+                  unitLabel={unit}
+                />
                 {listing.company.slug && (
-                  <Link
-                    href={`/suppliers/${listing.company.slug}`}
-                    className="btn-lift btn-primary"
-                  >
-                    Contact this supplier
-                  </Link>
+                  <p className="mt-3 text-sm text-ink-soft">
+                    Or{" "}
+                    <Link
+                      href={`/suppliers/${listing.company.slug}`}
+                      className="link-quiet text-forest"
+                    >
+                      see the supplier's full profile
+                    </Link>
+                    .
+                  </p>
                 )}
-              </div>
+              </>
             ) : (
               <div className="mt-5 rounded-lg border border-gold/40 bg-gold/8 px-4 py-3.5">
                 <p className="text-sm leading-relaxed text-ink">
