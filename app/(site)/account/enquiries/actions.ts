@@ -27,7 +27,10 @@ async function supplierCompanyIds(): Promise<string[]> {
   const { data } = await supabase
     .from("company_members")
     .select("company_id")
-    .eq("profile_id", user.id)
+    // company_members.user_id, not profile_id. There is no profile_id
+    // column, so this filter used to make the whole query fail, leaving
+    // every action here believing the person belonged to no company.
+    .eq("user_id", user.id)
     .eq("status", "active");
 
   return ((data ?? []) as { company_id: string }[]).map((r) => r.company_id);

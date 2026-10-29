@@ -63,3 +63,49 @@ export async function saveSettings(
   revalidatePath("/account", "layout");
   return { ok: true };
 }
+
+/**
+ * What you are looking for.
+ *
+ * Picked at sign-up and editable here, because what somebody wants to buy
+ * changes more often than their name does. The slugs are checked against
+ * the live categories rather than trusted: interest_slugs is read back as
+ * labels on the overview, so an unchecked value would render as whatever
+ * string was posted.
+ *
+ * Unknown slugs are dropped rather than rejected. Somebody whose saved
+ * category was retired should not be told their form is invalid.
+ */
+export async function saveInterests(slugs: string[]): Promise<SettingsResult> {
+  const supabase = await sessionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+
+  if (!user) {
+    return { ok: false, message: "Your session has expired. Please sign in again." };
+  }
+
+  const wanted = Array.from(new Set((slugs ?? []).map((s) => String(s).trim()))).slice(0, 40);
+
+  let keep: string[] = [];
+  if (wanted.length > 0) {
+    const { data } = await supabase
+      .from("categories")
+      .select("slug")
+      .eq("is_active", true)
+      .in("slug", wanted);
+    keep = ((data ?? []) as { slug: string }[]).map((c) => c.slug);
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ interest_slugs: keep.length > 0 ? keep : null })
+    .eq("id", user.id);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/account", "layout");
+  return { ok: true };
+}

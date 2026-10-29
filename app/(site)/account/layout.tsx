@@ -46,14 +46,36 @@ export default async function AccountLayout({
   const documents = primary ? (counts[primary.id] ?? 0) : 0;
   const status = primary?.verification_status ?? "unverified";
 
-  // Which half of the market this person is on. A company that trades both
-  // ways gets both sets of links rather than being forced to pick.
-  const role: PortalRole =
-    primary?.company_type === "buyer"
+  // Which half of the market this person is on.
+  //
+  // A company, where there is one, is the stronger signal: it is a thing
+  // they built and we verified, while account_type is a radio button from
+  // sign-up. A company that trades both ways gets both sets of links rather
+  // than being forced to pick.
+  //
+  // Falling back to account_type is what makes shoppers possible at all.
+  // They never create a company, so reading company_type alone put every
+  // shopper into the supplier portal, looking at Listings and Documents and
+  // being told to register a business. Older accounts have no account_type
+  // either, and those still land on supplier, which is what they were.
+  const role: PortalRole = primary
+    ? primary.company_type === "buyer"
       ? "buyer"
-      : primary?.company_type === "both"
+      : primary.company_type === "both"
         ? "both"
-        : "supplier";
+        : "supplier"
+    : user.account_type === "shopper"
+      ? "shopper"
+      : user.account_type === "buyer"
+        ? "buyer"
+        : user.account_type === "both"
+          ? "both"
+          : "supplier";
+
+  // A shopper's progress is measured in their own terms, and both of these
+  // need the enquiry count, so it is fetched once here rather than twice
+  // below. Nobody else pays for the query.
+  const shopperAsked = role === "shopper" ? await shopperEnquiries(user.id) : null;
 
   const done = {
     account: true,
@@ -61,13 +83,26 @@ export default async function AccountLayout({
     documents: documents > 0,
     submitted: ["pending", "verified", "rejected"].includes(status),
     verified: status === "verified",
+    interests: (user.interest_slugs?.length ?? 0) > 0,
+    asked: (shopperAsked?.total ?? 0) > 0,
   };
 
   // A retailer uploads nothing and submits nothing: we check them, and they
   // either pass or they are waiting on us. Showing them a supplier's five
   // steps would be asking for work that does not exist.
+  //
+  // A shopper has no company, uploads nothing and is never verified, so
+  // three of those steps do not exist for them. Showing a shopper a
+  // five-step strip with three steps they can never complete would make a
+  // finished account look permanently unfinished.
   const labels: [keyof typeof done, string][] =
-    role === "buyer"
+    role === "shopper"
+      ? [
+          ["account", "Account created"],
+          ["interests", "Told us what you want"],
+          ["asked", "First request sent"],
+        ]
+      : role === "buyer"
       ? [
           ["account", "Account created"],
           ["company", "Company added"],
@@ -92,9 +127,13 @@ export default async function AccountLayout({
     current: i === firstOpen,
   }));
 
-  const badges = primary
+  // A shopper's only badge is a reply waiting on them. Everything else in
+  // sidebarCounts is counted over companies they do not have.
+  const badges: PortalCounts = primary
     ? await sidebarCounts(companies.map((c) => c.id), role)
-    : ({} as PortalCounts);
+    : role === "shopper"
+      ? { "/account/requests": shopperAsked?.answered ?? 0 }
+      : {};
 
   return (
     <PortalShell
@@ -114,6 +153,31 @@ export default async function AccountLayout({
       {children}
     </PortalShell>
   );
+}
+
+/**
+ * A shopper's enquiries, counted against their profile rather than a
+ * company, because that is the only way a shopper's enquiry is stored.
+ *
+ * answered is what earns a badge: a badge means something is waiting on
+ * you, and a request still sitting with a supplier is waiting on them.
+ */
+async function shopperEnquiries(
+  profileId: string
+): Promise<{ total: number; answered: number }> {
+  const supabase = await sessionClient();
+  const head = { count: "exact" as const, head: true };
+
+  const [all, replied] = await Promise.all([
+    supabase.from("enquiries").select("id", head).eq("buyer_profile_id", profileId),
+    supabase
+      .from("enquiries")
+      .select("id", head)
+      .eq("buyer_profile_id", profileId)
+      .eq("status", "quoted"),
+  ]);
+
+  return { total: all.count ?? 0, answered: replied.count ?? 0 };
 }
 
 /**

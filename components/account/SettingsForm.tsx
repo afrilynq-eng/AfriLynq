@@ -11,6 +11,8 @@ interface Props {
   email: string | null;
   phone: string;
   countryCode: string;
+  /** A shopper, who has no company profile page to be pointed at. */
+  personal?: boolean;
 }
 
 export default function SettingsForm(props: Props) {
@@ -57,8 +59,9 @@ export default function SettingsForm(props: Props) {
     <form onSubmit={submit} className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
       <h2 className="text-xl">Your details</h2>
       <p className="mt-2 text-sm text-ink-soft">
-        This is you, not your company. Company details live on the company
-        profile page.
+        {props.personal
+          ? "How suppliers see you when you ask them for a price."
+          : "This is you, not your company. Company details live on the company profile page."}
       </p>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">

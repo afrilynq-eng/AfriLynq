@@ -78,6 +78,17 @@ export interface CurrentUser {
   avatar_path: string | null;
   platform_role: string;
   country_code: string | null;
+  /**
+   * What they said they were at sign-up: supplier, buyer, shopper or both.
+   * Null for the accounts created before the role-specific forms existed,
+   * and for social sign-in, which sends us nothing of the kind.
+   *
+   * This is the only signal a shopper has. They never create a company, so
+   * anything that reads company_type alone cannot see them at all.
+   */
+  account_type: string | null;
+  /** Category slugs they picked at sign-up. Null for older accounts. */
+  interest_slugs: string[] | null;
 }
 
 /**
@@ -98,7 +109,7 @@ export async function currentUser(): Promise<CurrentUser | null> {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "id, email, full_name, first_name, last_name, phone, avatar_path, platform_role, country_code"
+      "id, email, full_name, first_name, last_name, phone, avatar_path, platform_role, country_code, account_type, interest_slugs"
     )
     .eq("id", user.id)
     .single();

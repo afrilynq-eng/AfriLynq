@@ -27,7 +27,7 @@ export interface PortalStep {
 /** Badge numbers, keyed by the link they belong to. Zero hides the badge. */
 export type PortalCounts = Partial<Record<string, number>>;
 
-export type PortalRole = "supplier" | "buyer" | "both";
+export type PortalRole = "supplier" | "buyer" | "shopper" | "both";
 
 interface Props {
   role: PortalRole;
@@ -123,6 +123,24 @@ const BUYER_LINKS: Entry[] = [
   { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
 ];
 
+/**
+ * A shopper is buying for themselves, so there is no company anywhere in
+ * their account and nothing here may ask for one. needsCompany is false on
+ * every line on purpose: a shopper who has finished signing up has finished,
+ * and a sidebar that greys itself out would be telling them to do work that
+ * does not exist for them.
+ *
+ * Short by design. Four links is the whole of what a shopper can do this
+ * stage, and padding it with greyed-out trade features would make their
+ * account look like a worse version of a retailer's.
+ */
+const SHOPPER_LINKS: Entry[] = [
+  { href: "/account", label: "Overview", icon: "home", needsCompany: false },
+  { href: "/marketplace", label: "Browse produce", icon: "box", needsCompany: false },
+  { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: false },
+  { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
+];
+
 /** Somebody who both sells and buys gets their requests alongside the rest. */
 const BOTH_LINKS: Entry[] = [
   ...SUPPLIER_LINKS.slice(0, 4),
@@ -133,6 +151,7 @@ const BOTH_LINKS: Entry[] = [
 const NAV: Record<PortalRole, Entry[]> = {
   supplier: SUPPLIER_LINKS,
   buyer: BUYER_LINKS,
+  shopper: SHOPPER_LINKS,
   both: BOTH_LINKS,
 };
 

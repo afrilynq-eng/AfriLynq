@@ -25,6 +25,7 @@ export default function EnquiryForm({
   supplierName,
   unitCode,
   unitLabel,
+  personal = false,
 }: {
   productId: string;
   productName: string;
@@ -32,6 +33,13 @@ export default function EnquiryForm({
   supplierName: string;
   unitCode: string;
   unitLabel: string;
+  /**
+   * A shopper buying for themselves rather than a business. Incoterms are
+   * dropped and the delivery field asks for a town rather than a port,
+   * because asking a household which of EXW or CIF they want is how you
+   * lose them at the last step.
+   */
+  personal?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -130,21 +138,28 @@ export default function EnquiryForm({
           <input type="date" name="requiredBy" className={field} />
         </label>
 
-        <label>
-          <span className={label}>Terms</span>
-          <select name="incoterm" defaultValue="" className={field}>
-            <option value="">Not sure yet</option>
-            {INCOTERMS.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!personal && (
+          <label>
+            <span className={label}>Terms</span>
+            <select name="incoterm" defaultValue="" className={field}>
+              <option value="">Not sure yet</option>
+              {INCOTERMS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <label>
           <span className={label}>Deliver to</span>
-          <input type="text" name="deliveryCity" placeholder="City or port" className={field} />
+          <input
+            type="text"
+            name="deliveryCity"
+            placeholder={personal ? "Town or city" : "City or port"}
+            className={field}
+          />
         </label>
 
         <label className="sm:col-span-2">
@@ -165,7 +180,11 @@ export default function EnquiryForm({
             name="message"
             rows={3}
             maxLength={2000}
-            placeholder="Packaging, grade, certificates you need, whether this is a repeat order"
+            placeholder={
+              personal
+                ? "How you would like it packed, when you need it, anything you want to ask"
+                : "Packaging, grade, certificates you need, whether this is a repeat order"
+            }
             className={field + " resize-y"}
           />
         </label>

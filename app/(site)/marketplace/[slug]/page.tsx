@@ -208,6 +208,7 @@ export default async function ListingPage({
                   supplierName={listing.company.name}
                   unitCode={listing.unitCode}
                   unitLabel={unit}
+                  personal={user.account_type === "shopper"}
                 />
                 {listing.company.slug && (
                   <p className="mt-3 text-sm text-ink-soft">

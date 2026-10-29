@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import OverviewExtras from "@/components/account/OverviewExtras";
-import { userCompanies } from "@/lib/supabase-server";
+import ShopperOverview from "@/components/account/ShopperOverview";
+import { userCompanies, currentUser, greetingName } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,20 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AccountPage() {
-  const companies = await userCompanies();
+  const [companies, user] = await Promise.all([userCompanies(), currentUser()]);
+
+  // A shopper buys for themselves and will never have a company, so the
+  // setup prompt below is not merely irrelevant to them, it contradicts
+  // what the shopper sign-up promised. They get their own screen.
+  if (companies.length === 0 && user?.account_type === "shopper") {
+    return (
+      <ShopperOverview
+        profileId={user.id}
+        name={greetingName(user)}
+        interests={user.interest_slugs ?? []}
+      />
+    );
+  }
 
   if (companies.length === 0) {
     return (

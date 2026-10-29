@@ -71,7 +71,10 @@ export async function createEnquiry(input: EnquiryInput): Promise<EnquiryResult>
   const { data: memberships } = await supabase
     .from("company_members")
     .select("company_id, companies!inner(id, company_type)")
-    .eq("profile_id", user.id)
+    // company_members.user_id, not profile_id. With profile_id the query
+    // errored, memberships came back null, and a retailer with a perfectly
+    // good company was told to go and create one.
+    .eq("user_id", user.id)
     .eq("status", "active");
 
   const rows = (memberships ?? []) as {
@@ -87,16 +90,32 @@ export async function createEnquiry(input: EnquiryInput): Promise<EnquiryResult>
     const c = one(r.companies);
     return c?.company_type === "buyer" || c?.company_type === "both";
   });
-  const buyerCompanyId = (buying ?? rows[0])?.company_id;
+  const buyerCompanyId = (buying ?? rows[0])?.company_id ?? null;
 
+  // A shopper is buying for themselves and has no company, by definition.
+  // Their enquiry is stored against their profile instead, which is what
+  // enquiries.buyer_profile_id exists for. Anyone else with no company is
+  // still asked for one, because a trade buyer without a company is an
+  // account half set up rather than a different kind of buyer.
+  let buyerProfileId: string | null = null;
   if (!buyerCompanyId) {
-    return {
-      ok: false,
-      message: "Add your company before sending an enquiry, so the supplier knows who is asking.",
-    };
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_type")
+      .eq("id", user.id)
+      .single();
+
+    if ((profile as { account_type: string | null } | null)?.account_type !== "shopper") {
+      return {
+        ok: false,
+        message:
+          "Add your company before sending an enquiry, so the supplier knows who is asking.",
+      };
+    }
+    buyerProfileId = user.id;
   }
 
-  if (buyerCompanyId === input.supplierCompanyId) {
+  if (buyerCompanyId && buyerCompanyId === input.supplierCompanyId) {
     return { ok: false, message: "That is your own listing." };
   }
 
@@ -104,6 +123,7 @@ export async function createEnquiry(input: EnquiryInput): Promise<EnquiryResult>
     .from("enquiries")
     .insert({
       buyer_company_id: buyerCompanyId,
+      buyer_profile_id: buyerProfileId,
       supplier_company_id: input.supplierCompanyId,
       product_id: input.productId,
       product_name_snapshot: input.productName,

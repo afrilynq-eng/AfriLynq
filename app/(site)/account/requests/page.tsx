@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { userCompanies, sessionClient } from "@/lib/supabase-server";
+import { userCompanies, sessionClient, currentUser } from "@/lib/supabase-server";
 import { COUNTRIES } from "@/lib/countries";
 
 export const dynamic = "force-dynamic";
@@ -50,21 +50,29 @@ function day(iso: string) {
 }
 
 export default async function RequestsPage() {
-  const companies = await userCompanies();
+  const [companies, user] = await Promise.all([userCompanies(), currentUser()]);
   const ids = companies.map((c) => c.id);
+
+  // A shopper's requests hang off their profile, because a shopper has no
+  // company to hang them off. Everyone else's hang off their companies.
+  const asShopper = ids.length === 0 && user?.account_type === "shopper";
 
   let rows: Row[] = [];
   let quotesPer: Record<string, number> = {};
 
-  if (ids.length > 0) {
+  if (ids.length > 0 || asShopper) {
     const supabase = await sessionClient();
 
-    const { data } = await supabase
+    const base = supabase
       .from("enquiries")
       .select(
         "id, reference, supplier_company_id, product_name_snapshot, quantity, unit_code, required_by, delivery_country_code, delivery_city, incoterm, message, status, created_at"
-      )
-      .in("buyer_company_id", ids)
+      );
+
+    const { data } = await (asShopper
+      ? base.eq("buyer_profile_id", user!.id)
+      : base.in("buyer_company_id", ids)
+    )
       .order("created_at", { ascending: false })
       .limit(100);
 

@@ -58,6 +58,10 @@ const BUYER_TYPE: Record<string, string> = {
   buyer: "Retailer",
   supplier: "Supplier",
   both: "Supplier and retailer",
+  // Not a company at all: a person buying for themselves. They will never
+  // carry "Verified buyer" beside this, because there is no company to
+  // verify, so the label has to be clear on its own.
+  shopper: "Shopper, buying for themselves",
 };
 
 function day(iso: string) {

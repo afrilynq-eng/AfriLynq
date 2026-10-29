@@ -5,14 +5,19 @@ import AccountNav from "./AccountNav";
 /**
  * Site header.
  *
- * Everything sits on one line from 1024px up: logo, navigation, language
+ * Everything sits on one line from 1280px up: logo, navigation, language
  * picker and the two account actions. Below that the navigation drops to its
- * own row, which is the only sensible thing to do on a narrow screen.
+ * own row, which is the only sensible thing to do when it cannot fit.
  *
- * The strapline stays under the wordmark. It is the widest part of the lockup,
- * so the room for it comes from the navigation and the actions instead:
- * smaller nav text, tighter gaps, shorter buttons and a compact language
- * picker. lg:flex-nowrap then stops the row breaking at all above 1024px.
+ * The one-line layout used to start at 1024px, and it did not fit there. Nine
+ * nav items, a logo carrying its strapline and two account buttons need about
+ * 1327px between them, so every laptop from 1024px to 1365px scrolled
+ * sideways. A 1280px MacBook Air was over by 23px.
+ *
+ * So the single row now waits for 1280px and the nav tightens when it gets
+ * there: smaller text and closer gaps, which buys the ~60px that makes 1280
+ * fit with room left. Between 1024px and 1279px the nav takes its own row,
+ * exactly as it does on a tablet.
  */
 const NAV = [
   { href: "/", label: "Home" },
@@ -44,13 +49,13 @@ const LANGUAGES = [
 export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-sand-deep bg-paper/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-5 gap-y-3 px-6 py-3 lg:flex-nowrap">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-3 px-6 py-3 xl:flex-nowrap xl:gap-x-3">
         <Link href="/" aria-label="AfriLynq home" className="shrink-0">
           <Logo size="lg" />
         </Link>
 
         <nav
-          className="order-last flex w-full flex-wrap items-center gap-x-4 gap-y-2 border-t border-sand pt-3 text-[0.9rem] font-medium lg:order-none lg:w-auto lg:flex-nowrap lg:border-0 lg:pt-0"
+          className="order-last flex w-full flex-wrap items-center gap-x-4 gap-y-2 border-t border-sand pt-3 text-[0.9rem] font-medium xl:order-none xl:w-auto xl:flex-nowrap xl:gap-x-3.5 xl:border-0 xl:pt-0 xl:text-[0.85rem]"
           aria-label="Main"
         >
           {NAV.map((item) => (
