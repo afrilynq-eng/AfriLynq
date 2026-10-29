@@ -143,19 +143,6 @@ export default function SiteFooter() {
               </a>
             </p>
             <p>
-              {/* Nigerian line is the client's WhatsApp, so it opens there
-                  rather than dialling. */}
-              <a
-                href="https://wa.me/2347043085338"
-                className="link-quiet"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                +234 704 308 5338
-                <span className="ml-1.5 text-xs text-stone">WhatsApp</span>
-              </a>
-            </p>
-            <p>
               58 Rockfield Road, Anfield
               <br />
               Liverpool, United Kingdom
