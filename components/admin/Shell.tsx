@@ -19,6 +19,10 @@ const NAV = [
     // below. These were invisible in administration until now.
     heading: "Marketplace",
     items: [
+      // Overview belongs at the top of the marketplace, not buried under
+      // Registrations as "Dashboard". The page stopped being about the
+      // registration form some time ago.
+      { href: "/admin", label: "Overview", icon: "grid" },
       { href: "/admin/verification", label: "Verification", icon: "shield" },
       { href: "/admin/companies", label: "Companies", icon: "building" },
       { href: "/admin/products", label: "Listings", icon: "tag" },
@@ -28,7 +32,6 @@ const NAV = [
   {
     heading: "Registrations",
     items: [
-      { href: "/admin", label: "Dashboard", icon: "grid" },
       { href: "/admin/leads", label: "All leads", icon: "list" },
       { href: "/admin/buyers", label: "Buyers", icon: "cart" },
       { href: "/admin/suppliers", label: "Suppliers", icon: "leaf" },
@@ -140,10 +143,31 @@ export default async function AdminShell({
   subtitle: string;
   children: React.ReactNode;
 }) {
-  const { count: waiting } = await serviceClient()
-    .from("companies")
-    .select("id", { count: "exact", head: true })
-    .eq("verification_status", "pending");
+  // The two queues an administrator is actually on the hook for. A badge
+  // means "this is waiting on you", so nothing else gets one.
+  const svc = serviceClient();
+  const [{ count: waiting }, verifiedRes, activeRes] = await Promise.all([
+    svc
+      .from("companies")
+      .select("id", { count: "exact", head: true })
+      .eq("verification_status", "pending"),
+    svc.from("companies").select("id").eq("verification_status", "verified"),
+    svc.from("products").select("company_id").eq("status", "active"),
+  ]);
+
+  // A listing goes public only once its company is verified, so an active
+  // listing on an unverified company is sitting in the queue.
+  const verifiedIds = new Set(
+    ((verifiedRes.data ?? []) as { id: string }[]).map((c) => c.id)
+  );
+  const held = ((activeRes.data ?? []) as { company_id: string }[]).filter(
+    (p) => !verifiedIds.has(p.company_id)
+  ).length;
+
+  const badges: Record<string, number> = {
+    "/admin/verification": waiting ?? 0,
+    "/admin/products": held,
+  };
 
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
@@ -187,9 +211,9 @@ export default async function AdminShell({
                     >
                       <Icon name={item.icon} />
                       {item.label}
-                      {item.href === "/admin/verification" && waiting ? (
+                      {badges[item.href] ? (
                         <span className="ml-auto rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-[#042115]">
-                          {waiting}
+                          {badges[item.href]}
                         </span>
                       ) : null}
                     </Link>
