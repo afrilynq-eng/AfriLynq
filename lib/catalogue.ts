@@ -28,7 +28,7 @@ const LOGO_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/pub
 
 /** The only companies the public may see, matching companies_public_read. */
 const VISIBLE_COMPANY =
-  "id, slug, legal_name, trading_name, company_type, country_code, state_or_region, city, logo_path, short_description, about, year_established, employee_band, website_url, verification_status, is_listed";
+  "id, slug, legal_name, trading_name, company_type, country_code, state_or_region, city, logo_path, short_description, about, year_established, employee_band, website_url, verification_status, verification_checks, is_listed";
 
 export interface CatalogueCompany {
   id: string;
@@ -85,6 +85,7 @@ type CompanyRow = {
   year_established: number | null;
   employee_band: string | null;
   website_url: string | null;
+  verification_checks?: Record<string, string> | null;
 };
 
 function toCompany(row: CompanyRow): CatalogueCompany {
@@ -376,8 +377,17 @@ export async function publicSuppliers(query: {
   }));
 }
 
+export type SupplierCheck = "pass" | "fail" | "na";
+
 export interface SupplierProfile extends SupplierCard {
   listings: CatalogueListing[];
+  /**
+   * The four checks the site promises on every supplier, as recorded by
+   * whoever verified them. Null for companies verified before we started
+   * recording, which is why the page omits the block rather than showing
+   * four blanks.
+   */
+  checks: Partial<Record<"registration" | "exports" | "certificates" | "contact", SupplierCheck>> | null;
   /**
    * Only ever filled for a signed in viewer. A verified supplier's phone
    * number is the thing the whole account exists to protect: published
@@ -455,6 +465,8 @@ export async function publicSupplier(
     companyType: row.company_type,
     listingCount: listings.length,
     listings,
+    checks: (row as { verification_checks?: Record<string, string> | null })
+      .verification_checks as SupplierProfile["checks"] ?? null,
     contact: options.includeContact
       ? { email: row.contact_email ?? null, phone: row.contact_phone ?? null }
       : null,

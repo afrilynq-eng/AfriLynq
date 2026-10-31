@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { sessionClient } from "@/lib/supabase-server";
+import { serviceClient } from "@/lib/supabase";
 import { CATEGORIES } from "@/lib/content";
-import { Panel } from "@/components/admin/Shell";
+import { Panel, StatCard } from "@/components/admin/Shell";
 
 export type Lead = {
   id: string;
@@ -17,6 +18,20 @@ export type Lead = {
 };
 
 const NAMES = new Map(CATEGORIES.map((c) => [c.slug, c.name]));
+const DAY = 24 * 60 * 60 * 1000;
+
+const ROLE_CHIP: Record<string, string> = {
+  supplier: "bg-gold/20 text-gold",
+  buyer: "bg-[#2FA36B]/20 text-[#4CC98D]",
+  shopper: "bg-[#3B82F6]/20 text-[#7CADFA]",
+  both: "bg-[#A78BFA]/20 text-[#C4B1FC]",
+};
+const ROLE_LABEL: Record<string, string> = {
+  supplier: "Supplier",
+  buyer: "Retailer",
+  shopper: "Shopper",
+  both: "Both",
+};
 
 /**
  * The lead table, shared by All leads, Buyers, Suppliers and Subscribers.
@@ -54,7 +69,60 @@ export default async function LeadsView({
   const { data, error } = await query;
   const leads = (data ?? []) as Lead[];
 
+  /**
+   * Did this lead ever become an account?
+   *
+   * The one number that says whether the marketing forms are doing
+   * anything. Matched on email, lower cased, because a lead and an
+   * account are two separate rows that nothing else joins. Read with the
+   * service role: profiles has no admin select policy for a join like
+   * this, and the page is already behind requireAdmin.
+   */
+  const accountByEmail = new Map<string, string | null>();
+  if (leads.length > 0) {
+    const { data: rows } = await serviceClient()
+      .from("profiles")
+      .select("email, account_type")
+      .in(
+        "email",
+        Array.from(new Set(leads.map((l) => l.email).filter(Boolean)))
+      );
+    for (const r of (rows ?? []) as { email: string | null; account_type: string | null }[]) {
+      if (r.email) accountByEmail.set(r.email.toLowerCase(), r.account_type);
+    }
+  }
+
+  const registered = leads.filter((l) =>
+    accountByEmail.has((l.email ?? "").toLowerCase())
+  ).length;
+  const thisWeek = leads.filter(
+    (l) => Date.now() - new Date(l.created_at).getTime() < 7 * DAY
+  ).length;
+
   return (
+    <>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard value={leads.length} label="Shown" accent="gold" />
+        <StatCard
+          value={thisWeek}
+          label="This week"
+          accent="green"
+          caption={thisWeek === 0 ? "none this week" : undefined}
+        />
+        <StatCard
+          value={registered}
+          label="Became accounts"
+          accent="blue"
+          caption={registered > 0 ? "signed up properly" : "none have registered"}
+        />
+        <StatCard
+          value={leads.length - registered}
+          label="Not registered"
+          accent={leads.length - registered > 0 ? "slate" : "green"}
+          caption="left an email and stopped"
+        />
+      </div>
+
     <Panel
       title={`${leads.length} shown`}
       action={
@@ -131,7 +199,8 @@ export default async function LeadsView({
                 <th scope="col" className="py-3 pr-4 font-semibold">Name</th>
                 <th scope="col" className="py-3 pr-4 font-semibold">Company</th>
                 <th scope="col" className="py-3 pr-4 font-semibold">Contact</th>
-                <th scope="col" className="py-3 font-semibold">Interested in</th>
+                <th scope="col" className="py-3 pr-4 font-semibold">Interested in</th>
+                <th scope="col" className="py-3 font-semibold">Account</th>
               </tr>
             </thead>
             <tbody>
@@ -182,7 +251,7 @@ export default async function LeadsView({
                       <span className="block text-xs text-white/40">{lead.phone}</span>
                     )}
                   </td>
-                  <td className="py-3.5 text-white/70">
+                  <td className="py-3.5 pr-4 text-white/70">
                     {(lead.categories_of_interest ?? [])
                       .map((s) => NAMES.get(s) ?? s)
                       .join(", ") || "-"}
@@ -191,6 +260,31 @@ export default async function LeadsView({
                         {lead.message}
                       </span>
                     )}
+                  </td>
+                  <td className="py-3.5 whitespace-nowrap">
+                    {(() => {
+                      const key = (lead.email ?? "").toLowerCase();
+                      if (!accountByEmail.has(key)) {
+                        return (
+                          <span className="rounded bg-white/8 px-2.5 py-1 text-xs text-white/45">
+                            Not registered
+                          </span>
+                        );
+                      }
+                      const role = accountByEmail.get(key);
+                      return (
+                        <span
+                          className={
+                            "rounded px-2.5 py-1 text-xs font-medium " +
+                            (role
+                              ? (ROLE_CHIP[role] ?? "bg-white/12 text-white/70")
+                              : "bg-white/12 text-white/70")
+                          }
+                        >
+                          {role ? (ROLE_LABEL[role] ?? role) : "Registered"}
+                        </span>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -201,7 +295,9 @@ export default async function LeadsView({
 
       <p className="mt-5 text-xs text-white/35">
         Showing the 500 most recent. Export the CSV for the full list.
+        Account matches a lead to a real sign-up by email address.
       </p>
     </Panel>
+    </>
   );
 }

@@ -19,9 +19,20 @@ const STATUS_COLOUR: Record<string, string> = {
   archived: "text-[#E08A84]",
 };
 
+/**
+ * Two of these are not database statuses.
+ *
+ * "pending" is an active listing whose company is not verified yet, which
+ * is the queue worth looking at and cannot be expressed as a status
+ * filter because it depends on the company. "featured" is a flag, not a
+ * status. Both are applied after the company join rather than in the
+ * query, which is also why the query no longer filters at all.
+ */
 const FILTERS = [
   { value: "", label: "All" },
+  { value: "pending", label: "Pending review" },
   { value: "active", label: "Published" },
+  { value: "featured", label: "Featured" },
   { value: "draft", label: "Draft" },
   { value: "archived", label: "Archived" },
 ];
@@ -63,9 +74,11 @@ export default async function AdminProductsPage({
       "id, name, slug, status, is_featured, view_count, enquiry_count, unit_code, price_currency, price_min_minor, price_is_public, created_at, company_id, category_id"
     )
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(1000);
 
-  if (status && STATUS_LABEL[status]) query = query.eq("status", status);
+  // Deliberately not filtered by status here. The tiles above the table
+  // count the whole platform, and filtering the query made "Listings 42"
+  // read as the number of drafts the moment you clicked Draft.
   if (q?.trim()) {
     const needle = q.trim().replace(/[%,]/g, " ");
     query = query.or(`name.ilike.%${needle}%,summary.ilike.%${needle}%`);
@@ -107,6 +120,18 @@ export default async function AdminProductsPage({
   const published = products.filter((p) => p.status === "active").length;
   const featured = products.filter((p) => p.is_featured).length;
 
+  const isPending = (p: Row) =>
+    p.status === "active" &&
+    companyById.get(p.company_id)?.verification_status !== "verified";
+
+  // What the table shows, as opposed to what the tiles count.
+  const shown = products.filter((p) => {
+    if (!status) return true;
+    if (status === "pending") return isPending(p);
+    if (status === "featured") return p.is_featured;
+    return p.status === status;
+  });
+
   return (
     <AdminShell
       admin={admin}
@@ -115,18 +140,18 @@ export default async function AdminProductsPage({
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard value={products.length} label="Listings" accent="gold" />
-        <StatCard value={published} label="Published" accent="green" />
-        <StatCard value={featured} label="Featured" accent="blue" />
         <StatCard
           value={liveButUnverified}
-          label="Live but unverified"
+          label="Pending review"
           accent={liveButUnverified > 0 ? "red" : "slate"}
           caption={
             liveButUnverified > 0
-              ? "Hidden from buyers until the company is verified"
-              : undefined
+              ? "not public until the company is verified"
+              : "none held back"
           }
         />
+        <StatCard value={published} label="Published" accent="green" />
+        <StatCard value={featured} label="Featured" accent="blue" />
       </div>
 
       <div className="mt-6">
@@ -177,9 +202,11 @@ export default async function AdminProductsPage({
             </form>
           </div>
 
-          {products.length === 0 ? (
+          {shown.length === 0 ? (
             <p className="py-12 text-center text-white/45">
-              Nothing here. Listings appear as suppliers add them.
+              {products.length === 0
+                ? "Nothing here. Listings appear as suppliers add them."
+                : "No listings match that filter."}
             </p>
           ) : (
             <div className="mt-5 overflow-x-auto">
@@ -195,7 +222,7 @@ export default async function AdminProductsPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => {
+                  {shown.map((p) => {
                     const company = companyById.get(p.company_id);
                     const verified = company?.verification_status === "verified";
 
@@ -244,9 +271,17 @@ export default async function AdminProductsPage({
                         </td>
 
                         <td className="py-3.5 pr-4">
-                          <span className={STATUS_COLOUR[p.status] ?? "text-white/45"}>
-                            {STATUS_LABEL[p.status] ?? p.status}
-                          </span>
+                          {/* An active listing on an unverified company is
+                              not published to anyone. Saying "Published"
+                              in green told the administrator the opposite
+                              of what a buyer sees. */}
+                          {isPending(p) ? (
+                            <span className="text-gold">Pending review</span>
+                          ) : (
+                            <span className={STATUS_COLOUR[p.status] ?? "text-white/45"}>
+                              {STATUS_LABEL[p.status] ?? p.status}
+                            </span>
+                          )}
                         </td>
 
                         <td className="tabular py-3.5 pr-4 text-white/70">

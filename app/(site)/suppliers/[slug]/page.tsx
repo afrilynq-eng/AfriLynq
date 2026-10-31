@@ -72,6 +72,21 @@ export default async function SupplierPage({
     .filter(Boolean)
     .join(", ");
 
+  // The four checks, in the same words and the same order the home page
+  // and the retailers page promise them. Only the ones actually recorded
+  // are shown: a company verified before we began recording has nothing
+  // to say here, and silence is better than four empty rows.
+  const CHECK_LABELS: [keyof NonNullable<typeof company.checks>, string][] = [
+    ["registration", "Business registration in the country of origin"],
+    ["exports", "Evidence of previous export shipments"],
+    ["certificates", "Certificates on file, expiry dates checked"],
+    ["contact", "One named, accountable contact"],
+  ];
+  const checkRows = CHECK_LABELS.flatMap(([key, label]) => {
+    const state = company.checks?.[key];
+    return state ? [{ label, state }] : [];
+  });
+
   return (
     <>
       <section className="border-b border-sand-deep bg-sand">
@@ -177,6 +192,67 @@ export default async function SupplierPage({
 
         {/* ---------- Contact ---------- */}
         <aside className="mt-10 shrink-0 lg:mt-0 lg:w-80">
+          {/* What was actually checked.
+              The home page and the retailers page promise buyers these
+              four by name. Until the admin screens started recording
+              them there was nothing to show, so the promise sat
+              unevidenced. Omitted entirely for companies verified before
+              we began recording, because four blank rows would read as
+              four failures. */}
+          {checkRows.length > 0 && (
+            <div className="mb-6 rounded-xl border border-sand-deep bg-sand/50 p-6">
+              <h2 className="text-xs font-semibold tracking-widest text-forest uppercase">
+                What we checked
+              </h2>
+              <ul className="mt-4 space-y-3">
+                {checkRows.map((row) => (
+                  <li key={row.label} className="flex items-start gap-2.5 text-sm">
+                    {row.state === "pass" ? (
+                      <svg
+                        viewBox="0 0 16 16"
+                        className="mt-0.5 h-4 w-4 shrink-0 text-forest"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.4" />
+                        <path
+                          d="M4.8 8.3 7 10.5l4.2-4.6"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        viewBox="0 0 16 16"
+                        className="mt-0.5 h-4 w-4 shrink-0 text-stone"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.4" />
+                        <path d="M5 8h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                      </svg>
+                    )}
+                    <span className={row.state === "pass" ? "text-ink" : "text-stone"}>
+                      {row.label}
+                      {row.state === "na" && (
+                        <span className="block text-xs text-stone">Not applicable</span>
+                      )}
+                      {row.state === "fail" && (
+                        <span className="block text-xs text-stone">Not passed</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 border-t border-sand pt-3 text-xs leading-relaxed text-stone">
+                Checked by AfriLynq before this supplier was listed. AfriLynq
+                introduces buyers and suppliers and is not a party to any sale.
+              </p>
+            </div>
+          )}
+
           <div className="rounded-xl border border-sand-deep bg-paper p-6 shadow-sm lg:sticky lg:top-24">
             <h2 className="text-xl">Get in touch</h2>
 

@@ -19,12 +19,24 @@ import { requireAdmin, sessionClient } from "@/lib/supabase-server";
 
 export type Decision = "verified" | "rejected" | "suspended";
 
+/**
+ * The four checks the public site promises on every supplier. Keys and
+ * values are both closed lists, and the database re-checks them, because
+ * a free text value here would end up rendered on a supplier's badge.
+ */
+export type CheckKey = "registration" | "exports" | "certificates" | "contact";
+export type CheckValue = "pass" | "fail" | "na";
+
+const CHECK_KEYS: CheckKey[] = ["registration", "exports", "certificates", "contact"];
+const CHECK_VALUES: CheckValue[] = ["pass", "fail", "na"];
+
 export type DecisionResult = { ok: true } | { ok: false; message: string };
 
 export async function decideCompany(
   companyId: string,
   decision: Decision,
-  notes: string
+  notes: string,
+  checks?: Partial<Record<CheckKey, CheckValue>>
 ): Promise<DecisionResult> {
   const admin = await requireAdmin();
   if (!admin) {
@@ -45,6 +57,15 @@ export async function decideCompany(
     };
   }
 
+  // Keep only what the database will accept anyway. Sending a key it
+  // would drop makes the admin screen and the stored record disagree,
+  // which is worse than sending nothing.
+  const clean: Record<string, string> = {};
+  for (const key of CHECK_KEYS) {
+    const value = checks?.[key];
+    if (value && CHECK_VALUES.includes(value)) clean[key] = value;
+  }
+
   const supabase = await sessionClient();
 
   /**
@@ -63,6 +84,7 @@ export async function decideCompany(
     p_company_id: companyId,
     p_status: decision,
     p_notes: note,
+    p_checks: Object.keys(clean).length > 0 ? clean : null,
   });
 
   if (error) return { ok: false, message: error.message };

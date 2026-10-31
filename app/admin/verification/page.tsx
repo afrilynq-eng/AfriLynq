@@ -4,6 +4,7 @@ import { serviceClient } from "@/lib/supabase";
 import { COUNTRIES } from "@/lib/countries";
 import AdminShell, { Panel } from "@/components/admin/Shell";
 import VerificationDecision from "@/components/admin/VerificationDecision";
+import type { CheckKey, CheckValue } from "@/app/admin/verification/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,8 @@ interface Row {
   contact_phone: string | null;
   short_description: string | null;
   verification_status: string;
+  /** The four promised checks, as recorded on the last decision. */
+  verification_checks: Record<string, string> | null;
   verification_notes: string | null;
   verified_at: string | null;
   created_at: string;
@@ -77,7 +80,7 @@ export default async function VerificationPage() {
   const svc = serviceClient();
 
   const COLUMNS =
-    "id, legal_name, trading_name, company_type, country_code, city, registration_number, contact_email, contact_phone, short_description, verification_status, verification_notes, verified_at, created_at";
+    "id, legal_name, trading_name, company_type, country_code, city, registration_number, contact_email, contact_phone, short_description, verification_status, verification_notes, verification_checks, verified_at, created_at";
 
   const [{ data: pendingRaw }, { data: decidedRaw }] = await Promise.all([
     svc
@@ -305,7 +308,16 @@ export default async function VerificationPage() {
                     )}
                   </div>
 
-                  <VerificationDecision companyId={c.id} documents={list.length} />
+                  <VerificationDecision
+                    companyId={c.id}
+                    documents={list.length}
+                    current={c.verification_status}
+                    checks={
+                      (c.verification_checks ?? null) as
+                        | Partial<Record<CheckKey, CheckValue>>
+                        | null
+                    }
+                  />
                 </article>
               );
             })}
