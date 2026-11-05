@@ -14,27 +14,53 @@ import wordmarkReverse from "@/public/brand/wordmark-reverse.png";
  * When AfriLynq supplies the vector files, replace these images with inline
  * SVG and delete the PNGs.
  */
+/**
+ * Sizes.
+ *
+ * "xl" exists because the navigation went from nine items to five. The
+ * header had been sized around fitting everything in, and the logo was
+ * the thing that gave way. With the nav lighter there is room, and the
+ * mark is the one element on the page doing brand work, so it takes it.
+ *
+ * The wordmark is a PNG, so "bolder" here means larger rather than
+ * heavier. When AfriLynq supplies vector files this can become a real
+ * weight choice.
+ */
+const SIZES = {
+  md: {
+    gap: "gap-2.5",
+    mark: "h-9 w-auto",
+    word: "h-[1.35rem] w-auto",
+    line: "mt-0.5 text-[0.5rem] leading-tight tracking-[0.06em] text-forest",
+  },
+  lg: {
+    gap: "gap-3.5",
+    mark: "h-12 w-auto",
+    word: "h-[1.9rem] w-auto",
+    line: "mt-1 text-[0.68rem] leading-tight font-semibold tracking-[0.04em] text-forest",
+  },
+  xl: {
+    gap: "gap-4",
+    mark: "h-14 w-auto",
+    word: "h-[2.35rem] w-auto",
+    line: "mt-1 text-[0.72rem] leading-tight font-semibold tracking-[0.04em] text-forest",
+  },
+} as const;
+
 export function Logo({
   showStrapline = true,
   size = "md",
   className = "",
 }: {
   showStrapline?: boolean;
-  /** "lg" is used in the header, where the wordmark has to be legible. */
-  size?: "md" | "lg";
+  /** "xl" is used in the header. */
+  size?: keyof typeof SIZES;
   className?: string;
 }) {
-  const large = size === "lg";
+  const s = SIZES[size];
   return (
-    <span className={`flex items-center ${large ? "gap-3.5" : "gap-2.5"} ${className}`}>
-      <Image
-        src={mark}
-        alt=""
-        width={44}
-        height={34}
-        priority
-        className={large ? "h-12 w-auto" : "h-9 w-auto"}
-      />
+    <span className={`flex items-center ${s.gap} ${className}`}>
+      <Image src={mark} alt="" width={44} height={34} priority className={s.mark} />
       <span className="flex flex-col">
         <Image
           src={wordmark}
@@ -42,16 +68,10 @@ export function Logo({
           width={451}
           height={112}
           priority
-          className={large ? "h-[1.9rem] w-auto" : "h-[1.35rem] w-auto"}
+          className={s.word}
         />
         {showStrapline && (
-          <span
-            className={
-              large
-                ? "mt-1 text-[0.68rem] leading-tight font-semibold tracking-[0.04em] text-forest"
-                : "mt-0.5 text-[0.5rem] leading-tight tracking-[0.06em] text-forest"
-            }
-          >
+          <span className={s.line}>
             Connecting African Harvests
             <br />
             to Global Markets

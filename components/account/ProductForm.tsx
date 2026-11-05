@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ServiceChargeNote from "@/components/account/ServiceChargeNote";
 import { useRouter } from "next/navigation";
 import { COUNTRIES } from "@/lib/countries";
 import {
@@ -450,6 +451,13 @@ export default function ProductForm({
             </span>
           </span>
         </label>
+
+        {/* Stated here, next to the price, because this is the moment a
+            seller is working out what they will actually be paid. A fee
+            disclosed after the first sale is a fee that loses sellers. */}
+        <div className="mt-5">
+          <ServiceChargeNote />
+        </div>
       </Card>
 
       <Card title="Publishing">

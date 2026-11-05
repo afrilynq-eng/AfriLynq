@@ -126,7 +126,7 @@ export function DocumentUpload({ companyId }: { companyId: string }) {
           <input
             type="text"
             name="issuingBody"
-            placeholder="Corporate Affairs Commission"
+            placeholder="The authority that issued it"
             className={field}
           />
         </label>

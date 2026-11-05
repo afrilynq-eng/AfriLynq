@@ -4,6 +4,7 @@ import {
   companyDetail,
   type MemberCompany,
 } from "@/lib/supabase-server";
+import ServiceChargeNote from "@/components/account/ServiceChargeNote";
 
 /**
  * The supplier overview.
@@ -147,7 +148,10 @@ export default async function OverviewExtras({
         .limit(4),
       supabase
         .from("products")
-        .select("title, created_at")
+        // products.name, not title. With "title" the query errored, the
+        // result was swallowed by the ?? [] below, and no listing has
+        // ever appeared in recent activity.
+        .select("name, created_at")
         .eq("company_id", primary.id)
         .order("created_at", { ascending: false })
         .limit(4),
@@ -219,7 +223,7 @@ export default async function OverviewExtras({
     })),
     ...(recentProducts.data ?? []).map((p) => ({
       at: p.created_at as string,
-      text: `Listing ${p.title} created`,
+      text: `Listing ${p.name} created`,
     })),
     { at: (born.data?.created_at as string | undefined) ?? "", text: "Company profile created" },
   ]
@@ -349,6 +353,16 @@ export default async function OverviewExtras({
           </ul>
         </section>
       )}
+
+      {/* What selling here costs, stated once on the seller's own screen.
+          Suppliers only: a buyer pays nothing towards this and showing it
+          to them would imply otherwise. */}
+      <section className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
+        <h2 className="text-xl">What selling here costs</h2>
+        <div className="mt-3">
+          <ServiceChargeNote variant="compact" />
+        </div>
+      </section>
     </div>
   );
 }

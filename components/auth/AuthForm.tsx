@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { browserClient } from "@/lib/supabase-browser";
 import SocialButtons from "./SocialButtons";
+import { Eye } from "./PasswordField";
 
 type Mode = "sign-up" | "sign-in";
 
@@ -62,6 +63,8 @@ export default function AuthForm({
 
   const [state, setState] = useState<"idle" | "sending" | "check-email">("idle");
   const [error, setError] = useState(initialError);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -237,21 +240,38 @@ export default function AuthForm({
           />
         </label>
 
+        {/* The eye.
+
+            These inputs stay uncontrolled, because the form reads its
+            values out of FormData on submit. Switching an uncontrolled
+            input's type between password and text keeps whatever is
+            typed in it, so revealing the password needs nothing more
+            than this flag. */}
         <label className="mt-5 block">
           <span className={label}>
             Password <span className="text-gold">*</span>
           </span>
-          <input
-            type="password"
-            name="password"
-            required
-            minLength={mode === "sign-up" ? 8 : undefined}
-            autoComplete={
-              mode === "sign-up" ? "new-password" : "current-password"
-            }
-            placeholder={mode === "sign-up" ? "At least 8 characters" : "Your password"}
-            className={field}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              required
+              minLength={mode === "sign-up" ? 8 : undefined}
+              autoComplete={
+                mode === "sign-up" ? "new-password" : "current-password"
+              }
+              placeholder={mode === "sign-up" ? "At least 8 characters" : "Your password"}
+              className={`${field} pr-12`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute top-1/2 right-3 mt-1 -translate-y-1/2 rounded p-1 text-stone transition-colors hover:text-forest"
+            >
+              <Eye open={showPassword} />
+            </button>
+          </div>
         </label>
 
         {mode === "sign-up" && (
@@ -259,15 +279,25 @@ export default function AuthForm({
             <span className={label}>
               Confirm password <span className="text-gold">*</span>
             </span>
-            <input
-              type="password"
-              name="confirmPassword"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              placeholder="Type it again"
-              className={field}
-            />
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                name="confirmPassword"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="Type it again"
+                className={`${field} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((s) => !s)}
+                aria-label={showConfirm ? "Hide password" : "Show password"}
+                className="absolute top-1/2 right-3 mt-1 -translate-y-1/2 rounded p-1 text-stone transition-colors hover:text-forest"
+              >
+                <Eye open={showConfirm} />
+              </button>
+            </div>
           </label>
         )}
 

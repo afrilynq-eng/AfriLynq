@@ -36,7 +36,8 @@ const STRENGTH = [
   { label: "Strong", bar: "w-full bg-forest", text: "text-forest" },
 ];
 
-function Eye({ open }: { open: boolean }) {
+/** Exported so the sign-in form shows the same eye rather than its own. */
+export function Eye({ open }: { open: boolean }) {
   return (
     <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" aria-hidden="true">
       <path

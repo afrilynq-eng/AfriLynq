@@ -34,7 +34,6 @@ interface Props {
   name: string;
   email: string | null;
   companyLine: string | null;
-  isAdmin: boolean;
   hasCompany: boolean;
   steps: PortalStep[];
   counts: PortalCounts;
@@ -187,7 +186,6 @@ export default function PortalShell({
   name,
   email,
   companyLine,
-  isAdmin,
   hasCompany,
   steps,
   counts,
@@ -206,7 +204,13 @@ export default function PortalShell({
         <div className="mx-auto max-w-6xl px-6 pt-10 pb-8">
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
             <div>
-              <h1 className="text-3xl sm:text-4xl">Welcome, {name}</h1>
+              {/* greetingName falls back to "there" when we have no first
+                  name, which produced "Welcome, there". That reads worse
+                  than no name at all, so when there is no real name the
+                  greeting is simply "Welcome". */}
+              <h1 className="text-3xl sm:text-4xl">
+                {name && name !== "there" ? `Welcome, ${name}` : "Welcome"}
+              </h1>
               {email && (
                 <p className="mt-2 text-sm text-ink-soft">
                   Signed in as {email}
@@ -214,11 +218,20 @@ export default function PortalShell({
                 </p>
               )}
             </div>
-            {isAdmin && (
-              <Link href="/admin" className="link-quiet text-sm text-forest">
-                Go to administration &rarr;
-              </Link>
-            )}
+            {/* There was a "Go to administration" link here, shown to
+                anybody whose platform_role was admin. It came off for two
+                reasons.
+
+                The first is that it does not belong on a trading screen.
+                The portal is where a supplier manages listings and a
+                retailer manages requests; a door into the moderation tools
+                sitting next to that tells every colleague who looks over a
+                shoulder that this account is more than it appears.
+
+                The second is that it can no longer happen. A platform
+                administrator cannot hold a company membership, so an
+                administrator has no portal to show this on. Administration
+                is reached at /admin, which is where it is. */}
           </div>
 
           {/* The strip scrolls sideways on a phone rather than wrapping into

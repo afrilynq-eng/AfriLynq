@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PhoneField from "@/components/PhoneField";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { browserClient } from "@/lib/supabase-browser";
@@ -43,8 +44,19 @@ export const SHAPES: Record<Kind, Shape> = {
     business: {
       heading: "Your farm or business",
       nameLabel: "Registered name",
-      numberLabel: "CAC registration number",
-      numberHint: "Needed before you can be verified",
+      // This asked for a CAC number, which only exists in Nigeria, on a
+      // platform that sources from across the continent. A Ghanaian
+      // cooperative, a Kenyan exporter and an Ethiopian processor all
+      // have a registration number and none of them have that one.
+      //
+      // The label names no authority and the hint gives examples rather
+      // than requirements, because the document that proves a farm is
+      // real differs by country and sometimes by crop: a company
+      // registration, a cooperative certificate, an export licence, a
+      // produce board or marketing board registration.
+      numberLabel: "Business registration number",
+      numberHint:
+        "Your company, cooperative or export registration, whichever applies where you are. Needed before you can be verified.",
     },
     categories: {
       heading: "What do you supply?",
@@ -68,8 +80,11 @@ export const SHAPES: Record<Kind, Shape> = {
     business: {
       heading: "Your business",
       nameLabel: "Registered company name",
-      numberLabel: "Companies House number",
-      numberHint: "Or your local equivalent",
+      // Same reasoning as the farmer route above. Most retailers here are
+      // in the UK, so Companies House is the example rather than the
+      // label.
+      numberLabel: "Company registration number",
+      numberHint: "Companies House in the UK, or your national equivalent",
     },
     categories: {
       heading: "What do you want to source?",
@@ -246,16 +261,15 @@ export default function RoleSignUpForm({
             />
             <span className={hint}>This is the address you sign in with</span>
           </label>
-          <label>
-            <span className={label}>Phone</span>
-            <input
-              type="tel"
-              name="phone"
-              autoComplete="tel"
-              placeholder={shape.country === "NG" ? "+234" : "+44"}
-              className={field}
-            />
-          </label>
+          <PhoneField
+            name="phone"
+            label="Phone"
+            id="signup-phone"
+            defaultCountry={shape.country}
+            labelClass={label}
+            fieldClass={field}
+            hintClass={hint}
+          />
         </div>
 
         <div className="mt-5 grid gap-5 sm:grid-cols-2">

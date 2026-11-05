@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PhoneField from "@/components/PhoneField";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { browserClient } from "@/lib/supabase-browser";
@@ -256,16 +257,14 @@ export default function SignUpForm({ initialError = "" }: { initialError?: strin
             />
             <span className={hint}>This is the address you sign in with</span>
           </label>
-          <label>
-            <span className={label}>Phone</span>
-            <input
-              type="tel"
-              name="phone"
-              autoComplete="tel"
-              placeholder="+234 or +44"
-              className={field}
-            />
-          </label>
+          <PhoneField
+            name="phone"
+            label="Phone"
+            id="signup-phone"
+            labelClass={label}
+            fieldClass={field}
+            hintClass={hint}
+          />
         </div>
 
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -335,7 +334,7 @@ export default function SignUpForm({ initialError = "" }: { initialError?: strin
               <input
                 type="text"
                 name="registrationNumber"
-                placeholder="CAC or Companies House"
+                placeholder="As issued where you are registered"
                 className={field}
               />
               <span className={hint}>Needed before verification</span>

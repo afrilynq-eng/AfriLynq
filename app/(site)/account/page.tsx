@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import OverviewExtras from "@/components/account/OverviewExtras";
 import ShopperOverview from "@/components/account/ShopperOverview";
+import BuyerOverview from "@/components/account/BuyerOverview";
 import { userCompanies, currentUser, greetingName } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
@@ -65,9 +66,19 @@ export default async function AccountPage() {
 
   const [primary, ...others] = companies;
 
+  // A retailer has a company, so without this they fall into the supplier
+  // overview and are shown listings, catalogue views, certificates and a
+  // prompt to add their first listing. None of that exists on their side of
+  // the market.
+  //
+  // A company trading both ways keeps the supplier overview, because they
+  // do have listings to manage, and their requests are one click away in
+  // the sidebar.
+  const Overview = primary.company_type === "buyer" ? BuyerOverview : OverviewExtras;
+
   return (
     <>
-      <OverviewExtras companyIds={companies.map((c) => c.id)} primary={primary} />
+      <Overview companyIds={companies.map((c) => c.id)} primary={primary} />
 
       {/* Several companies is rare, and the overview above follows the first.
           The rest are listed plainly so they are reachable, not repeated in

@@ -130,18 +130,24 @@ export default function HomePage() {
               Europe, Asia, the Americas and across Africa itself.
             </p>
 
+            {/* These three said "Join us as a..." and went to the
+                explainer page, so somebody who had decided to join had to
+                read a page about joining and then find the button again.
+                They go to the form now. The explainer pages are still
+                there, under "Who it's for" in the navigation, which is
+                where somebody who has not decided yet looks. */}
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/for-retailers" className="btn-lift inline-block rounded bg-forest-soft px-6 py-3 font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep">
+              <Link href="/register/retailer" className="btn-lift inline-block rounded bg-forest-soft px-6 py-3 font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep">
                 Join us as a retailer
               </Link>
               <Link
-                href="/for-farmers"
+                href="/register/farmer"
                 className="btn-lift inline-block rounded bg-paper px-6 py-3 text-forest transition-colors hover:bg-gold hover:text-forest-deep"
               >
                 Join us as a farmer
               </Link>
               <Link
-                href="/for-shoppers"
+                href="/register/shopper"
                 className="btn-lift inline-block rounded border border-sand-deep/60 px-6 py-3 text-paper transition-colors hover:bg-paper hover:text-forest"
               >
                 I am buying for myself

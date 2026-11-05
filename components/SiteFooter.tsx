@@ -6,19 +6,31 @@ import { SocialIcon, type SocialName } from "./SocialIcon";
  * Footer matching the prototype: four columns plus the brand block, on the
  * deep green ground. Contact details are AfriLynq's own, as supplied.
  */
+/**
+ * Footer links.
+ *
+ * These carried two pairs of duplicates: About Us and Why AfriLynq both
+ * went to /about, and Product Categories and Browse Products both went to
+ * /categories. Two names for one page teaches a visitor that the labels
+ * here cannot be trusted, which is the opposite of what a footer is for.
+ *
+ * The footer is also where the pages taken off the top level now live, so
+ * nothing became unreachable when the nav went from nine items to four.
+ */
 const COMPANY = [
   { href: "/about", label: "About Us" },
   { href: "/#how-it-works", label: "How It Works" },
-  { href: "/about", label: "Why AfriLynq" },
   { href: "/contact", label: "Contact Us" },
 ];
 
 const MARKETPLACE = [
+  { href: "/marketplace", label: "Live Offers" },
+  { href: "/products", label: "What We Source" },
   { href: "/categories", label: "Product Categories" },
+  { href: "/suppliers", label: "Supplier Directory" },
   { href: "/for-farmers", label: "For Farmers" },
   { href: "/for-retailers", label: "For Retailers" },
   { href: "/for-shoppers", label: "For Shoppers" },
-  { href: "/categories", label: "Browse Products" },
 ];
 
 const SUPPORT = [

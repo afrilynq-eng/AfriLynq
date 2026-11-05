@@ -26,7 +26,18 @@ export default async function SuppliersPage({
 }) {
   const { q, country } = await searchParams;
 
-  const suppliers = await publicSuppliers({ q, country });
+  // Same reasoning as the marketplace: a database problem must not
+  // white-screen a public page, and "no suppliers" must not be shown
+  // when the truth is "we could not look".
+  let suppliers: Awaited<ReturnType<typeof publicSuppliers>> = [];
+  let unavailable = false;
+  try {
+    suppliers = await publicSuppliers({ q, country });
+  } catch (err) {
+    unavailable = true;
+    console.error("[suppliers] could not load suppliers:", err);
+  }
+
   const countryName = new Map(COUNTRIES.map((c) => [c.code, c.name]));
 
   const available = [
@@ -89,7 +100,22 @@ export default async function SuppliersPage({
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-12">
-        {suppliers.length === 0 ? (
+        {unavailable ? (
+          <div className="rounded-xl border border-sand-deep bg-paper p-10 text-center">
+            <h2 className="text-2xl">
+              We cannot reach the supplier directory right now
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl leading-relaxed text-ink-soft">
+              This is a problem at our end, not yours, and it is being
+              logged. Try again in a few minutes.
+            </p>
+            <div className="mt-8">
+              <Link href="/suppliers" className="btn-lift btn-primary">
+                Try again
+              </Link>
+            </div>
+          </div>
+        ) : suppliers.length === 0 ? (
           <div className="rounded-xl border border-sand-deep bg-paper p-10 text-center">
             <h2 className="text-2xl">
               {filtered ? "Nothing matches that" : "No verified suppliers yet"}

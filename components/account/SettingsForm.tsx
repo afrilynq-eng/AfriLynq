@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PhoneField from "@/components/PhoneField";
 import { useRouter } from "next/navigation";
 import { COUNTRIES } from "@/lib/countries";
 import { saveSettings } from "@/app/(site)/account/settings/actions";
@@ -95,17 +96,15 @@ export default function SettingsForm(props: Props) {
       </div>
 
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
-        <label>
-          <span className={label}>Phone</span>
-          <input
-            type="tel"
-            name="phone"
-            defaultValue={props.phone}
-            placeholder="Including country code"
-            autoComplete="tel"
-            className={field}
-          />
-        </label>
+        <PhoneField
+          name="phone"
+          label="Phone"
+          id="settings-phone"
+          defaultCountry={props.countryCode}
+          defaultValue={props.phone}
+          labelClass={label}
+          fieldClass={field}
+        />
 
         <label>
           <span className={label}>Country</span>

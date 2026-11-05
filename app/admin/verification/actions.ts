@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin, sessionClient } from "@/lib/supabase-server";
+import { serviceClient } from "@/lib/supabase";
 
 /**
  * Approving or rejecting a company.
@@ -87,7 +88,36 @@ export async function decideCompany(
     p_checks: Object.keys(clean).length > 0 ? clean : null,
   });
 
-  if (error) return { ok: false, message: error.message };
+  if (error) {
+    /**
+     * A reviewer connected to the company they are ruling on.
+     *
+     * admin_decide_company refuses this, and it cannot log the attempt
+     * itself: raising rolls its own audit insert back, and Postgres has no
+     * autonomous transaction to escape that. So the record is written from
+     * here, in a transaction of its own, after the refusal has landed.
+     *
+     * Service role, because the administrator's own session is not
+     * trusted to write its own audit entry.
+     */
+    if (error.code === "42501" && /another administrator/.test(error.message)) {
+      await serviceClient()
+        .from("audit_log")
+        .insert({
+          actor_id: admin.id,
+          actor_email: admin.email,
+          action: "company.decision_refused",
+          entity_type: "company",
+          entity_id: companyId,
+          after_state: {
+            reason: "reviewer is connected to this company",
+            attempted_status: decision,
+          },
+        });
+    }
+
+    return { ok: false, message: error.message };
+  }
 
   revalidatePath("/admin/verification");
   revalidatePath("/admin/companies");

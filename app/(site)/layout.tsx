@@ -14,9 +14,20 @@ import Analytics from "@/components/Analytics";
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      {/* focus-visible, not focus.
+
+          With plain `focus:`, clicking anywhere near the top left corner
+          of the page gives this link focus and the black box appears and
+          stays there until something else is clicked. It looks like a
+          rendering fault, and it is what Collins has been seeing.
+
+          focus-visible only fires when the browser judges the focus to
+          have come from the keyboard, which is the only case this link
+          exists for. A keyboard user pressing Tab still gets it; a mouse
+          user never sees it again. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-forest focus:px-4 focus:py-2 focus:text-paper"
+        className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:bg-forest focus-visible:px-4 focus-visible:py-2 focus-visible:text-paper"
       >
         Skip to content
       </a>

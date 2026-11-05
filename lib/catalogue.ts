@@ -242,6 +242,76 @@ export async function publicListings(
   });
 }
 
+/**
+ * How many live offers each catalogue term would find.
+ *
+ * The catalogue at /products and the marketplace at /marketplace are two
+ * different things that look alike: one is the reference list of what
+ * AfriLynq sources, the other is what suppliers are actually offering
+ * today. A visitor cannot tell them apart by looking, so the catalogue
+ * states the connection outright: "4 live offers" against a product, or
+ * "No live offers yet".
+ *
+ * The count is deliberately computed with the same rule the marketplace
+ * search uses, name or summary containing the term, rather than anything
+ * cleverer. A smarter match would be a count that disagrees with the page
+ * it links to, and a number that lies when you click it is worse than no
+ * number. Here the two cannot drift: both answer the same question.
+ *
+ * One query for the whole page, matched in memory, because the
+ * alternative is one round trip per product and there are over a hundred.
+ */
+export async function liveOfferCounts(
+  terms: string[]
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  for (const t of terms) out.set(t, 0);
+  if (terms.length === 0) return out;
+
+  /**
+   * Everything below is best effort.
+   *
+   * /products was a static page that needed no database at all. Adding
+   * this count must not turn a database problem into a 500 on a page
+   * whose actual content is a file in the repo. On any failure the
+   * catalogue still renders and simply says "No live offers yet", which
+   * is wrong but harmless, and the wrapper in lib/db-report.ts puts the
+   * real reason in the log.
+   */
+  let rows: { name: string | null; summary: string | null }[] = [];
+  try {
+    const { data } = await serviceClient()
+      .from("products")
+      .select(
+        "name, summary, company:company_id!inner(verification_status, is_listed)"
+      )
+      .eq("status", "active")
+      .eq("company.verification_status", "verified")
+      .eq("company.is_listed", true)
+      .limit(1000);
+    rows = (data ?? []) as { name: string | null; summary: string | null }[];
+  } catch (err) {
+    console.error("[catalogue] liveOfferCounts could not read listings:", err);
+    return out;
+  }
+
+  if (rows.length === 0) return out;
+
+  const haystacks = rows.map((r) =>
+    `${r.name ?? ""} ${r.summary ?? ""}`.toLowerCase()
+  );
+
+  for (const term of terms) {
+    const needle = term.trim().toLowerCase();
+    if (!needle) continue;
+    let n = 0;
+    for (const h of haystacks) if (h.includes(needle)) n++;
+    out.set(term, n);
+  }
+
+  return out;
+}
+
 /** The lead photograph for each of these listings, in one query. */
 async function firstImages(productIds: string[]): Promise<Map<string, string>> {
   if (productIds.length === 0) return new Map();

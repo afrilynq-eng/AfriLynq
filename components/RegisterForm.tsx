@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PhoneField from "@/components/PhoneField";
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/content";
 import { COUNTRIES } from "@/lib/countries";
@@ -195,16 +196,15 @@ export default function RegisterForm({ kind }: { kind: Kind }) {
           </label>
         </div>
 
-        <label className="mt-5 block">
-          <span className={label}>Phone number</span>
-          <input
-            type="tel"
+        <div className="mt-5">
+          <PhoneField
             name="phone"
-            autoComplete="tel"
-            placeholder="Including country code"
-            className={field}
+            label="Phone number"
+            id="register-phone"
+            labelClass={label}
+            fieldClass={field}
           />
-        </label>
+        </div>
 
         <label className="mt-5 block">
           <span className={label}>

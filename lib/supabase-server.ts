@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { reporting } from "@/lib/db-report";
 
 /**
  * Request scoped Supabase client that carries the signed in user's session.
@@ -18,7 +19,7 @@ export function isConfigured() {
 export async function sessionClient() {
   const store = await cookies();
 
-  return createServerClient(
+  const client = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -37,6 +38,11 @@ export async function sessionClient() {
       },
     }
   );
+
+  // reporting() makes a failed query say so in the log instead of
+  // returning null and letting the caller's `?? []` turn it into a
+  // convincing empty page. See lib/db-report.ts.
+  return reporting(client);
 }
 
 /**

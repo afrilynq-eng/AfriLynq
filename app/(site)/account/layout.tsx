@@ -145,7 +145,6 @@ export default async function AccountLayout({
           ? `${primary.trading_name || primary.legal_name} (${TYPE_LABEL[primary.company_type] ?? primary.company_type})`
           : null
       }
-      isAdmin={user.platform_role === "admin"}
       hasCompany={Boolean(primary)}
       steps={steps}
       counts={badges}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PhoneField from "@/components/PhoneField";
 import { CATEGORIES } from "@/lib/content";
 import { COUNTRIES } from "@/lib/countries";
 
@@ -91,7 +92,7 @@ export default function LeadForm({
         </div>
         <Field label="Work email" name="email" type="email" required autoComplete="email" />
         <Field label="Company" name="companyName" autoComplete="organization" />
-        <Field label="Phone, including country code" name="phone" autoComplete="tel" />
+        <PhoneField name="phone" label="Phone" id="lead-phone" />
 
         <label className="block">
           <span className="text-sm font-medium text-ink">

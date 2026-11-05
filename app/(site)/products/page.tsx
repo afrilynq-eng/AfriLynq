@@ -3,11 +3,14 @@ import Link from "next/link";
 import { CATEGORIES, ORIGINS, MONTHS } from "@/lib/content";
 import { productPhoto } from "@/lib/photos";
 import { Photo } from "@/components/Photo";
+import { liveOfferCounts } from "@/lib/catalogue";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "All products",
+  title: "What we source",
   description:
-    "Every product AfriLynq sources, listed on one page with its local name, origins, season, trading unit and minimum order.",
+    "The reference list of every product AfriLynq sources, with local names, origins, seasons, trading units and minimum orders, and how many suppliers are offering each one today.",
   alternates: { canonical: "/products" },
 };
 
@@ -48,19 +51,47 @@ export default async function ProductsPage({
 
   const filtered = Boolean(needle || origin);
 
+  // How many suppliers are offering each of these today. One query for the
+  // page; see liveOfferCounts for why the count is defined the way it is.
+  const offers = await liveOfferCounts(products.map((p) => p.name));
+  const withOffers = products.filter((p) => (offers.get(p.name) ?? 0) > 0).length;
+
   return (
     <>
       {/* ================= OPENING ================= */}
       <section className="band-veil border-b border-sand-deep">
         <div className="mx-auto max-w-7xl px-6 py-14">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Every <span className="text-gold">product</span> we source
+          <p className="text-sm font-semibold tracking-widest text-gold uppercase">
+            Reference catalogue
+          </p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+            What we <span className="text-gold">source</span>
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft">
             {all.length} products from {ORIGINS.length} African origins, listed by
             the names buyers actually use. Each one states its season, trading unit,
             typical minimum order and what a supplier will ask you to specify.
           </p>
+
+          {/* The thing that separates this page from the marketplace, said
+              plainly rather than left for a visitor to work out. The two
+              pages are grids of produce with a search box, and nothing on
+              either one used to say which was which. */}
+          <div className="mt-6 max-w-3xl rounded-lg border border-sand-deep bg-paper/80 p-5">
+            <p className="leading-relaxed text-ink-soft">
+              <strong className="font-semibold text-ink">
+                This is the catalogue, not the stock list.
+              </strong>{" "}
+              It is everything AfriLynq can source, whether or not a supplier
+              has it listed right now. To see what is actually being offered
+              today, with quantities, prices and the supplier behind each
+              one, go to the{" "}
+              <Link href="/marketplace" className="link-quiet text-forest">
+                marketplace
+              </Link>
+              .
+            </p>
+          </div>
 
           {/* Search and origin filter. Plain links and a GET form, so every view
               has a shareable URL. */}
@@ -130,6 +161,14 @@ export default async function ProductsPage({
             {products.length === all.length
               ? `Showing all ${all.length} products`
               : `${products.length} of ${all.length} products`}
+            {withOffers > 0 && (
+              <>
+                {" · "}
+                <Link href="/marketplace" className="link-quiet text-forest">
+                  {withOffers} with live offers today
+                </Link>
+              </>
+            )}
           </p>
 
           {products.length === 0 ? (
@@ -153,37 +192,66 @@ export default async function ProductsPage({
                 const peak = p.calendar
                   .map((v, i) => (v === "peak" ? MONTHS[i] : null))
                   .filter(Boolean);
+                const live = offers.get(p.name) ?? 0;
+
+                /**
+                 * The card is no longer one big link.
+                 *
+                 * It carries two destinations now, and they are different
+                 * questions: the produce itself goes to the reference page
+                 * for its category, and the live offers go to the
+                 * marketplace. A link inside a link is not valid markup
+                 * anyway, so the photograph and the name carry the first
+                 * and the footer strip carries the second.
+                 */
                 return (
-                  <li key={p.slug}>
-                    <Link
-                      href={`/categories/${p.category}`}
-                      className="group flex h-full flex-col overflow-hidden rounded-lg bg-paper shadow-sm transition-shadow hover:shadow-md"
-                    >
-                      <Photo
-                        src={productPhoto(p.slug)}
-                        alt={p.name}
-                        label={p.name}
-                        className="aspect-square w-full"
-                        sizes="(min-width: 1280px) 220px, (min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
-                      />
-                      <div className="flex flex-1 flex-col p-3.5">
-                        <h2 className="text-[0.95rem] leading-snug font-semibold">
-                          {p.name}
-                        </h2>
-                        {p.localName && (
-                          <p className="mt-0.5 text-xs leading-snug text-gold">
-                            {p.localName}
+                  <li key={p.slug} className="flex">
+                    <div className="group flex h-full w-full flex-col overflow-hidden rounded-lg bg-paper shadow-sm transition-shadow hover:shadow-md">
+                      <Link
+                        href={`/categories/${p.category}`}
+                        className="flex flex-1 flex-col"
+                      >
+                        <Photo
+                          src={productPhoto(p.slug)}
+                          alt={p.name}
+                          label={p.name}
+                          className="aspect-square w-full"
+                          sizes="(min-width: 1280px) 220px, (min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
+                        />
+                        <div className="flex flex-1 flex-col p-3.5">
+                          <h2 className="text-[0.95rem] leading-snug font-semibold">
+                            {p.name}
+                          </h2>
+                          {p.localName && (
+                            <p className="mt-0.5 text-xs leading-snug text-gold">
+                              {p.localName}
+                            </p>
+                          )}
+                          <p className="mt-2 text-xs leading-snug text-stone">
+                            {p.origins.slice(0, 2).join(", ")}
+                            {p.origins.length > 2 && ` +${p.origins.length - 2}`}
                           </p>
-                        )}
-                        <p className="mt-2 text-xs leading-snug text-stone">
-                          {p.origins.slice(0, 2).join(", ")}
-                          {p.origins.length > 2 && ` +${p.origins.length - 2}`}
+                          <p className="mt-auto pt-2 text-xs text-ink-soft">
+                            {peak.length > 0
+                              ? `Peak ${peak.join(" ")}`
+                              : "Year round"}
+                          </p>
+                        </div>
+                      </Link>
+
+                      {live > 0 ? (
+                        <Link
+                          href={`/marketplace?q=${encodeURIComponent(p.name)}`}
+                          className="border-t border-sand bg-forest/5 px-3.5 py-2.5 text-xs font-medium text-forest transition-colors hover:bg-forest hover:text-paper"
+                        >
+                          {live} live {live === 1 ? "offer" : "offers"} &rarr;
+                        </Link>
+                      ) : (
+                        <p className="border-t border-sand px-3.5 py-2.5 text-xs text-stone">
+                          No live offers yet
                         </p>
-                        <p className="mt-auto pt-2 text-xs text-ink-soft">
-                          {peak.length > 0 ? `Peak ${peak.join(" ")}` : "Year round"}
-                        </p>
-                      </div>
-                    </Link>
+                      )}
+                    </div>
                   </li>
                 );
               })}

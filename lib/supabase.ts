@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { reporting } from "@/lib/db-report";
 
 /**
  * Server side client using the service role key.
@@ -19,7 +20,12 @@ export function serviceClient() {
     );
   }
 
-  return createClient(url, key, {
+  const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+
+  // reporting() makes a failed query say so in the log instead of
+  // returning null and letting the caller's `?? []` turn it into a
+  // convincing empty page. See lib/db-report.ts.
+  return reporting(client);
 }

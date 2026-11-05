@@ -122,7 +122,7 @@ export default function VerificationDecision({
           rows={3}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Certificate of incorporation is illegible. Upload a clearer scan showing the RC number."
+          placeholder="Registration certificate is illegible. Upload a clearer scan showing the registration number."
           className="mt-2 w-full rounded bg-white/[0.06] px-3.5 py-2.5 text-sm text-white ring-1 ring-white/10 placeholder:text-white/30"
         />
         <p className="mt-1.5 text-xs text-white/35">
