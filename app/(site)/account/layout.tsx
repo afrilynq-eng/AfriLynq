@@ -40,6 +40,21 @@ export default async function AccountLayout({
   if (!user) redirect("/sign-in");
 
   const companies = await userCompanies();
+
+  /**
+   * Somebody arrived without ever being asked what they are.
+   *
+   * The three sign-up forms always set account_type. Google and Microsoft
+   * cannot: they return a name and an email and nothing else. Without an
+   * answer the role below falls through to "supplier", so a shopper who
+   * signed in with Google would be shown listings, certificates and a
+   * demand to register a business.
+   *
+   * Having a company is itself an answer, so this only catches an account
+   * with neither. /welcome asks once and sends them back.
+   */
+  if (!user.account_type && companies.length === 0) redirect("/welcome");
+
   const counts = await certificationCounts(companies.map((c) => c.id));
 
   const primary = companies[0] ?? null;
