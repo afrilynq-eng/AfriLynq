@@ -368,3 +368,45 @@ body {
     transform: none;
   }
 }
+/* ------------------------------------------------------------------
+   Google's page translator
+
+   The widget injects a toolbar across the top of the document and then
+   sets `top` on <body> to push the page down behind it. On a site with
+   a sticky header that produces a visible gap and a header that no
+   longer sits against the top of the window.
+
+   None of it is needed: the language is chosen from our own control in
+   the header, so the toolbar is hidden and the offset it relies on is
+   refused. The `translated-ltr` and `translated-rtl` classes are what
+   the widget puts on <html> once a translation is active.
+
+   .notranslate on an element tells the widget to leave it alone. It is
+   used on the switcher itself, so the language names stay in their own
+   languages rather than being translated into the one you just left.
+   ------------------------------------------------------------------ */
+
+.skiptranslate,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+html.translated-ltr body,
+html.translated-rtl body {
+  top: 0 !important;
+}
+
+/* The widget wraps translated runs in <font> tags. Left alone they
+   inherit nothing and reset the line's styling. */
+font {
+  font: inherit !important;
+  color: inherit !important;
+  background: none !important;
+}
