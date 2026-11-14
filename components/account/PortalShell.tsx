@@ -99,6 +99,7 @@ const SUPPLIER_LINKS: Entry[] = [
   { href: "/account/company", label: "Company profile", icon: "building", needsCompany: true },
   { href: "/account/products", label: "Listings", icon: "box", needsCompany: true },
   { href: "/account/enquiries", label: "Enquiries", icon: "inbox", needsCompany: true },
+  { href: "/account/quotations", label: "Quotations", icon: "doc", needsCompany: true },
   { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: true, soon: true },
   { href: "/account/performance", label: "Performance", icon: "chart", needsCompany: true, soon: true },
   { href: "/account/documents", label: "Documents and verification", icon: "doc", needsCompany: true },
@@ -114,7 +115,7 @@ const SUPPLIER_LINKS: Entry[] = [
 const BUYER_LINKS: Entry[] = [
   { href: "/account", label: "Overview", icon: "home", needsCompany: false },
   { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: true },
-  { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: true, soon: true },
+  { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: true },
   { href: "/account/saved", label: "Saved suppliers", icon: "bookmark", needsCompany: true, soon: true },
   { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: true, soon: true },
   { href: "/account/orders", label: "Orders and contracts", icon: "box", needsCompany: true, soon: true },

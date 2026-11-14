@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { declineEnquiry } from "@/app/(site)/account/enquiries/actions";
@@ -93,14 +95,15 @@ export default function EnquiryActions({
   return (
     <>
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          disabled
-          title="The quotation builder arrives in Stage 3"
-          className="cursor-not-allowed rounded-lg bg-forest/35 px-5 py-2.5 text-sm font-semibold text-paper"
+        {/* Real as of Stage 3. It was a disabled button with a tooltip
+            explaining that quoting was not built yet, which is a fair
+            thing to show and a poor thing to leave. */}
+        <Link
+          href={`/account/enquiries/${enquiryId}/quote`}
+          className="btn-lift rounded-lg bg-forest px-5 py-2.5 text-sm font-semibold text-paper"
         >
           Send quotation
-        </button>
+        </Link>
         <button type="button" disabled title="Messaging arrives in Stage 3" className={dead}>
           Message
         </button>
