@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { openEnquiryThread } from "@/app/(site)/account/messages/actions";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -104,9 +105,11 @@ export default function EnquiryActions({
         >
           Send quotation
         </Link>
-        <button type="button" disabled title="Messaging arrives in Stage 3" className={dead}>
-          Message
-        </button>
+        <form action={openEnquiryThread.bind(null, enquiryId)}>
+          <button type="submit" className={ghost}>
+            Message
+          </button>
+        </form>
         {open && (
           <button type="button" onClick={() => setAsking(true)} className={ghost}>
             Decline
