@@ -29,8 +29,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  // Metadata is public, so it is generated without contact details.
-  const company = await publicSupplier(slug, { includeContact: false });
+  const company = await publicSupplier(slug);
   if (!company) return { title: "Supplier not found" };
 
   return {
@@ -49,12 +48,13 @@ export default async function SupplierPage({
 }) {
   const { slug } = await params;
 
-  // Whether contact details are even fetched depends on who is asking.
-  // Fetching them and then hiding them in the markup would put a phone
-  // number into the page source for anyone who looked.
+  // Contact details are not fetched at all, for anybody. Signing in no
+  // longer reveals them: it only decides whether this page offers the
+  // enquiry route or the sign-up one.
   const user = await currentUser();
+  const signedIn = Boolean(user);
   const [company, labels] = await Promise.all([
-    publicSupplier(slug, { includeContact: Boolean(user) }),
+    publicSupplier(slug),
     catalogueLabels(),
   ]);
 
@@ -150,7 +150,7 @@ export default async function SupplierPage({
 
       <div className="mx-auto max-w-6xl gap-10 px-6 py-12 lg:flex">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl">
+          <h2 id="listings" className="scroll-mt-24 text-2xl">
             {company.listings.length === 0
               ? "Listings"
               : `${company.listings.length} listing${company.listings.length === 1 ? "" : "s"}`}
@@ -159,8 +159,7 @@ export default async function SupplierPage({
           {company.listings.length === 0 ? (
             <p className="mt-4 max-w-xl leading-relaxed text-ink-soft">
               This company has been verified but has not published anything
-              yet. Get in touch if you are looking for something they might
-              supply.
+              yet. There is nothing to enquire about until they do.
             </p>
           ) : (
             <div className="mt-6 grid gap-6 sm:grid-cols-2">
@@ -253,78 +252,40 @@ export default async function SupplierPage({
             </div>
           )}
 
+          {/* No email, no phone, for anyone. A buyer who can read the phone
+              number has no reason to raise an enquiry, and AfriLynq earns
+              nothing on a trade it never saw. Contact details are exchanged
+              once an order is confirmed, which is when the two of them
+              actually need to reach each other. */}
           <div className="rounded-xl border border-sand-deep bg-paper p-6 shadow-sm lg:sticky lg:top-24">
-            <h2 className="text-xl">Get in touch</h2>
+            <h2 className="text-xl">Contact this supplier</h2>
 
-            {company.contact ? (
+            {signedIn ? (
               <>
-                <dl className="mt-4 space-y-3 text-sm">
-                  {company.contact.email && (
-                    <div>
-                      <dt className="text-[0.68rem] font-semibold tracking-widest text-stone uppercase">
-                        Email
-                      </dt>
-                      <dd className="mt-1 break-all">
-                        <a
-                          href={`mailto:${company.contact.email}`}
-                          className="link-quiet text-forest"
-                        >
-                          {company.contact.email}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                  {company.contact.phone && (
-                    <div>
-                      <dt className="text-[0.68rem] font-semibold tracking-widest text-stone uppercase">
-                        Phone
-                      </dt>
-                      <dd className="mt-1">
-                        <a
-                          href={`tel:${company.contact.phone.replace(/\s+/g, "")}`}
-                          className="link-quiet text-forest"
-                        >
-                          {company.contact.phone}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                  {company.websiteUrl && (
-                    <div>
-                      <dt className="text-[0.68rem] font-semibold tracking-widest text-stone uppercase">
-                        Website
-                      </dt>
-                      <dd className="mt-1 break-all">
-                        <a
-                          href={company.websiteUrl}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          className="link-quiet text-forest"
-                        >
-                          {company.websiteUrl.replace(/^https?:\/\//, "")}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                  {!company.contact.email &&
-                    !company.contact.phone &&
-                    !company.websiteUrl && (
-                      <p className="text-ink-soft">
-                        This supplier has not added contact details yet.
-                      </p>
-                    )}
-                </dl>
-
-                <p className="mt-5 text-xs leading-relaxed text-stone">
-                  Say who you are and what quantity you need. Suppliers answer
-                  specific enquiries and ignore vague ones.
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+                  {company.listingCount > 0
+                    ? "Open a listing and send an enquiry. They reply with a quotation, and everything said about it stays in one conversation."
+                    : "They have not published a listing yet. Nothing can be enquired about until they do."}
                 </p>
+
+                {company.listingCount > 0 && (
+                  <a href="#listings" className="btn-lift btn-primary mt-5 block text-center">
+                    See their listings
+                  </a>
+                )}
+
+                <Link
+                  href="/account/messages"
+                  className="link-quiet mt-4 block text-center text-sm text-forest"
+                >
+                  My conversations
+                </Link>
               </>
             ) : (
               <>
                 <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                  Contact details are shown to registered buyers. It takes a
-                  minute and it is free.
+                  Enquiries, quotations and delivery all run through your
+                  AfriLynq account. It takes a minute and it is free.
                 </p>
                 <Link href="/sign-up" className="btn-lift btn-primary mt-5 block text-center">
                   Create an account
@@ -337,6 +298,28 @@ export default async function SupplierPage({
                 </p>
               </>
             )}
+
+            {company.websiteUrl && (
+              <p className="mt-5 border-t border-sand pt-4 text-sm break-all">
+                <span className="block text-[0.68rem] font-semibold tracking-widest text-stone uppercase">
+                  Website
+                </span>
+                <a
+                  href={company.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="link-quiet mt-1 inline-block text-forest"
+                >
+                  {company.websiteUrl.replace(/^https?:\/\//, "")}
+                </a>
+              </p>
+            )}
+
+            <p className="mt-5 border-t border-sand pt-4 text-xs leading-relaxed text-stone">
+              Email and phone numbers are exchanged once an order is
+              confirmed. Until then the whole conversation stays on AfriLynq,
+              so there is one record of what was agreed.
+            </p>
           </div>
         </aside>
       </div>

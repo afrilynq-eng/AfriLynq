@@ -225,14 +225,38 @@ export interface CompanyDetail {
 }
 
 const COMPANY_DETAIL_COLUMNS =
-  "id, slug, legal_name, trading_name, company_type, registration_number, tax_number, country_code, state_or_region, city, address_line1, address_line2, postcode, contact_email, contact_phone, website_url, logo_path, short_description, about, year_established, employee_band, verification_status, is_listed";
+  "id, slug, legal_name, trading_name, company_type, country_code, state_or_region, city, website_url, logo_path, short_description, about, year_established, employee_band, verification_status, is_listed";
+
+/** The columns the API will not serve. Only a company's own members get these. */
+interface CompanyPrivate {
+  registration_number: string | null;
+  tax_number: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  postcode: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+}
+
+const NO_PRIVATE: CompanyPrivate = {
+  registration_number: null,
+  tax_number: null,
+  address_line1: null,
+  address_line2: null,
+  postcode: null,
+  contact_email: null,
+  contact_phone: null,
+};
 
 /**
  * One company in full, if the signed in user may see it.
  *
- * No membership check here: companies_member_read already limits the read
- * to companies they belong to, so an id that is not theirs returns nothing
- * rather than an error.
+ * Two reads rather than one. A row policy chooses which rows; it cannot
+ * choose which columns, so contact_email and the rest were readable by
+ * anyone holding the anon key. They are now withheld from the API at the
+ * column level and handed back by my_company_private(), which checks
+ * membership first. An id that is not theirs returns the public half and
+ * nulls, never an error.
  */
 export async function companyDetail(
   companyId: string
@@ -240,13 +264,22 @@ export async function companyDetail(
   if (!isConfigured()) return null;
   const supabase = await sessionClient();
 
-  const { data } = await supabase
-    .from("companies")
-    .select(COMPANY_DETAIL_COLUMNS)
-    .eq("id", companyId)
-    .maybeSingle();
+  const [{ data }, { data: priv }] = await Promise.all([
+    supabase
+      .from("companies")
+      .select(COMPANY_DETAIL_COLUMNS)
+      .eq("id", companyId)
+      .maybeSingle(),
+    supabase.rpc("my_company_private", { p_company_id: companyId }),
+  ]);
 
-  return (data as CompanyDetail | null) ?? null;
+  if (!data) return null;
+
+  const privateFields =
+    (Array.isArray(priv) ? (priv[0] as CompanyPrivate | undefined) : null) ??
+    NO_PRIVATE;
+
+  return { ...(data as object), ...privateFields } as CompanyDetail;
 }
 
 export interface Certification {

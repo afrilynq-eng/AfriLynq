@@ -43,9 +43,18 @@ interface Row {
   buyer_city: string | null;
   buyer_country_code: string | null;
   buyer_verified: boolean;
-  buyer_contact_email: string | null;
-  buyer_contact_phone: string | null;
 }
+
+/**
+ * Named rather than "*". The view still carries the buyer's email and
+ * phone for the admin side, but those columns are no longer granted to a
+ * signed in user, and "*" asks for every column there is.
+ */
+const INBOX_COLUMNS =
+  "id, reference, product_id, product_name_snapshot, quantity, unit_code, " +
+  "required_by, delivery_country_code, delivery_city, incoterm, message, " +
+  "status, created_at, buyer_name, buyer_type, buyer_city, " +
+  "buyer_country_code, buyer_verified";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   open: { label: "New", cls: "bg-forest/10 text-forest" },
@@ -97,7 +106,7 @@ export default async function EnquiriesPage() {
     const [inbox, sent, out, orders] = await Promise.all([
       supabase
         .from("supplier_enquiry_inbox")
-        .select("*")
+        .select(INBOX_COLUMNS)
         .order("created_at", { ascending: false })
         .limit(200),
       supabase
@@ -113,7 +122,7 @@ export default async function EnquiriesPage() {
       supabase.from("orders").select("id", head).in("supplier_company_id", ids),
     ]);
 
-    rows = (inbox.data ?? []) as Row[];
+    rows = (inbox.data ?? []) as unknown as Row[];
     quotesSent = sent.count ?? 0;
     awaiting = out.count ?? 0;
     contracted = orders.count ?? 0;
@@ -226,8 +235,6 @@ export default async function EnquiriesPage() {
                   <EnquiryActions
                     enquiryId={r.id}
                     open={r.status === "open" || r.status === "quoted"}
-                    contactEmail={r.buyer_contact_email}
-                    contactPhone={r.buyer_contact_phone}
                   />
                 </article>
               );

@@ -458,36 +458,34 @@ export interface SupplierProfile extends SupplierCard {
    * four blanks.
    */
   checks: Partial<Record<"registration" | "exports" | "certificates" | "contact", SupplierCheck>> | null;
-  /**
-   * Only ever filled for a signed in viewer. A verified supplier's phone
-   * number is the thing the whole account exists to protect: published
-   * openly it is scraped within the week and the supplier blames AfriLynq
-   * for the calls.
-   */
-  contact: { email: string | null; phone: string | null } | null;
 }
 
+/**
+ * A supplier's public profile.
+ *
+ * No contact details, deliberately, and not even behind a sign in. A buyer
+ * who can read the phone number has no reason to raise an enquiry, and
+ * AfriLynq earns nothing on a trade it never saw. Email and phone are
+ * released by counterparty_contact() once an order joins the two companies.
+ *
+ * This reads through the service client, so the column grants that stop the
+ * REST API serving those columns do not apply here. Not selecting them is
+ * what keeps them out of the page.
+ */
 export async function publicSupplier(
-  slug: string,
-  options: { includeContact: boolean }
+  slug: string
 ): Promise<SupplierProfile | null> {
   const svc = serviceClient();
 
-  const columns = options.includeContact
-    ? `${VISIBLE_COMPANY}, contact_email, contact_phone`
-    : VISIBLE_COMPANY;
-
   const { data } = await svc
     .from("companies")
-    .select(columns)
+    .select(VISIBLE_COMPANY)
     .eq("slug", slug)
     .eq("verification_status", "verified")
     .eq("is_listed", true)
     .maybeSingle();
 
-  const row = data as unknown as
-    | (CompanyRow & { contact_email?: string | null; contact_phone?: string | null })
-    | null;
+  const row = data as unknown as CompanyRow | null;
   if (!row) return null;
 
   const { data: products } = await svc
@@ -537,9 +535,6 @@ export async function publicSupplier(
     listings,
     checks: (row as { verification_checks?: Record<string, string> | null })
       .verification_checks as SupplierProfile["checks"] ?? null,
-    contact: options.includeContact
-      ? { email: row.contact_email ?? null, phone: row.contact_phone ?? null }
-      : null,
   };
 }
 

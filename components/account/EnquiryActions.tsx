@@ -8,35 +8,30 @@ import { useRouter } from "next/navigation";
 import { declineEnquiry } from "@/app/(site)/account/enquiries/actions";
 
 /**
- * The three buttons on an enquiry, plus the buyer's contact details.
+ * The three buttons on an enquiry.
  *
- * Send quotation and Message are Stage 3 and are inert rather than
- * pointing at pages that do not exist. Decline is real, and asks for a
- * reason first: a buyer who is turned down with no word assumes the
- * supplier is unreliable, and the reason is usually "wrong season" or
- * "below our minimum", either of which is worth them knowing.
+ * Quote, Message, Decline. Decline asks for a reason first: a buyer who is
+ * turned down with no word assumes the supplier is unreliable, and the
+ * reason is usually "wrong season" or "below our minimum", either of which
+ * is worth them knowing.
  *
- * Contact details sit behind a click rather than on the card. They are on
- * screen only when somebody has chosen to look, which keeps a screenshot
- * of this page from being a list of buyer email addresses.
+ * There is no Show contact button any more. Handing the supplier the
+ * buyer's email the moment an enquiry lands invites both of them off the
+ * platform, which loses the record of what was agreed and the service
+ * charge with it. Contact details are released once an order is confirmed.
  */
 export default function EnquiryActions({
   enquiryId,
   open,
-  contactEmail,
-  contactPhone,
 }: {
   enquiryId: string;
   open: boolean;
-  contactEmail: string | null;
-  contactPhone: string | null;
 }) {
   const router = useRouter();
   const [asking, setAsking] = useState(false);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [showing, setShowing] = useState(false);
 
   async function decline() {
     setBusy(true);
@@ -57,9 +52,6 @@ export default function EnquiryActions({
 
   const ghost =
     "rounded-lg border border-sand-deep px-4 py-2.5 text-sm font-medium text-forest transition-colors hover:border-forest disabled:opacity-40";
-  const dead =
-    "cursor-not-allowed rounded-lg border border-sand-deep px-4 py-2.5 text-sm font-medium text-stone";
-
   if (asking) {
     return (
       <div className="mt-4 rounded-lg border border-sand-deep bg-sand/60 p-4">
@@ -115,38 +107,7 @@ export default function EnquiryActions({
             Decline
           </button>
         )}
-        {(contactEmail || contactPhone) && (
-          <button
-            type="button"
-            onClick={() => setShowing((v) => !v)}
-            className={ghost + " ml-auto"}
-          >
-            {showing ? "Hide contact" : "Show contact"}
-          </button>
-        )}
       </div>
-
-      {showing && (
-        <div className="mt-3 rounded-lg border border-sand-deep bg-sand/60 px-4 py-3 text-sm">
-          <p className="text-stone">
-            Until the quotation builder arrives, reply to this buyer directly.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1">
-            {contactEmail && (
-              <span className="text-ink">
-                <span className="text-stone">Email </span>
-                {contactEmail}
-              </span>
-            )}
-            {contactPhone && (
-              <span className="text-ink">
-                <span className="text-stone">Phone </span>
-                {contactPhone}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -196,9 +196,10 @@ export default async function ListingPage({
               </span>
             </div>
 
-            {/* Contact details are the reason an account exists. Published
-                openly they are scraped inside a week and the supplier
-                blames AfriLynq for the calls. */}
+            {/* An enquiry needs an account, because the quotation, the
+                conversation and the order all hang off it. Contact details
+                are not what an account buys: those are exchanged once an
+                order is confirmed. */}
             {user ? (
               <>
                 <EnquiryForm
@@ -229,7 +230,7 @@ export default async function ListingPage({
                   <Link href="/sign-up" className="font-semibold text-forest underline">
                     Create a free account
                   </Link>{" "}
-                  to see this supplier's contact details and send an enquiry.
+                  to send this supplier an enquiry and receive a quotation.
                   Already have one?{" "}
                   <Link href="/sign-in" className="link-quiet text-forest">
                     Sign in
