@@ -408,6 +408,10 @@ export async function publicSuppliers(query: {
     .select(VISIBLE_COMPANY)
     .eq("verification_status", "verified")
     .eq("is_listed", true)
+    // A directory called "Verified suppliers" should hold suppliers. A
+    // retailer signed up to buy, and being verified is not a reason to
+    // give them a public page. 'both' supplies as well, so it stays.
+    .in("company_type", ["supplier", "both"])
     .order("legal_name", { ascending: true })
     .limit(200);
 
@@ -483,6 +487,7 @@ export async function publicSupplier(
     .eq("slug", slug)
     .eq("verification_status", "verified")
     .eq("is_listed", true)
+    .in("company_type", ["supplier", "both"])
     .maybeSingle();
 
   const row = data as unknown as CompanyRow | null;
