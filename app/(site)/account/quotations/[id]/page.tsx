@@ -43,7 +43,8 @@ interface QuotationRow {
   created_at: string;
   enquiry_id: string;
   supplier_company_id: string;
-  buyer_company_id: string;
+  buyer_company_id: string | null;
+  buyer_profile_id: string | null;
 }
 
 export default async function QuotationPage({
@@ -70,7 +71,7 @@ export default async function QuotationPage({
         "other_charges_minor, total_minor, incoterm, lead_time_days, " +
         "payment_terms, packaging_notes, notes, valid_until, sent_at, " +
         "responded_at, decline_reason, created_at, enquiry_id, " +
-        "supplier_company_id, buyer_company_id"
+        "supplier_company_id, buyer_company_id, buyer_profile_id"
     )
     .eq("id", id)
     .maybeSingle();
@@ -95,7 +96,12 @@ export default async function QuotationPage({
       supabase
         .from("companies")
         .select("id, legal_name, trading_name, country_code")
-        .in("id", [q.supplier_company_id, q.buyer_company_id]),
+        .in(
+          "id",
+          [q.supplier_company_id, q.buyer_company_id].filter(
+            (v): v is string => Boolean(v)
+          )
+        ),
       supabase
         .from("enquiries")
         .select("reference, product_name_snapshot")
@@ -115,9 +121,32 @@ export default async function QuotationPage({
     }[]).map((c) => [c.id, c])
   );
   const supplier = byId.get(q.supplier_company_id);
-  const buyer = byId.get(q.buyer_company_id);
 
-  const iAmBuyer = mine.has(q.buyer_company_id);
+  /**
+   * The buyer may be a shopper, who is a person and has no company row.
+   * Reading the name from profiles keeps the page honest about who it was
+   * quoted to, and iAmBuyer has to account for them or the Accept button
+   * never appears for the one person entitled to press it.
+   */
+  let buyer = q.buyer_company_id ? byId.get(q.buyer_company_id) : undefined;
+  if (!buyer && q.buyer_profile_id) {
+    const { data: person } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", q.buyer_profile_id)
+      .maybeSingle();
+    const name = (person as { full_name: string | null } | null)?.full_name;
+    buyer = {
+      id: q.buyer_profile_id,
+      legal_name: name || "A shopper",
+      trading_name: null,
+      country_code: null,
+    };
+  }
+
+  const iAmBuyer = q.buyer_company_id
+    ? mine.has(q.buyer_company_id)
+    : q.buyer_profile_id === user.id;
   const iAmSupplier = mine.has(q.supplier_company_id);
   const canAnswer = iAmBuyer && q.status === "sent";
 

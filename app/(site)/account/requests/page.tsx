@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { userCompanies, sessionClient, currentUser } from "@/lib/supabase-server";
 import { COUNTRIES } from "@/lib/countries";
+import { openEnquiryThread } from "@/app/(site)/account/messages/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -188,14 +189,38 @@ export default async function RequestsPage() {
                   <p className="mt-2 text-xs text-stone">
                     {r.reference} &middot; sent {day(r.created_at)}
                   </p>
+
+                  {/* A buyer needs to be able to open the conversation too.
+                      Until now Message existed only on the supplier's side
+                      of the enquiry, so a shopper could be quoted and had
+                      no way to ask a question about it. */}
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <form action={openEnquiryThread.bind(null, r.id)}>
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-sand-deep px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:border-forest hover:text-forest"
+                      >
+                        Message supplier
+                      </button>
+                    </form>
+                    {n > 0 && (
+                      <Link
+                        href="/account/quotations"
+                        className="rounded-lg bg-forest px-4 py-2 text-sm font-semibold text-paper"
+                      >
+                        {n === 1 ? "Read the quote" : `Compare ${n} quotes`}
+                      </Link>
+                    )}
+                  </div>
                 </li>
               );
             })}
           </ul>
 
           <p className="rounded-xl border border-sand-deep bg-sand/60 px-5 py-4 text-sm leading-relaxed text-ink-soft">
-            Reading and comparing quotations arrives in Stage 3. Until then a
-            supplier who wants to quote will reply to you directly.
+            A quotation holds its price for as long as it says it does, and
+            cannot be edited once sent. If something needs changing, ask in the
+            conversation and the supplier sends a new version.
           </p>
         </>
       )}

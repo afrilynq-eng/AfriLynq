@@ -114,10 +114,13 @@ const SUPPLIER_LINKS: Entry[] = [
  */
 const BUYER_LINKS: Entry[] = [
   { href: "/account", label: "Overview", icon: "home", needsCompany: false },
-  { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: true },
-  { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: true },
+  // Buying needs no company. A retailer can enquire, be quoted and talk to
+  // a supplier as themselves, and verification gates the selling side only.
+  // These three asked for a company until stage3-06 made that untrue.
+  { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: false },
+  { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: false },
   { href: "/account/saved", label: "Saved suppliers", icon: "bookmark", needsCompany: true, soon: true },
-  { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: true },
+  { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: false },
   { href: "/account/orders", label: "Orders and contracts", icon: "box", needsCompany: true, soon: true },
   { href: "/account/company", label: "Company profile", icon: "building", needsCompany: true },
   { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
@@ -130,14 +133,17 @@ const BUYER_LINKS: Entry[] = [
  * and a sidebar that greys itself out would be telling them to do work that
  * does not exist for them.
  *
- * Short by design. Four links is the whole of what a shopper can do this
- * stage, and padding it with greyed-out trade features would make their
- * account look like a worse version of a retailer's.
+ * Quotations and Messages belong here. A shopper can be quoted and can
+ * talk to the supplier about it, so leaving those out gave them a reply
+ * with nowhere to read it. Nothing here is padding: every line is
+ * something they can actually do.
  */
 const SHOPPER_LINKS: Entry[] = [
   { href: "/account", label: "Overview", icon: "home", needsCompany: false },
   { href: "/marketplace", label: "Browse produce", icon: "box", needsCompany: false },
   { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: false },
+  { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: false },
+  { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: false },
   { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
 ];
 
