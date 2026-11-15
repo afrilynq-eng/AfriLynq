@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { requireAdmin } from "@/lib/supabase-server";
+import { requireAdmin, sessionClient } from "@/lib/supabase-server";
 import { serviceClient } from "@/lib/supabase";
 import { CATEGORIES } from "@/lib/content";
 import AdminShell, { StatCard, Panel } from "@/components/admin/Shell";
@@ -76,24 +76,22 @@ export default async function AdminDashboard() {
 
   const svc = serviceClient();
 
-  const [
-    profilesRes,
-    companiesRes,
-    productsRes,
-    enquiriesRes,
-    quotesRes,
-    certsRes,
-    leadsRes,
-    auditRes,
-  ] = await Promise.all([
-    svc.from("profiles").select("id, created_at, account_type").limit(5000),
-    svc
-      .from("companies")
-      .select("id, verification_status, company_type, country_code, created_at, updated_at"),
-    svc.from("products").select("id, status, company_id"),
-    svc.from("enquiries").select("id, status, created_at").limit(5000),
-    svc.from("quotations").select("id, status, created_at").limit(5000),
-    svc.from("certifications").select("id, status, expires_on").limit(5000),
+  /**
+   * One round trip, not eight.
+   *
+   * This page used to pull profiles, companies, products, enquiries,
+   * quotations and certifications in full and count them here. Every tile
+   * is a count Postgres does in microseconds, so it does them, and the
+   * rows stay in London. Leads and the audit tail are still read directly
+   * because both are shown as lists, not counted.
+   */
+  // The dashboard call goes through the administrator's own session, so
+  // auth.uid() is set and the function can verify for itself who is
+  // asking. Everything else stays on the service key.
+  const session = await sessionClient();
+
+  const [dashRes, leadsRes, auditRes] = await Promise.all([
+    session.rpc("admin_dashboard"),
     svc
       .from("leads")
       .select(
@@ -108,31 +106,24 @@ export default async function AdminDashboard() {
       .limit(6),
   ]);
 
-  const profiles = (profilesRes.data ?? []) as {
-    created_at: string;
-    account_type: string | null;
-  }[];
-  const companies = (companiesRes.data ?? []) as {
-    id: string;
-    verification_status: string;
-    company_type: string;
-    country_code: string | null;
-    created_at: string;
-    updated_at: string;
-  }[];
-  const products = (productsRes.data ?? []) as {
-    status: string;
-    company_id: string;
-  }[];
-  const enquiries = (enquiriesRes.data ?? []) as {
-    status: string;
-    created_at: string;
-  }[];
-  const quotes = (quotesRes.data ?? []) as { status: string; created_at: string }[];
-  const certs = (certsRes.data ?? []) as {
-    status: string;
-    expires_on: string | null;
-  }[];
+  const d = (dashRes.data ?? {}) as {
+    accounts_total?: number;
+    accounts_new?: number;
+    roles?: Record<string, number>;
+    signups?: number[];
+    pending_companies?: number;
+    oldest_pending?: string | null;
+    listings_pending?: number;
+    open_enquiries?: number;
+    stale_enquiries?: number;
+    verified_suppliers?: number;
+    origin_countries?: number;
+    quotes_this_week?: number;
+    quotes_last_week?: number;
+    certs_expiring?: number;
+    leads_this_week?: number;
+  };
+
   const leads = (leadsRes.data ?? []) as Lead[];
   const audit = (auditRes.data ?? []) as {
     id: number;
@@ -142,59 +133,20 @@ export default async function AdminDashboard() {
     created_at: string;
   }[];
 
-  const weekAgo = Date.now() - 7 * DAY;
-  const prevWeekStart = Date.now() - 14 * DAY;
-  const since = (iso: string, t: number) => new Date(iso).getTime() > t;
+  const accountsTotal = d.accounts_total ?? 0;
+  const accountsNew = d.accounts_new ?? 0;
+  const pendingCompanies = d.pending_companies ?? 0;
+  const oldestWait = d.oldest_pending ?? null;
+  const listingsPending = d.listings_pending ?? 0;
+  const openEnquiryCount = d.open_enquiries ?? 0;
+  const staleEnquiries = d.stale_enquiries ?? 0;
+  const supplierCount = d.verified_suppliers ?? 0;
+  const origins = d.origin_countries ?? 0;
+  const quotesThisWeek = d.quotes_this_week ?? 0;
+  const quotesLastWeek = d.quotes_last_week ?? 0;
+  const expiring = d.certs_expiring ?? 0;
+  const leadsThisWeek = d.leads_this_week ?? 0;
 
-  // ---- Accounts -----------------------------------------------------
-  const accountsNew = profiles.filter((p) => since(p.created_at, weekAgo)).length;
-
-  // ---- Verification --------------------------------------------------
-  const pending = companies.filter((c) => c.verification_status === "pending");
-  // updated_at is when it last moved, which for a pending company is when
-  // it was submitted. Closer to "waiting since" than created_at, which is
-  // when somebody first typed the company name.
-  const oldestWait =
-    pending.length === 0
-      ? null
-      : pending
-          .map((c) => c.updated_at)
-          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
-
-  // ---- Listings pending ----------------------------------------------
-  // A listing is live only when its company is verified. An active listing
-  // on an unverified company is the queue: published by the supplier, not
-  // yet visible to anyone.
-  const verifiedIds = new Set(
-    companies.filter((c) => c.verification_status === "verified").map((c) => c.id)
-  );
-  const listingsPending = products.filter(
-    (p) => p.status === "active" && !verifiedIds.has(p.company_id)
-  ).length;
-
-  // ---- Enquiries -------------------------------------------------------
-  const openEnquiries = enquiries.filter((e) => e.status === "open");
-  const staleEnquiries = openEnquiries.filter(
-    (e) => !since(e.created_at, Date.now() - 7 * DAY)
-  ).length;
-
-  // ---- Suppliers --------------------------------------------------------
-  const verifiedSuppliers = companies.filter(
-    (c) =>
-      c.verification_status === "verified" &&
-      (c.company_type === "supplier" || c.company_type === "both")
-  );
-  const origins = new Set(
-    verifiedSuppliers.map((c) => c.country_code).filter(Boolean)
-  ).size;
-
-  // ---- Quotations --------------------------------------------------------
-  // Drafts are a supplier still typing and have not reached the buyer.
-  const sentQuotes = quotes.filter((q) => q.status !== "draft");
-  const quotesThisWeek = sentQuotes.filter((q) => since(q.created_at, weekAgo)).length;
-  const quotesLastWeek = sentQuotes.filter(
-    (q) => since(q.created_at, prevWeekStart) && !since(q.created_at, weekAgo)
-  ).length;
   const quoteTrend =
     quotesLastWeek === 0
       ? quotesThisWeek > 0
@@ -202,38 +154,16 @@ export default async function AdminDashboard() {
         : "none last week either"
       : `${quotesThisWeek >= quotesLastWeek ? "up" : "down"} from ${quotesLastWeek} last week`;
 
-  // ---- Certificates ------------------------------------------------------
-  // Only ones we have accepted: a pending certificate expiring is the
-  // supplier's problem to resolve before we look at it, not a cliff edge.
-  const soon = Date.now() + 30 * DAY;
-  const expiring = certs.filter(
-    (c) =>
-      c.status === "verified" &&
-      c.expires_on &&
-      new Date(c.expires_on).getTime() < soon &&
-      new Date(c.expires_on).getTime() > Date.now() - 365 * DAY
-  ).length;
+  const WEEK_LABELS = ["-5wk", "-4wk", "-3wk", "-2wk", "-1wk", "This wk"];
+  const weeks = (d.signups ?? [0, 0, 0, 0, 0, 0]).map((value, i) => ({
+    label: WEEK_LABELS[i] ?? "",
+    value,
+  }));
 
-  // ---- Leads -------------------------------------------------------------
-  const leadsThisWeek = leads.filter((l) => since(l.created_at, weekAgo)).length;
+  const roleCounts = new Map<string, number>(
+    Object.entries(d.roles ?? {}).map(([k, v]) => [k, Number(v)])
+  );
 
-  // ---- Sign-ups, last six weeks -------------------------------------------
-  const weeks = Array.from({ length: 6 }, (_, i) => {
-    const end = Date.now() - i * 7 * DAY;
-    const start = end - 7 * DAY;
-    const count = profiles.filter((p) => {
-      const t = new Date(p.created_at).getTime();
-      return t > start && t <= end;
-    }).length;
-    return { label: i === 0 ? "This wk" : `-${i}wk`, value: count };
-  }).reverse();
-
-  // ---- By role ------------------------------------------------------------
-  const roleCounts = new Map<string, number>();
-  for (const p of profiles) {
-    const key = p.account_type ?? "unset";
-    roleCounts.set(key, (roleCounts.get(key) ?? 0) + 1);
-  }
   const roles = ["supplier", "buyer", "shopper", "both"]
     .map((k) => ({ key: k, label: ROLE_LABEL[k], n: roleCounts.get(k) ?? 0 }))
     .filter((r) => r.n > 0);
@@ -264,7 +194,7 @@ export default async function AdminDashboard() {
   // there is genuinely little to do rather than that a feature is missing.
   const actions = [
     {
-      n: pending.length,
+      n: pendingCompanies,
       label: "companies waiting for verification",
       href: "/admin/verification",
       cta: "Review",
@@ -309,18 +239,18 @@ export default async function AdminDashboard() {
       {/* ---------- The marketplace, in eight numbers ---------- */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          value={profiles.length}
+          value={accountsTotal}
           label="Accounts"
           caption={accountsNew > 0 ? `+${accountsNew} this week` : "none new this week"}
           accent="gold"
         />
         <StatCard
-          value={pending.length}
+          value={pendingCompanies}
           label="Awaiting verification"
           caption={
             oldestWait ? `oldest waiting ${ago(oldestWait)}` : "nothing waiting"
           }
-          accent={pending.length > 0 ? "red" : "green"}
+          accent={pendingCompanies > 0 ? "red" : "green"}
         />
         <StatCard
           value={listingsPending}
@@ -331,7 +261,7 @@ export default async function AdminDashboard() {
           accent={listingsPending > 0 ? "blue" : "slate"}
         />
         <StatCard
-          value={openEnquiries.length}
+          value={openEnquiryCount}
           label="Open enquiries"
           caption={
             staleEnquiries > 0
@@ -344,7 +274,7 @@ export default async function AdminDashboard() {
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          value={verifiedSuppliers.length}
+          value={supplierCount}
           label="Verified suppliers"
           caption={origins === 0 ? "none yet" : `across ${origins} origins`}
           accent="green"
