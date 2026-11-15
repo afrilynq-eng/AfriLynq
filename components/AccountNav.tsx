@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { browserClient } from "@/lib/supabase-browser";
 
 /**
@@ -42,8 +42,45 @@ function cookieSuggestsSignedIn() {
 
 export default function AccountNav() {
   const router = useRouter();
+  const pathname = usePathname();
   const [signedIn, setSignedIn] = useState(cookieSuggestsSignedIn);
   const [name, setName] = useState("");
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+
+  /**
+   * The menu has to be told to close.
+   *
+   * It used to be a bare details element. The header lives in the site
+   * layout, so navigating to one of these links never remounts it, and a
+   * details element that was open stayed open: you landed on the page with
+   * the menu still hanging over it, looking like part of the page. Richard
+   * spotted it in the review.
+   *
+   * Closing on the route change is the fix. Escape and a click outside are
+   * what anyone expects of a menu and cost two lines each.
+   */
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    const onClick = (e: MouseEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+    };
+
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClick);
+    };
+  }, [open]);
 
   useEffect(() => {
     const supabase = browserClient();
@@ -110,10 +147,20 @@ export default function AccountNav() {
   }
 
   return (
-    <details className="relative">
-      <summary className="btn-lift flex cursor-pointer list-none items-center gap-1.5 rounded bg-forest px-3.5 py-1.5 text-[0.9rem] font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep">
+    <div ref={wrap} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="btn-lift flex cursor-pointer list-none items-center gap-1.5 rounded bg-forest px-3.5 py-1.5 text-[0.9rem] font-medium text-paper transition-colors hover:bg-gold hover:text-forest-deep"
+      >
         <span className="max-w-[7rem] truncate">{name || "My account"}</span>
-        <svg viewBox="0 0 10 6" className="h-2 w-2.5" aria-hidden="true">
+        <svg
+          viewBox="0 0 10 6"
+          className={"h-2 w-2.5 transition-transform " + (open ? "rotate-180" : "")}
+          aria-hidden="true"
+        >
           <path
             d="M1 1l4 4 4-4"
             fill="none"
@@ -123,9 +170,12 @@ export default function AccountNav() {
             strokeLinejoin="round"
           />
         </svg>
-      </summary>
+      </button>
 
-      <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-sand-deep bg-paper p-1.5 shadow-lg">
+      <div
+        hidden={!open}
+        className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-sand-deep bg-paper p-1.5 shadow-lg"
+      >
         <Link
           href="/account"
           className="block rounded px-3 py-2 text-sm text-ink-soft hover:bg-sand hover:text-forest"
@@ -158,6 +208,6 @@ export default function AccountNav() {
           Sign out
         </button>
       </div>
-    </details>
+    </div>
   );
 }

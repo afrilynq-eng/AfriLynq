@@ -47,7 +47,6 @@ export interface ProductInput {
   incoterms: string[];
   priceCurrency: string;
   priceMin: string;
-  priceMax: string;
   priceIsPublic: boolean;
 }
 
@@ -168,21 +167,12 @@ async function buildRow(
   const shelf = num(input.shelfLifeDays, "Shelf life");
   if (!shelf.ok) return shelf;
 
-  const min = await toMinor(supabase, currency, input.priceMin, "The lower price");
+  const min = await toMinor(supabase, currency, input.priceMin, "The price");
   if (!min.ok) return min;
 
-  const max = await toMinor(supabase, currency, input.priceMax, "The upper price");
-  if (!max.ok) return max;
-
-  // A range that runs backwards is a typo, and shown to a buyer it reads
-  // as carelessness about the one thing they care about most.
-  if (min.value !== null && max.value !== null && max.value < min.value) {
-    return {
-      ok: false,
-      message: "The upper price is lower than the lower price.",
-    };
-  }
-
+  // One price, not a range, from the 15 November review. price_max_minor
+  // is written as null rather than dropped from the table, so the listings
+  // that already carry a range keep displaying until they are next saved.
   return {
     row: {
       category_id: categoryId,
@@ -204,7 +194,7 @@ async function buildRow(
       incoterms: input.incoterms.filter((i) => INCOTERMS.has(i)),
       price_currency: currency,
       price_min_minor: min.value,
-      price_max_minor: max.value,
+      price_max_minor: null,
       price_is_public: Boolean(input.priceIsPublic),
       // Stamped the first time it goes live. Nothing reads it yet, but a
       // catalogue sorted by "newest" needs it and backfilling later is

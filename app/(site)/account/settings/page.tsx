@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/supabase-server";
 import { catalogueLabels } from "@/lib/catalogue";
 import SettingsForm from "@/components/account/SettingsForm";
+import PasswordForm from "@/components/account/PasswordForm";
 import InterestsForm from "@/components/account/InterestsForm";
 import SignOutButton from "@/components/account/SignOutButton";
 
@@ -51,6 +52,8 @@ export default async function SettingsPage() {
           }
         />
       )}
+
+      <PasswordForm />
 
       <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
         <h2 className="text-xl">Signing out</h2>

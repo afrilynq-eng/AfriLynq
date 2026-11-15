@@ -23,8 +23,14 @@
 /** The published name. Used everywhere the charge is mentioned. */
 export const SERVICE_CHARGE_NAME = "AfriLynq Service Charge";
 
-/** Percent of the sale value, charged to the seller. */
-export const SERVICE_CHARGE_PERCENT = 5;
+/**
+ * Percent of the sale value, charged to the seller.
+ *
+ * Raised from 5 to 7 by Richard in the review on 15 November 2026. Every
+ * page that mentions the charge reads this constant, so the number is
+ * changed here and nowhere else.
+ */
+export const SERVICE_CHARGE_PERCENT = 7;
 
 /**
  * Worked example, because a percentage on its own is abstract and people

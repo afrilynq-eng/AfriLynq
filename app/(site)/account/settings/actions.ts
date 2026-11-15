@@ -109,3 +109,67 @@ export async function saveInterests(slugs: string[]): Promise<SettingsResult> {
   revalidatePath("/account", "layout");
   return { ok: true };
 }
+
+/**
+ * Changing your own password.
+ *
+ * The current password is asked for and checked, even though Supabase
+ * would let a live session set a new one without it. A session left open
+ * on a shared machine is exactly the case this guards: whoever is sitting
+ * there should not be able to lock the owner out of their own account.
+ *
+ * The check is a sign in attempt against the user's own email. It creates
+ * no second session worth worrying about, because the result is discarded
+ * and the existing session cookie is untouched.
+ *
+ * Accounts created through Google have no password. Supabase reports that
+ * as a failed sign in, which would read as "your current password is
+ * wrong" and send somebody round in circles, so that case is named.
+ */
+export async function changePassword(input: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<SettingsResult> {
+  const supabase = await sessionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+
+  if (!user?.email) {
+    return { ok: false, message: "Your session has expired. Please sign in again." };
+  }
+
+  if (input.newPassword.length < 8) {
+    return { ok: false, message: "Use at least 8 characters." };
+  }
+
+  if (input.newPassword === input.currentPassword) {
+    return { ok: false, message: "That is the password you already have." };
+  }
+
+  const hasPassword = user.app_metadata?.providers?.includes("email") ?? false;
+  if (!hasPassword) {
+    return {
+      ok: false,
+      message:
+        "This account signs in with Google, so it has no password to change. " +
+        "Use Forgotten password on the sign in page to set one.",
+    };
+  }
+
+  const { error: wrong } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: input.currentPassword,
+  });
+
+  if (wrong) {
+    return { ok: false, message: "That is not your current password." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: input.newPassword });
+
+  if (error) return { ok: false, message: error.message };
+
+  return { ok: true };
+}

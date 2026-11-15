@@ -112,7 +112,6 @@ export default function ProductForm({
       incoterms: terms,
       priceCurrency: text("priceCurrency"),
       priceMin: text("priceMin"),
-      priceMax: text("priceMax"),
       priceIsPublic: data.get("priceIsPublic") === "on",
     };
 
@@ -387,11 +386,15 @@ export default function ProductForm({
         </fieldset>
       </Card>
 
+      {/* One price, not a range. Richard's call in the 15 November review:
+          a range invites a negotiation before the enquiry has even been
+          sent, and the quotation is where a season-dependent number
+          belongs. */}
       <Card
         title="Price"
-        note="A range is fine, and more honest than one number for produce that moves with the season. You can keep it off the public listing and give it on enquiry."
+        note="One price per unit, as a guide. You can keep it off the public listing and give your real number on the quotation, where it can carry quantity, terms and validity."
       >
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2">
           <label>
             <span className={label}>Currency</span>
             <select
@@ -410,7 +413,7 @@ export default function ProductForm({
           </label>
 
           <label>
-            <span className={label}>From</span>
+            <span className={label}>Price</span>
             <input
               type="text"
               inputMode="decimal"
@@ -420,19 +423,6 @@ export default function ProductForm({
               className={field}
             />
             <span className={hint}>Per unit</span>
-          </label>
-
-          <label>
-            <span className={label}>To</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              name="priceMax"
-              defaultValue={toDecimal(product?.price_max_minor ?? null, minorUnits)}
-              placeholder="1450.00"
-              className={field}
-            />
-            <span className={hint}>Leave blank for one price</span>
           </label>
         </div>
 

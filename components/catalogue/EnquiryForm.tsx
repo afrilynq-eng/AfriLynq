@@ -117,7 +117,7 @@ export default function EnquiryForm({
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <label>
           <span className={label}>
-            How much <span className="text-gold">*</span>
+            How many <span className="text-gold">*</span>
           </span>
           <div className="mt-1.5 flex items-center gap-2">
             <input
