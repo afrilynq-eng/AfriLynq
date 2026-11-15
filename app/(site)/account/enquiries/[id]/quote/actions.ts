@@ -45,7 +45,7 @@ export async function sendQuotation(enquiryId: string, formData: FormData) {
   // nothing here, so this doubles as the permission check.
   const { data: enquiry } = await supabase
     .from("enquiries")
-    .select("id, buyer_company_id, supplier_company_id, status")
+    .select("id, buyer_company_id, buyer_profile_id, supplier_company_id, status")
     .eq("id", enquiryId)
     .maybeSingle();
 
@@ -106,7 +106,11 @@ export async function sendQuotation(enquiryId: string, formData: FormData) {
     .insert({
       enquiry_id: enquiry.id,
       supplier_company_id: enquiry.supplier_company_id,
+      // A shopper has no company. The enquiry says which of the two it is
+      // and the quotation copies that, because a check constraint allows
+      // exactly one of them to be set.
       buyer_company_id: enquiry.buyer_company_id,
+      buyer_profile_id: enquiry.buyer_company_id ? null : enquiry.buyer_profile_id,
       status: "draft",
       currency,
       incoterm: text("incoterm"),

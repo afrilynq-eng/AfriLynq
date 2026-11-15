@@ -36,7 +36,7 @@ export default async function ThreadPage({
   const { data: threadRow } = await supabase
     .from("message_threads")
     .select(
-      "id, subject, enquiry_id, buyer_company_id, supplier_company_id, is_closed"
+      "id, subject, enquiry_id, buyer_company_id, buyer_profile_id, supplier_company_id, is_closed"
     )
     .eq("id", id)
     .maybeSingle();
@@ -45,7 +45,8 @@ export default async function ThreadPage({
     id: string;
     subject: string | null;
     enquiry_id: string | null;
-    buyer_company_id: string;
+    buyer_company_id: string | null;
+    buyer_profile_id: string | null;
     supplier_company_id: string;
     is_closed: boolean;
   } | null;
@@ -61,7 +62,12 @@ export default async function ThreadPage({
     supabase
       .from("companies")
       .select("id, legal_name, trading_name")
-      .in("id", [thread.buyer_company_id, thread.supplier_company_id]),
+      .in(
+        "id",
+        [thread.buyer_company_id, thread.supplier_company_id].filter(
+          (v): v is string => Boolean(v)
+        )
+      ),
     thread.enquiry_id
       ? supabase
           .from("quotations")
@@ -79,14 +85,30 @@ export default async function ThreadPage({
     }[]).map((c) => [c.id, c.trading_name || c.legal_name])
   );
 
+  /**
+   * The buyer may be a person rather than a company, so their name comes
+   * from profiles. A shopper viewing this is not a member of either
+   * company, which is why the supplier branch is the fallback.
+   */
+  if (mine.has(thread.supplier_company_id) && thread.buyer_profile_id) {
+    const { data: person } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("id", thread.buyer_profile_id)
+      .maybeSingle();
+    const p = person as { id: string; full_name: string | null } | null;
+    if (p) names.set(p.id, p.full_name || "A shopper");
+  }
+
   const otherId = mine.has(thread.supplier_company_id)
-    ? thread.buyer_company_id
+    ? thread.buyer_company_id ?? thread.buyer_profile_id
     : thread.supplier_company_id;
 
   const messages = (msgs ?? []) as unknown as {
     id: string;
     body: string;
-    sender_company_id: string;
+    sender_company_id: string | null;
+    sender_id: string;
     created_at: string;
   }[];
 
@@ -105,7 +127,7 @@ export default async function ThreadPage({
           &larr; All messages
         </Link>
         <h1 className="mt-2 text-3xl sm:text-4xl">
-          {names.get(otherId) ?? "Conversation"}
+          {(otherId && names.get(otherId)) ?? "Conversation"}
         </h1>
         <p className="mt-2 text-ink-soft">{thread.subject ?? "Enquiry"}</p>
       </div>
@@ -139,7 +161,11 @@ export default async function ThreadPage({
           </p>
         ) : (
           messages.map((m) => {
-            const isMine = mine.has(m.sender_company_id);
+            // A shopper's message carries no company, so it is theirs
+            // when the sender is them.
+            const isMine = m.sender_company_id
+              ? mine.has(m.sender_company_id)
+              : m.sender_id === user.id;
             return (
               <article
                 key={m.id}
@@ -151,7 +177,9 @@ export default async function ThreadPage({
                 }
               >
                 <p className="text-xs text-stone">
-                  {names.get(m.sender_company_id) ?? "A company"} · {when(m.created_at)}
+                  {(m.sender_company_id ? names.get(m.sender_company_id) : names.get(m.sender_id)) ??
+                    (m.sender_id === user.id ? "You" : "A shopper")}{" "}
+                  · {when(m.created_at)}
                 </p>
                 <p className="mt-1.5 leading-relaxed whitespace-pre-wrap text-ink">
                   {m.body}

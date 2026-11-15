@@ -37,7 +37,7 @@ export default async function QuotationsPage() {
     .from("quotations")
     .select(
       "id, reference, status, currency, total_minor, valid_until, created_at, " +
-        "sent_at, supplier_company_id, buyer_company_id, enquiry_id"
+        "sent_at, supplier_company_id, buyer_company_id, buyer_profile_id, enquiry_id"
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -51,18 +51,36 @@ export default async function QuotationsPage() {
     valid_until: string | null;
     created_at: string;
     supplier_company_id: string;
-    buyer_company_id: string;
+    buyer_company_id: string | null;
+    buyer_profile_id: string | null;
   }[];
 
   // Names for the other party, in one query rather than one per row.
   const otherIds = Array.from(
     new Set(
-      rows.map((r) => (mine.has(r.supplier_company_id) ? r.buyer_company_id : r.supplier_company_id))
+      rows.map((r) =>
+        mine.has(r.supplier_company_id)
+          ? r.buyer_company_id ?? r.buyer_profile_id
+          : r.supplier_company_id
+      )
     )
-  );
+  ).filter((v): v is string => Boolean(v));
 
+  /**
+   * A quotation's buyer may be a shopper, who is a person and not in the
+   * companies table at all. Both lookups run against the same id list and
+   * whichever one holds it wins; ids do not collide across tables.
+   */
   const names = new Map<string, string>();
   if (otherIds.length > 0) {
+    const { data: people } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", otherIds);
+    for (const person of (people ?? []) as { id: string; full_name: string | null }[]) {
+      names.set(person.id, person.full_name || "A shopper");
+    }
+
     const { data: cos } = await supabase
       .from("companies")
       .select("id, legal_name, trading_name")
@@ -85,7 +103,11 @@ export default async function QuotationsPage() {
   );
 
   const awaiting = rows.filter(
-    (r) => r.status === "sent" && mine.has(r.buyer_company_id)
+    (r) =>
+      r.status === "sent" &&
+      (r.buyer_company_id
+        ? mine.has(r.buyer_company_id)
+        : r.buyer_profile_id === user.id)
   ).length;
 
   return (
@@ -136,7 +158,9 @@ export default async function QuotationsPage() {
             <tbody>
               {rows.map((r) => {
                 const iAmSupplier = mine.has(r.supplier_company_id);
-                const otherId = iAmSupplier ? r.buyer_company_id : r.supplier_company_id;
+                const otherId = iAmSupplier
+                  ? r.buyer_company_id ?? r.buyer_profile_id
+                  : r.supplier_company_id;
                 const badge = QUOTATION_STATUS[r.status] ?? {
                   label: r.status,
                   tone: "bg-sand text-stone",
@@ -155,7 +179,7 @@ export default async function QuotationsPage() {
                       </Link>
                     </td>
                     <td className="px-5 py-4 text-ink">
-                      <span className="block">{names.get(otherId) ?? "A company"}</span>
+                      <span className="block">{(otherId && names.get(otherId)) ?? "A shopper"}</span>
                       <span className="text-xs text-stone">
                         {iAmSupplier ? "you quoted them" : "quoted you"}
                       </span>

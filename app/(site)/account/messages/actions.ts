@@ -42,7 +42,7 @@ export async function openEnquiryThread(enquiryId: string) {
   // which is the permission check.
   const { data: enquiry } = await supabase
     .from("enquiries")
-    .select("id, reference, buyer_company_id, supplier_company_id, product_name_snapshot")
+    .select("id, reference, buyer_company_id, buyer_profile_id, supplier_company_id, product_name_snapshot")
     .eq("id", enquiryId)
     .maybeSingle();
 
@@ -51,7 +51,8 @@ export async function openEnquiryThread(enquiryId: string) {
   const e = enquiry as unknown as {
     id: string;
     reference: string;
-    buyer_company_id: string;
+    buyer_company_id: string | null;
+    buyer_profile_id: string | null;
     supplier_company_id: string;
     product_name_snapshot: string | null;
   };
@@ -60,7 +61,10 @@ export async function openEnquiryThread(enquiryId: string) {
     .from("message_threads")
     .insert({
       enquiry_id: e.id,
+      // Exactly one of these, matching the enquiry. A shopper is a person,
+      // not a company, and the thread has to say so or nobody can write.
       buyer_company_id: e.buyer_company_id,
+      buyer_profile_id: e.buyer_company_id ? null : e.buyer_profile_id,
       supplier_company_id: e.supplier_company_id,
       subject: e.product_name_snapshot
         ? `${e.product_name_snapshot} (${e.reference})`
@@ -99,14 +103,15 @@ export async function sendMessage(threadId: string, formData: FormData) {
 
   const { data: thread } = await supabase
     .from("message_threads")
-    .select("id, buyer_company_id, supplier_company_id, is_closed")
+    .select("id, buyer_company_id, buyer_profile_id, supplier_company_id, is_closed")
     .eq("id", threadId)
     .maybeSingle();
 
   if (!thread) return { ok: false, message: "That conversation is not available." };
 
   const t = thread as unknown as {
-    buyer_company_id: string;
+    buyer_company_id: string | null;
+    buyer_profile_id: string | null;
     supplier_company_id: string;
     is_closed: boolean;
   };
@@ -133,13 +138,23 @@ export async function sendMessage(threadId: string, formData: FormData) {
     ((memberships ?? []) as { company_id: string }[]).map((m) => m.company_id)
   );
 
+  /**
+   * Writing as a company, or as yourself.
+   *
+   * A shopper belongs to no company, so sender_company_id is null and the
+   * insert policy checks instead that this thread's buyer is them. Writing
+   * as yourself on a thread that is not yours is refused by the database,
+   * not by this guess.
+   */
   const senderCompanyId = mine.has(t.supplier_company_id)
     ? t.supplier_company_id
-    : mine.has(t.buyer_company_id)
+    : t.buyer_company_id && mine.has(t.buyer_company_id)
       ? t.buyer_company_id
       : null;
 
-  if (!senderCompanyId) {
+  const writingAsSelf = senderCompanyId === null && t.buyer_profile_id === user.id;
+
+  if (!senderCompanyId && !writingAsSelf) {
     return { ok: false, message: "You are not part of this conversation." };
   }
 

@@ -50,8 +50,8 @@ export default async function MessagesPage({
   const { data } = await supabase
     .from("message_threads")
     .select(
-      "id, subject, enquiry_id, buyer_company_id, supplier_company_id, " +
-        "last_message_at, is_closed, created_at"
+      "id, subject, enquiry_id, buyer_company_id, buyer_profile_id, " +
+        "supplier_company_id, last_message_at, is_closed, created_at"
     )
     .order("last_message_at", { ascending: false, nullsFirst: false })
     .limit(200);
@@ -59,33 +59,62 @@ export default async function MessagesPage({
   const threads = (data ?? []) as unknown as {
     id: string;
     subject: string | null;
-    buyer_company_id: string;
+    buyer_company_id: string | null;
+    buyer_profile_id: string | null;
     supplier_company_id: string;
     last_message_at: string | null;
     is_closed: boolean;
     created_at: string;
   }[];
 
-  const otherIds = Array.from(
+  /**
+   * Who the other side is.
+   *
+   * Not always a company. A shopper buys as themselves, so a thread's
+   * buyer is either a company id or a profile id, and the name comes from
+   * a different table depending on which. otherKey holds whichever one
+   * this viewer is not.
+   */
+  const otherKey = (t: { buyer_company_id: string | null; buyer_profile_id: string | null; supplier_company_id: string }) =>
+    mine.has(t.supplier_company_id)
+      ? t.buyer_company_id ?? t.buyer_profile_id
+      : t.supplier_company_id;
+
+  const companyIds = Array.from(
+    new Set(threads.filter((t) => otherKey(t) !== t.buyer_profile_id).map(otherKey))
+  ).filter((v): v is string => Boolean(v));
+
+  const profileIds = Array.from(
     new Set(
-      threads.map((t) =>
-        mine.has(t.supplier_company_id) ? t.buyer_company_id : t.supplier_company_id
-      )
+      threads
+        .filter((t) => mine.has(t.supplier_company_id) && !t.buyer_company_id)
+        .map((t) => t.buyer_profile_id)
     )
-  );
+  ).filter((v): v is string => Boolean(v));
 
   const names = new Map<string, string>();
-  if (otherIds.length > 0) {
+
+  if (companyIds.length > 0) {
     const { data: cos } = await supabase
       .from("companies")
       .select("id, legal_name, trading_name")
-      .in("id", otherIds);
+      .in("id", companyIds);
     for (const c of (cos ?? []) as {
       id: string;
       legal_name: string;
       trading_name: string | null;
     }[]) {
       names.set(c.id, c.trading_name || c.legal_name);
+    }
+  }
+
+  if (profileIds.length > 0) {
+    const { data: people } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", profileIds);
+    for (const person of (people ?? []) as { id: string; full_name: string | null }[]) {
+      names.set(person.id, person.full_name || "A shopper");
     }
   }
 
@@ -126,9 +155,7 @@ export default async function MessagesPage({
       ) : (
         <ul className="overflow-hidden rounded-xl border border-sand-deep bg-paper shadow-sm">
           {threads.map((t) => {
-            const otherId = mine.has(t.supplier_company_id)
-              ? t.buyer_company_id
-              : t.supplier_company_id;
+            const otherId = otherKey(t);
             return (
               <li key={t.id} className="border-b border-sand last:border-0">
                 <Link
@@ -137,7 +164,7 @@ export default async function MessagesPage({
                 >
                   <span className="min-w-0">
                     <span className="block font-medium text-ink">
-                      {names.get(otherId) ?? "A company"}
+                      {(otherId && names.get(otherId)) ?? "A shopper"}
                     </span>
                     <span className="block text-sm text-ink-soft">
                       {t.subject ?? "Enquiry"}
