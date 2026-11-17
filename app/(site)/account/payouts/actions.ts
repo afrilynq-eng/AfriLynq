@@ -134,50 +134,62 @@ export async function startPayoutOnboarding(companyId: string): Promise<StartRes
     let accountId = company.stripe_account_id;
 
     if (!accountId) {
-      const params: Stripe.AccountCreateParams = {
-        country: (company.country_code ?? "NG").toUpperCase(),
-        email: company.contact_email ?? undefined,
+      /**
+       * Accounts v2, because Stripe refuses v1 for a new platform.
+       *
+       * The first version of this used POST /v1/accounts and was turned
+       * away: "Stripe no longer recommends Accounts v1 for new Connect
+       * integrations." There is a switch in the dashboard to allow v1
+       * anyway, for platforms with a compatibility reason. AfriLynq has
+       * none, and building new rails on the endpoint Stripe is steering
+       * everyone off would only mean doing this again later.
+       *
+       * Almost nothing else changes. A v2 account id is still acct_...,
+       * and Stripe accepts it on the v1 endpoints this file already
+       * uses, so Account Sessions, the status refresh and the
+       * account.updated webhook all carry on working unchanged.
+       *
+       * The v1 controller properties become:
+       *
+       * dashboard none: the supplier never sees a Stripe dashboard.
+       *   Everything they need is on AfriLynq.
+       * losses_collector stripe: Stripe carries negative balances on the
+       *   supplier's own account. This also decides who collects identity
+       *   documents, which is the part that matters to us. Stripe only
+       *   hands that job to the platform when losses sit with the
+       *   platform AND there is no dashboard, and AfriLynq is a
+       *   marketplace in Port Harcourt, not a licensed KYC operation.
+       * fees_collector stripe: inert for us either way. It governs direct
+       *   charges, and AfriLynq does not use them: buyers pay AfriLynq,
+       *   and Stripe always takes its fee from the platform on the kind
+       *   of charge we do make.
+       *
+       * None of this moves chargeback liability. Buyers pay AfriLynq's
+       * own account, so a reversed buyer payment still lands on AfriLynq.
+       */
+      const params: Stripe.V2.Core.AccountCreateParams = {
+        contact_email: company.contact_email ?? undefined,
+        display_name: company.trading_name || company.legal_name,
+        dashboard: "none",
 
-        /**
-         * The Express-equivalent shape, configured explicitly rather
-         * than by account type, which is what Stripe now recommends for
-         * a new platform.
-         *
-         * stripe_dashboard none: the supplier never sees a Stripe
-         *   dashboard. Everything they need is on AfriLynq.
-         * requirement_collection stripe: Stripe asks for the identity
-         *   and bank details and owns the compliance for it. We are a
-         *   marketplace in Port Harcourt, not a licensed KYC operation.
-         * fees on the application: AfriLynq pays Stripe's fees, not the
-         *   farmer. The supplier's only deduction is the 7 percent.
-         * losses on stripe: Stripe refused the first version of this and
-         *   its own rule says why. A dashboard of none cannot be combined
-         *   with BOTH Stripe collecting requirements AND the platform
-         *   carrying negative balances. One or the other. Carrying them
-         *   ourselves would mean doing our own KYC, which is the thing we
-         *   deliberately handed to Stripe on the line above.
-         *
-         *   This governs negative balances on the SUPPLIER's account.
-         *   Buyers pay AfriLynq's own account, so a chargeback on a buyer
-         *   payment still lands on AfriLynq, as it should.
-         */
-        controller: {
-          stripe_dashboard: { type: "none" },
-          requirement_collection: "stripe",
-          fees: { payer: "application" },
-          losses: { payments: "stripe" },
+        // Lowercase, following Stripe's own v2 examples. Only the country
+        // is sent: everything else about who this business is gets asked
+        // by Stripe's onboarding form, which is the point of handing them
+        // the compliance.
+        identity: { country: (company.country_code ?? "NG").toLowerCase() },
+
+        // stripe_transfers is the v2 name for what v1 called transfers:
+        // it lets AfriLynq send a supplier their money. card_payments is
+        // deliberately not requested, because suppliers are never the
+        // merchant of record here.
+        configuration: {
+          recipient: {
+            capabilities: { stripe_balance: { stripe_transfers: { requested: true } } },
+          },
         },
 
-        // transfers is what lets us send a supplier their money. We do
-        // not request card_payments: buyers pay AfriLynq, and AfriLynq
-        // pays the supplier.
-        capabilities: { transfers: { requested: true } },
-
-        business_profile: {
-          name: company.trading_name || company.legal_name,
-          url: company.website_url ?? undefined,
-          product_description:
-            company.short_description ?? "Agricultural produce sold through AfriLynq.",
+        defaults: {
+          responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
         },
 
         // So a Stripe account can always be traced back to a company
@@ -186,6 +198,11 @@ export async function startPayoutOnboarding(companyId: string): Promise<StartRes
           afrilynq_company_id: company.id,
           afrilynq_company_slug: company.slug ?? "",
         },
+
+        // v2 returns null for most fields unless they are asked for.
+        // requirements is the one worth having: it says what Stripe wants
+        // from this supplier before it will pay them.
+        include: ["configuration.recipient", "identity", "requirements"],
       };
 
       /**
@@ -210,7 +227,7 @@ export async function startPayoutOnboarding(companyId: string): Promise<StartRes
         .digest("hex")
         .slice(0, 16);
 
-      const account = await sdk.accounts.create(params, {
+      const account = await sdk.v2.core.accounts.create(params, {
         idempotencyKey: `afl-acct-${company.id}-${fingerprint}`,
       });
 
@@ -276,6 +293,15 @@ export async function refreshPayoutStatus(
   }
 
   try {
+    /**
+     * The v1 endpoint on purpose, even though the account is a v2 one.
+     *
+     * Stripe accepts a v2 account id here and answers in the v1 shape,
+     * which is what we want: payouts_enabled and currently_due are one
+     * field each, where the v2 equivalents are spread across per
+     * configuration objects. The account.updated webhook reads the same
+     * two fields off the same shape, so both paths agree.
+     */
     const account = await stripe().accounts.retrieve(company.stripe_account_id);
 
     // payouts_enabled is Stripe's own answer to "will we actually pay
