@@ -105,5 +105,20 @@ export function stripeMessage(error: unknown): string {
   if (e?.type === "StripeInvalidRequestError" && e?.message) {
     return `Stripe would not accept that: ${e.message}`;
   }
+
+  /**
+   * In test mode, say what actually happened.
+   *
+   * A supplier must never be shown a Stripe error code, which is why the
+   * line below exists at all. But while we are building, that same line
+   * means every failure costs a trip to the hosting logs. Test keys are
+   * only ever in front of us, so the real words are safe there and save
+   * an hour across a day of this.
+   */
+  if (isTestMode()) {
+    const detail = [e?.type, e?.code, e?.param, e?.message].filter(Boolean).join(" | ");
+    return `Test mode detail: ${detail || String(error)}`;
+  }
+
   return "Something went wrong setting up payouts. Nothing has been changed. Please try again, and email info@afrilynq.co.uk if it keeps happening.";
 }
