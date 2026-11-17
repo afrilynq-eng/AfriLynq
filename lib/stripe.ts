@@ -45,42 +45,66 @@ export function isTestMode() {
    ------------------------------------------------------------------ */
 
 /**
- * Countries confirmed against Stripe's own documentation.
+ * Everywhere Stripe will move money for a UK platform.
  *
- * Deliberately short. A long list assembled from memory would block a
- * supplier in a country Stripe does support, which is a worse failure
- * than a warning we did not show. Anything not named here is treated as
- * unknown: we let the supplier try, and Stripe decides.
+ * This list is not a judgement call and it is not ours. Stripe's
+ * cross-border payouts documentation says it in one sentence:
  *
- * Checked 17 November 2026. Worth rechecking when a new source country
- * is added, because Stripe adds countries and rarely removes them.
+ *   "Platforms based in the US, UK, EEA, Canada, or Switzerland can
+ *   transfer funds to connected accounts in any of those regions.
+ *   Stripe doesn't support self-serve cross-border payouts to countries
+ *   outside the listed regions."
+ *
+ * AfriLynq Limited is registered in Liverpool, so that is the whole of
+ * it: the EEA, the UK, the US, Canada and Switzerland. No African
+ * country appears, Nigeria included.
+ *
+ * An earlier version of this file listed NG, ZA, KE and GH as supported.
+ * That was wrong, and wrong in an expensive way. It came from Stripe's
+ * list of countries where a BUSINESS can open a Stripe account to take
+ * payments, which is a different question from whether a UK platform can
+ * send that business money. Stripe answered the real question with
+ * "stripe_transfers is currently unavailable in NG for your platform".
+ *
+ * Stripe's other product, Global Payouts, reaches further and does cover
+ * Kenya, South Africa, Tanzania, Rwanda and Senegal. It does not cover
+ * Nigeria, Zambia, Togo or Ghana either, and it requires Treasury and a
+ * money transmission licence AfriLynq does not hold.
+ *
+ * So suppliers outside this list get paid another way, and the platform
+ * says so plainly on their payouts page rather than letting them walk
+ * into a Stripe error.
+ *
+ * Checked 17 November 2026 against Stripe's cross-border payouts and
+ * Global Payouts documentation.
  */
-const SUPPORTED = new Set([
-  // Africa, where our suppliers are
-  "NG", "ZA", "KE", "GH",
-  // Where our buyers are, and where AfriLynq itself is registered
-  "GB", "IE", "NL", "DE", "FR", "BE", "ES", "IT", "PT", "PL", "US", "CA", "AE",
+const STRIPE_PAYS = new Set([
+  // The platform's own country, and the rest of the UK and Switzerland
+  "GB", "CH",
+  // North America
+  "US", "CA",
+  // EEA: the EU 27
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR",
+  "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK",
+  "SI", "ES", "SE",
+  // EEA: the three non-EU members
+  "IS", "LI", "NO",
 ]);
-
-/**
- * Countries Stripe does not support for connected accounts.
- *
- * Both of these are live on the platform: Mulomba K Fisheries is in Ndola,
- * Zambia, and we have a grower in Togo. They can sell on AfriLynq and be
- * quoted and paid; they cannot be paid THROUGH Stripe, which is a
- * different sentence and needs saying plainly rather than as a Stripe
- * error code.
- */
-const UNSUPPORTED = new Set(["ZM", "TG"]);
 
 export type PayoutSupport = "supported" | "unsupported" | "unknown";
 
+/**
+ * Whether Stripe will pay a supplier in this country.
+ *
+ * There is no "unknown" answer any more. Stripe's rule is a closed list,
+ * not a growing one, so a country that is not on it is a country we
+ * cannot pay through Stripe, and saying so up front is kinder than
+ * letting someone fill in an identity form that ends in a refusal.
+ */
 export function payoutSupport(countryCode: string | null): PayoutSupport {
   const code = (countryCode ?? "").toUpperCase();
   if (!code) return "unknown";
-  if (UNSUPPORTED.has(code)) return "unsupported";
-  if (SUPPORTED.has(code)) return "supported";
-  return "unknown";
+  return STRIPE_PAYS.has(code) ? "supported" : "unsupported";
 }
 
 /**
