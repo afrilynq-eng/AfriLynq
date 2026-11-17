@@ -1,5 +1,7 @@
 "use server";
 
+import { createHash } from "crypto";
+import type Stripe from "stripe";
 import { revalidatePath } from "next/cache";
 import { sessionClient } from "@/lib/supabase-server";
 import { serviceClient } from "@/lib/supabase";
@@ -132,66 +134,85 @@ export async function startPayoutOnboarding(companyId: string): Promise<StartRes
     let accountId = company.stripe_account_id;
 
     if (!accountId) {
-      const account = await sdk.accounts.create(
-        {
-          country: (company.country_code ?? "NG").toUpperCase(),
-          email: company.contact_email ?? undefined,
+      const params: Stripe.AccountCreateParams = {
+        country: (company.country_code ?? "NG").toUpperCase(),
+        email: company.contact_email ?? undefined,
 
-          /**
-           * The Express-equivalent shape, configured explicitly rather
-           * than by account type, which is what Stripe now recommends for
-           * a new platform.
-           *
-           * stripe_dashboard none: the supplier never sees a Stripe
-           *   dashboard. Everything they need is on AfriLynq.
-           * requirement_collection stripe: Stripe asks for the identity
-           *   and bank details and owns the compliance for it. We are a
-           *   marketplace in Port Harcourt, not a licensed KYC operation.
-           * fees on the application: AfriLynq pays Stripe's fees, not the
-           *   farmer. The supplier's only deduction is the 7 percent.
-           * losses on stripe: Stripe refused the first version of this and
-           *   its own rule says why. A dashboard of none cannot be combined
-           *   with BOTH Stripe collecting requirements AND the platform
-           *   carrying negative balances. One or the other. Carrying them
-           *   ourselves would mean doing our own KYC, which is the thing we
-           *   deliberately handed to Stripe on the line above.
-           *
-           *   This governs negative balances on the SUPPLIER's account.
-           *   Buyers pay AfriLynq's own account, so a chargeback on a buyer
-           *   payment still lands on AfriLynq, as it should.
-           */
-          controller: {
-            stripe_dashboard: { type: "none" },
-            requirement_collection: "stripe",
-            fees: { payer: "application" },
-            losses: { payments: "stripe" },
-          },
-
-          // transfers is what lets us send a supplier their money. We do
-          // not request card_payments: buyers pay AfriLynq, and AfriLynq
-          // pays the supplier.
-          capabilities: { transfers: { requested: true } },
-
-          business_profile: {
-            name: company.trading_name || company.legal_name,
-            url: company.website_url ?? undefined,
-            product_description:
-              company.short_description ?? "Agricultural produce sold through AfriLynq.",
-          },
-
-          // So a Stripe account can always be traced back to a company
-          // without a lookup table.
-          metadata: {
-            afrilynq_company_id: company.id,
-            afrilynq_company_slug: company.slug ?? "",
-          },
+        /**
+         * The Express-equivalent shape, configured explicitly rather
+         * than by account type, which is what Stripe now recommends for
+         * a new platform.
+         *
+         * stripe_dashboard none: the supplier never sees a Stripe
+         *   dashboard. Everything they need is on AfriLynq.
+         * requirement_collection stripe: Stripe asks for the identity
+         *   and bank details and owns the compliance for it. We are a
+         *   marketplace in Port Harcourt, not a licensed KYC operation.
+         * fees on the application: AfriLynq pays Stripe's fees, not the
+         *   farmer. The supplier's only deduction is the 7 percent.
+         * losses on stripe: Stripe refused the first version of this and
+         *   its own rule says why. A dashboard of none cannot be combined
+         *   with BOTH Stripe collecting requirements AND the platform
+         *   carrying negative balances. One or the other. Carrying them
+         *   ourselves would mean doing our own KYC, which is the thing we
+         *   deliberately handed to Stripe on the line above.
+         *
+         *   This governs negative balances on the SUPPLIER's account.
+         *   Buyers pay AfriLynq's own account, so a chargeback on a buyer
+         *   payment still lands on AfriLynq, as it should.
+         */
+        controller: {
+          stripe_dashboard: { type: "none" },
+          requirement_collection: "stripe",
+          fees: { payer: "application" },
+          losses: { payments: "stripe" },
         },
-        // If the supplier double-clicks, or the action runs twice because
-        // of a retry, Stripe returns the same account instead of opening a
-        // second one. A duplicate connected account cannot be deleted
-        // once it has been onboarded, so this matters.
-        { idempotencyKey: `afl-acct-${company.id}` }
-      );
+
+        // transfers is what lets us send a supplier their money. We do
+        // not request card_payments: buyers pay AfriLynq, and AfriLynq
+        // pays the supplier.
+        capabilities: { transfers: { requested: true } },
+
+        business_profile: {
+          name: company.trading_name || company.legal_name,
+          url: company.website_url ?? undefined,
+          product_description:
+            company.short_description ?? "Agricultural produce sold through AfriLynq.",
+        },
+
+        // So a Stripe account can always be traced back to a company
+        // without a lookup table.
+        metadata: {
+          afrilynq_company_id: company.id,
+          afrilynq_company_slug: company.slug ?? "",
+        },
+      };
+
+      /**
+       * The key has to describe the request, not just the company.
+       *
+       * Stripe stores an idempotency key together with the parameters it
+       * first saw and refuses that key with any other parameters. A fixed
+       * key per company looked right until the controller configuration
+       * had to be corrected: every retry afterwards was rejected before it
+       * reached account creation, and the key would not have expired for a
+       * day.
+       *
+       * Hashing the parameters makes the key mean "this exact request".
+       * Two clicks of the same button still share it, which is the case
+       * worth protecting against, because a connected account cannot be
+       * deleted once it has been onboarded. A genuinely different request
+       * gets its own key, and the stored stripe_account_id is what stops a
+       * second account being opened after a successful one.
+       */
+      const fingerprint = createHash("sha256")
+        .update(JSON.stringify(params))
+        .digest("hex")
+        .slice(0, 16);
+
+      const account = await sdk.accounts.create(params, {
+        idempotencyKey: `afl-acct-${company.id}-${fingerprint}`,
+      });
 
       accountId = account.id;
 
