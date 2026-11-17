@@ -147,15 +147,24 @@ export async function startPayoutOnboarding(companyId: string): Promise<StartRes
            * requirement_collection stripe: Stripe asks for the identity
            *   and bank details and owns the compliance for it. We are a
            *   marketplace in Port Harcourt, not a licensed KYC operation.
-           * fees and losses on the application: AfriLynq carries the
-           *   Stripe fee and the chargeback risk, not the farmer. That is
-           *   a commercial decision and it is this line.
+           * fees on the application: AfriLynq pays Stripe's fees, not the
+           *   farmer. The supplier's only deduction is the 7 percent.
+           * losses on stripe: Stripe refused the first version of this and
+           *   its own rule says why. A dashboard of none cannot be combined
+           *   with BOTH Stripe collecting requirements AND the platform
+           *   carrying negative balances. One or the other. Carrying them
+           *   ourselves would mean doing our own KYC, which is the thing we
+           *   deliberately handed to Stripe on the line above.
+           *
+           *   This governs negative balances on the SUPPLIER's account.
+           *   Buyers pay AfriLynq's own account, so a chargeback on a buyer
+           *   payment still lands on AfriLynq, as it should.
            */
           controller: {
             stripe_dashboard: { type: "none" },
             requirement_collection: "stripe",
             fees: { payer: "application" },
-            losses: { payments: "application" },
+            losses: { payments: "stripe" },
           },
 
           // transfers is what lets us send a supplier their money. We do
