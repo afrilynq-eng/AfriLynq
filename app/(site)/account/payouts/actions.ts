@@ -149,28 +149,40 @@ export async function startPayoutOnboarding(companyId: string): Promise<StartRes
        * uses, so Account Sessions, the status refresh and the
        * account.updated webhook all carry on working unchanged.
        *
-       * The v1 controller properties become:
+       * This is Stripe's own recommended marketplace shape, arrived at
+       * by being refused twice. Their rule for an account that only
+       * receives money, which is all a supplier here does:
        *
-       * dashboard none: the supplier never sees a Stripe dashboard.
-       *   Everything they need is on AfriLynq.
-       * losses_collector stripe: Stripe carries negative balances on the
-       *   supplier's own account. This also decides who collects identity
-       *   documents, which is the part that matters to us. Stripe only
-       *   hands that job to the platform when losses sit with the
-       *   platform AND there is no dashboard, and AfriLynq is a
-       *   marketplace in Port Harcourt, not a licensed KYC operation.
-       * fees_collector stripe: inert for us either way. It governs direct
-       *   charges, and AfriLynq does not use them: buyers pay AfriLynq,
-       *   and Stripe always takes its fee from the platform on the kind
-       *   of charge we do make.
+       *   "For Accounts v2 accounts with only the recipient
+       *   configuration and the stripe_balance.stripe_transfers
+       *   capability, you must set dashboard to none or express, and set
+       *   both losses_collector and fees_collector to application."
        *
-       * None of this moves chargeback liability. Buyers pay AfriLynq's
-       * own account, so a reversed buyer payment still lands on AfriLynq.
+       * Both collectors are therefore forced. The one real choice left
+       * is the dashboard, and it is not a cosmetic one, because Stripe
+       * decides who collects identity documents from those two values
+       * together. Platform collects them only when losses sit with the
+       * platform AND dashboard is none. Since losses are now forced to
+       * the platform, dashboard none would make AfriLynq responsible for
+       * verifying the identity of every farmer who signs up.
+       *
+       * So: express. Not because suppliers need it, but because it is
+       * what keeps the compliance work with Stripe. Suppliers are never
+       * sent there and never asked to make a Stripe login; everything
+       * they do happens in the embedded components on AfriLynq, which
+       * work whatever this is set to. It can be branded as AfriLynq in
+       * the Stripe dashboard if anyone ever does reach it.
+       *
+       * losses_collector application has a real consequence: AfriLynq is
+       * responsible for negative balances on supplier accounts, and
+       * Stripe requires the platform to acknowledge that in its own
+       * dashboard before this works. That is a commercial point for
+       * Collins, not a technical one, and it is in the Stage 4 scope.
        */
       const params: Stripe.V2.Core.AccountCreateParams = {
         contact_email: company.contact_email ?? undefined,
         display_name: company.trading_name || company.legal_name,
-        dashboard: "none",
+        dashboard: "express",
 
         // Lowercase, following Stripe's own v2 examples. Only the country
         // is sent: everything else about who this business is gets asked
@@ -189,7 +201,7 @@ export async function startPayoutOnboarding(companyId: string): Promise<StartRes
         },
 
         defaults: {
-          responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
+          responsibilities: { fees_collector: "application", losses_collector: "application" },
         },
 
         // So a Stripe account can always be traced back to a company
