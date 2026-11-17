@@ -78,6 +78,12 @@ function Icon({ name }: { name: string }) {
         <path d="M5.4 3.6h9.2a.6.6 0 0 1 .6.6v12.4l-5.2-3.4-5.2 3.4V4.2a.6.6 0 0 1 .6-.6Z" {...s} />
       )}
       {name === "bolt" && <path d="M11.2 2.6 4.6 11h4.2l-.8 6.4L15.4 9h-4.2Z" {...s} />}
+      {name === "wallet" && (
+        <>
+          <path d="M3 6.6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" {...s} />
+          <path d="M3 9.4h4.2a1.2 1.2 0 0 0 0 2.4H3" {...s} strokeLinecap="round" />
+        </>
+      )}
       {name === "sliders" && (
         <path d="M3.4 6.4h3.2M9.8 6.4h6.8M3.4 13.6h6.8M13.8 13.6h2.8M8.2 4.6v3.6M12.4 11.8v3.6" {...s} strokeLinecap="round" />
       )}
@@ -101,6 +107,9 @@ const SUPPLIER_LINKS: Entry[] = [
   { href: "/account/enquiries", label: "Enquiries", icon: "inbox", needsCompany: true },
   { href: "/account/quotations", label: "Quotations", icon: "doc", needsCompany: true },
   { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: true },
+  // Needs a company because the Stripe account belongs to the business, not
+  // to the person. A shopper has no company and nothing to be paid for.
+  { href: "/account/payouts", label: "Getting paid", icon: "wallet", needsCompany: true },
   { href: "/account/performance", label: "Performance", icon: "chart", needsCompany: true, soon: true },
   { href: "/account/documents", label: "Documents and verification", icon: "doc", needsCompany: true },
   { href: "/account/promote", label: "Promote", icon: "bolt", needsCompany: true, soon: true },
