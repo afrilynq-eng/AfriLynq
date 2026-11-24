@@ -264,6 +264,29 @@ export function buildTxRef(paymentReference: string): string {
   return `${paymentReference}-${digest}`;
 }
 
+/**
+ * Reads a tx_ref back, and refuses one we did not mint.
+ *
+ * The suffix is an HMAC of the reference under our own secret, so this
+ * both recovers the payment reference and proves the whole string came
+ * from us. That means no column is needed to remember which tx_ref
+ * belonged to which payment, and a webhook quoting an invented reference
+ * is rejected before it touches the database.
+ *
+ * Returns null for anything that does not check out.
+ */
+export function parseTxRef(txRef: string | null | undefined): string | null {
+  if (!txRef) return null;
+
+  const cut = txRef.lastIndexOf("-");
+  if (cut <= 0) return null;
+
+  const reference = txRef.slice(0, cut);
+  // Rebuild it and compare the whole string, so a tampered reference and a
+  // tampered digest both fail the same way.
+  return buildTxRef(reference) === txRef ? reference : null;
+}
+
 /* ------------------------------------------------------------------
    Errors a buyer or supplier might see
    ------------------------------------------------------------------ */

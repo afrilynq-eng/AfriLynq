@@ -106,8 +106,9 @@ const SUPPLIER_LINKS: Entry[] = [
   { href: "/account/products", label: "Listings", icon: "box", needsCompany: true },
   { href: "/account/enquiries", label: "Enquiries", icon: "inbox", needsCompany: true },
   { href: "/account/quotations", label: "Quotations", icon: "doc", needsCompany: true },
+  { href: "/account/orders", label: "Orders", icon: "box", needsCompany: true },
   { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: true },
-  // Needs a company because the Stripe account belongs to the business, not
+  // Needs a company because the payout account belongs to the business, not
   // to the person. A shopper has no company and nothing to be paid for.
   { href: "/account/payouts", label: "Getting paid", icon: "wallet", needsCompany: true },
   { href: "/account/performance", label: "Performance", icon: "chart", needsCompany: true, soon: true },
@@ -130,7 +131,10 @@ const BUYER_LINKS: Entry[] = [
   { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: false },
   { href: "/account/saved", label: "Saved suppliers", icon: "bookmark", needsCompany: true, soon: true },
   { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: false },
-  { href: "/account/orders", label: "Orders and contracts", icon: "box", needsCompany: true, soon: true },
+  // Live as of Stage 4, and no longer asking for a company. A retailer who
+  // buys without one has orders exactly as a company buyer does, which is
+  // what stage4-04 made true in the database.
+  { href: "/account/orders", label: "Orders", icon: "box", needsCompany: false },
   { href: "/account/company", label: "Company profile", icon: "building", needsCompany: true },
   { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
 ];
@@ -152,6 +156,10 @@ const SHOPPER_LINKS: Entry[] = [
   { href: "/marketplace", label: "Browse produce", icon: "box", needsCompany: false },
   { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: false },
   { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: false },
+  // A shopper who accepts a quotation has an order and has to be able to
+  // pay for it. Leaving this out would be the same mistake as leaving out
+  // Quotations: a flow they can start and cannot finish.
+  { href: "/account/orders", label: "Orders", icon: "box", needsCompany: false },
   { href: "/account/messages", label: "Messages", icon: "chat", needsCompany: false },
   { href: "/account/settings", label: "Settings", icon: "sliders", needsCompany: false },
 ];

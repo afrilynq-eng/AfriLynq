@@ -51,3 +51,31 @@ export const QUOTATION_STATUS: Record<string, { label: string; tone: string }> =
   withdrawn: { label: "Withdrawn", tone: "bg-sand text-stone" },
   superseded: { label: "Superseded", tone: "bg-sand text-stone" },
 };
+
+/**
+ * The seven order statuses, in the words Collins set out in his brief
+ * of 24 November, mapped onto the enum the database actually holds.
+ *
+ * Five of them predate the payment work under different names, which is
+ * why the keys and the labels do not match: changing the enum would have
+ * meant rewriting every existing order. The label is what a person reads
+ * and the key is what the database stores, and this is the one place the
+ * two are tied together.
+ */
+export const ORDER_STATUS: Record<string, { label: string; tone: string }> = {
+  awaiting_payment: { label: "Awaiting payment", tone: "bg-gold/20 text-gold" },
+  confirmed: { label: "Payment confirmed", tone: "bg-forest/15 text-forest" },
+  in_production: { label: "Processing order", tone: "bg-forest/15 text-forest" },
+  shipped: { label: "Dispatched", tone: "bg-forest/15 text-forest" },
+  in_transit: { label: "In transit", tone: "bg-forest/15 text-forest" },
+  delivered: { label: "Delivered, awaiting confirmation", tone: "bg-gold/20 text-gold" },
+  payout_approved: { label: "Payout approved", tone: "bg-forest/15 text-forest" },
+  completed: { label: "Supplier paid", tone: "bg-forest/15 text-forest" },
+  disputed: { label: "In dispute", tone: "bg-[#C2453F]/15 text-[#A3352F]" },
+  cancelled: { label: "Cancelled", tone: "bg-sand text-stone" },
+};
+
+/** What a supplier keeps after the service charge, in minor units. */
+export function netOfCommission(totalMinor: number, commissionMinor: number | null) {
+  return totalMinor - (commissionMinor ?? 0);
+}

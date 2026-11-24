@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createOrderForQuotation } from "@/app/(site)/account/orders/actions";
 import { redirect } from "next/navigation";
 import { currentUser, sessionClient } from "@/lib/supabase-server";
 
@@ -59,6 +60,27 @@ export async function respondToQuotation(
       message:
         "That quotation can no longer be answered. It may have been answered already, or withdrawn.",
     };
+  }
+
+  /**
+   * Accepting creates the order, and nothing more.
+   *
+   * The order is created here rather than when the buyer pays, so an
+   * acceptance at eleven at night is a real thing the supplier can see
+   * even if the buyer pays in the morning. It sits at awaiting_payment
+   * until the money arrives.
+   *
+   * A failure to create it does not undo the acceptance. The quotation is
+   * genuinely accepted, both parties were told, and pretending otherwise
+   * because of our own error would be worse than an order we have to
+   * create by hand.
+   */
+  if (decision === "accepted") {
+    const created = await createOrderForQuotation(quotationId, user.id);
+    if (!created.ok) {
+      console.error("[quotations] accepted but no order", quotationId, created.message);
+    }
+    revalidatePath("/account/orders");
   }
 
   revalidatePath("/account/quotations");
