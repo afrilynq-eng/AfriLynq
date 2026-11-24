@@ -284,14 +284,21 @@ export default async function QuotationPage({
         </div>
       )}
 
+      {/* Payment moved onto the platform in Stage 4, so this no longer says
+          the two companies arrange it between themselves. It links to the
+          order instead, which is where the money now happens. */}
       {q.status === "accepted" && (
         <section className="mt-6 rounded-lg border-l-2 border-forest bg-forest/5 px-5 py-4">
           <p className="text-ink">
-            Accepted{q.responded_at ? ` on ${date(q.responded_at)}` : ""}. These are
-            the agreed terms. Payment and delivery are arranged between the two
-            companies directly for now; handling them on the platform comes with
-            Stage 4.
+            Accepted{q.responded_at ? ` on ${date(q.responded_at)}` : ""}. These are the
+            agreed terms, and an order has been raised against them.
           </p>
+          <Link
+            href="/account/orders"
+            className="mt-2 inline-block text-sm font-semibold text-forest hover:underline"
+          >
+            Go to the order to pay and track it
+          </Link>
         </section>
       )}
 
