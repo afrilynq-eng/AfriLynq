@@ -150,6 +150,21 @@ export default async function AccountLayout({
       ? { "/account/requests": shopperAsked?.answered ?? 0 }
       : {};
 
+  /**
+   * Notifications belong to a person, not a company, so this is counted
+   * separately and for everybody. A shopper has no company and would
+   * otherwise never see the badge for the one thing on the platform that
+   * is unambiguously theirs.
+   */
+  {
+    const supabase = await sessionClient();
+    const { count } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .is("read_at", null);
+    badges["/account/notifications"] = count ?? 0;
+  }
+
   return (
     <PortalShell
       role={role}

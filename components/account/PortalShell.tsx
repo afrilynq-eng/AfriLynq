@@ -65,6 +65,12 @@ function Icon({ name }: { name: string }) {
         </>
       )}
       {name === "chat" && <path d="M3.4 14.2V5.6a1 1 0 0 1 1-1h11.2a1 1 0 0 1 1 1v6.8a1 1 0 0 1-1 1H7Z" {...s} />}
+      {name === "bell" && (
+        <>
+          <path d="M5.6 8.2a4.4 4.4 0 0 1 8.8 0c0 3.1 1.2 4.4 1.2 4.4H4.4s1.2-1.3 1.2-4.4Z" {...s} />
+          <path d="M8.3 15.1a1.8 1.8 0 0 0 3.4 0" {...s} />
+        </>
+      )}
       {name === "chart" && (
         <path d="M3.4 16.6h13.2M6 13.6V9M10 13.6V4.4M14 13.6v-5" {...s} strokeLinecap="round" />
       )}
@@ -102,6 +108,7 @@ type Entry = {
 
 const SUPPLIER_LINKS: Entry[] = [
   { href: "/account", label: "Overview", icon: "home", needsCompany: false },
+  { href: "/account/notifications", label: "Notifications", icon: "bell", needsCompany: false },
   { href: "/account/company", label: "Company profile", icon: "building", needsCompany: true },
   { href: "/account/products", label: "Listings", icon: "box", needsCompany: true },
   { href: "/account/enquiries", label: "Enquiries", icon: "inbox", needsCompany: true },
@@ -124,6 +131,7 @@ const SUPPLIER_LINKS: Entry[] = [
  */
 const BUYER_LINKS: Entry[] = [
   { href: "/account", label: "Overview", icon: "home", needsCompany: false },
+  { href: "/account/notifications", label: "Notifications", icon: "bell", needsCompany: false },
   // Buying needs no company. A retailer can enquire, be quoted and talk to
   // a supplier as themselves, and verification gates the selling side only.
   // These three asked for a company until stage3-06 made that untrue.
@@ -153,6 +161,7 @@ const BUYER_LINKS: Entry[] = [
  */
 const SHOPPER_LINKS: Entry[] = [
   { href: "/account", label: "Overview", icon: "home", needsCompany: false },
+  { href: "/account/notifications", label: "Notifications", icon: "bell", needsCompany: false },
   { href: "/marketplace", label: "Browse produce", icon: "box", needsCompany: false },
   { href: "/account/requests", label: "My requests", icon: "doc", needsCompany: false },
   { href: "/account/quotations", label: "Quotations", icon: "inbox", needsCompany: false },

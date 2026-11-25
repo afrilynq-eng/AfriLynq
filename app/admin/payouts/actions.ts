@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/supabase-server";
 import { serviceClient } from "@/lib/supabase";
+import { notifyCompany } from "@/lib/notify";
+import { formatMinor } from "@/lib/money";
 import {
   canMove,
   deliveryConfirmed,
@@ -43,7 +45,7 @@ async function move(
 
   const { data: current, error: readError } = await svc
     .from("payouts")
-    .select("id, reference, status, order_id, net_minor, currency, manual")
+    .select("id, reference, status, order_id, net_minor, currency, manual, supplier_company_id")
     .eq("id", payoutId)
     .maybeSingle();
 
@@ -58,6 +60,7 @@ async function move(
     net_minor: number;
     currency: string;
     manual: boolean;
+    supplier_company_id: string;
   };
 
   if (row.status === to) return { ok: true };
@@ -214,6 +217,37 @@ async function move(
       ...extra,
     },
   });
+
+  /**
+   * The supplier hears the two things they care about: that it has been
+   * cleared, and that it has gone. Nothing is sent for the intermediate
+   * states, which are AfriLynq's bookkeeping and not their business.
+   */
+  const money = formatMinor(row.net_minor, row.currency);
+  if (to === "approved") {
+    await notifyCompany(row.supplier_company_id, {
+      kind: "payout_approved",
+      title: `Your payment of ${money} has been approved`,
+      body:
+        `Payment ${row.reference} for ${money} has been approved for release.\n\n` +
+        "It will reach the account you gave us shortly. Nothing further is needed " +
+        "from you.",
+      linkPath: "/account/payouts",
+      linkLabel: "See your payments",
+    });
+  } else if (to === "paid") {
+    await notifyCompany(row.supplier_company_id, {
+      kind: "payout_paid",
+      title: `${money} has been sent to you`,
+      body:
+        `Payment ${row.reference} for ${money} has been sent to the account you gave ` +
+        "us.\n\nDepending on your bank it may take a day or two to appear. If it has " +
+        "not arrived after three working days, email info@afrilynq.co.uk with this " +
+        "reference.",
+      linkPath: "/account/payouts",
+      linkLabel: "See your payments",
+    });
+  }
 
   revalidatePath("/admin/payouts");
   revalidatePath("/admin/payments");

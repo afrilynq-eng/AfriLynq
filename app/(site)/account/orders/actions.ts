@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { notifyBuyer, notifyCompany } from "@/lib/notify";
 import { revalidatePath } from "next/cache";
 import { currentUser, sessionClient } from "@/lib/supabase-server";
 import { serviceClient } from "@/lib/supabase";
@@ -168,6 +169,8 @@ export async function advanceOrder(orderId: string, formData: FormData): Promise
     back("steperror");
   }
 
+  await tellBuyerTheOrderMoved(orderId, status);
+
   revalidatePath(`/account/orders/${orderId}`);
   revalidatePath("/account/orders");
   back(status === "delivered" ? "delivered" : "moved");
@@ -195,6 +198,20 @@ export async function confirmDelivery(orderId: string): Promise<void> {
     console.error("[orders] confirmation failed", error);
     if (error.code === "42501") back("notyours");
     back("steperror");
+  }
+
+  const order = await orderBrief(orderId);
+  if (order) {
+    await notifyCompany(order.supplier_company_id, {
+      kind: "delivery_confirmed",
+      title: `${order.reference} confirmed delivered`,
+      body:
+        `The buyer has confirmed that order ${order.reference} arrived.\n\n` +
+        "Your payment has been released for approval and will follow. Nothing further " +
+        "is needed from you.",
+      linkPath: "/account/payouts",
+      linkLabel: "See your payments",
+    });
   }
 
   revalidatePath(`/account/orders/${orderId}`);
@@ -234,6 +251,34 @@ export async function raiseDispute(orderId: string, formData: FormData): Promise
     if (error.code === "42501") back("cannotdispute");
     if (error.code === "23505") back("alreadydisputed");
     back("steperror");
+  }
+
+  const order = await orderBrief(orderId);
+  if (order) {
+    // The side that did NOT raise it is the side that needs to know.
+    const raisedByBuyer =
+      order.buyer_profile_id === user.id ||
+      (order.buyer_company_id !== null &&
+        (await companyIds(user.id)).includes(order.buyer_company_id));
+
+    const notice = {
+      kind: "dispute_raised" as const,
+      title: `A dispute has been raised on ${order.reference}`,
+      body:
+        `The other party has raised a dispute on order ${order.reference}.\n\n` +
+        `Their reason: ${reason}\n\n` +
+        "AfriLynq is holding the money on this order while we look at it, and nothing " +
+        "is paid out or refunded until it is settled. Send anything that helps to " +
+        "info@afrilynq.co.uk with the order reference.",
+      linkPath: `/account/orders/${orderId}`,
+      linkLabel: "Open the order",
+    };
+
+    if (raisedByBuyer) {
+      await notifyCompany(order.supplier_company_id, notice);
+    } else {
+      await notifyBuyer(order, notice);
+    }
   }
 
   revalidatePath(`/account/orders/${orderId}`);
@@ -393,4 +438,77 @@ export async function startCheckout(orderId: string): Promise<void> {
 
   revalidatePath(`/account/orders/${order.id}`);
   redirect(link);
+}
+
+/* ------------------------------------------------------------------
+   Reading an order back, for the notifications above
+   ------------------------------------------------------------------ */
+
+/**
+ * Through the service key rather than the caller's session on purpose.
+ *
+ * Telling the OTHER side something happened means reading a row from the
+ * point of view of someone who is not entitled to the other party's
+ * details. The session client would correctly return nothing. Nothing
+ * read here reaches the caller; it only decides who gets an email.
+ */
+async function orderBrief(orderId: string) {
+  try {
+    const { data } = await serviceClient()
+      .from("orders")
+      .select("id, reference, supplier_company_id, buyer_company_id, buyer_profile_id")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    return (data ?? null) as unknown as {
+      id: string;
+      reference: string;
+      supplier_company_id: string;
+      buyer_company_id: string | null;
+      buyer_profile_id: string | null;
+    } | null;
+  } catch (error) {
+    console.error("[orders] could not read order for notification", error);
+    return null;
+  }
+}
+
+async function companyIds(userId: string): Promise<string[]> {
+  try {
+    const { data } = await serviceClient()
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", userId)
+      .eq("status", "active");
+    return ((data ?? []) as { company_id: string }[]).map((m) => m.company_id);
+  } catch {
+    return [];
+  }
+}
+
+/** The buyer hears when their goods move. */
+async function tellBuyerTheOrderMoved(orderId: string, status: string) {
+  const said: Record<string, { kind: "order_shipped" | "order_delivered"; line: string }> = {
+    shipped: { kind: "order_shipped", line: "has been dispatched and is on its way to you" },
+    in_transit: { kind: "order_shipped", line: "is in transit" },
+    delivered: { kind: "order_delivered", line: "has been marked delivered by the supplier" },
+  };
+  const what = said[status];
+  if (!what) return;
+
+  const order = await orderBrief(orderId);
+  if (!order) return;
+
+  await notifyBuyer(order, {
+    kind: what.kind,
+    title: `Order ${order.reference} ${status === "delivered" ? "has arrived" : "is on its way"}`,
+    body:
+      `Your order ${order.reference} ${what.line}.` +
+      (status === "delivered"
+        ? "\n\nWhen you have it and it is what you ordered, confirm it on AfriLynq. " +
+          "That is what releases the supplier's payment, so please do not leave it."
+        : ""),
+    linkPath: `/account/orders/${orderId}`,
+    linkLabel: status === "delivered" ? "Confirm it arrived" : "Track your order",
+  });
 }

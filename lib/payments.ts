@@ -1,4 +1,6 @@
 import { serviceClient } from "@/lib/supabase";
+import { notifyBuyer, notifyCompany } from "@/lib/notify";
+import { formatMinor } from "@/lib/money";
 import { verifyTransaction } from "@/lib/flutterwave";
 
 /**
@@ -106,14 +108,20 @@ export async function settlePayment(paymentReference: string, transactionId: str
   // confirmed.
   const { data: order } = await svc
     .from("orders")
-    .select("id, supplier_company_id, currency, total_minor, commission_rate, commission_minor")
+    .select(
+      "id, reference, supplier_company_id, buyer_company_id, buyer_profile_id, " +
+        "currency, total_minor, commission_rate, commission_minor"
+    )
     .eq("id", payment.order_id)
     .maybeSingle();
 
   if (!order) return;
-  const o = order as {
+  const o = order as unknown as {
     id: string;
+    reference: string;
     supplier_company_id: string;
+    buyer_company_id: string | null;
+    buyer_profile_id: string | null;
     currency: string;
     total_minor: number;
     commission_rate: number | null;
@@ -135,4 +143,37 @@ export async function settlePayment(paymentReference: string, transactionId: str
     },
     { onConflict: "order_id", ignoreDuplicates: true }
   );
+
+  /**
+   * Both sides are told, and the supplier's message is the one that
+   * matters: it is their cue to start preparing, and until now the only
+   * way they learned a buyer had paid was by logging in and looking.
+   *
+   * After the payout upsert on purpose. If notifying fails the money is
+   * already correctly recorded, which is the right way round.
+   */
+  const money = formatMinor(payment.amount_minor, payment.currency);
+
+  await Promise.all([
+    notifyBuyer(o, {
+      kind: "payment_received",
+      title: `Payment received for ${o.reference}`,
+      body:
+        `We have received your payment of ${money} for order ${o.reference}.\n\n` +
+        "AfriLynq is holding it until you confirm the goods have arrived. The supplier " +
+        "has been told and will begin preparing your order.",
+      linkPath: `/account/orders/${o.id}`,
+      linkLabel: "View your order",
+    }),
+    notifyCompany(o.supplier_company_id, {
+      kind: "order_paid",
+      title: `${o.reference} has been paid for`,
+      body:
+        `The buyer has paid ${money} for order ${o.reference}, and AfriLynq is holding it.\n\n` +
+        "You can begin preparing the order. Mark it dispatched when it leaves you, and " +
+        "your payment is released once the buyer confirms it arrived.",
+      linkPath: `/account/orders/${o.id}`,
+      linkLabel: "Open the order",
+    }),
+  ]);
 }
