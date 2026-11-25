@@ -124,6 +124,85 @@ export async function createOrderForQuotation(quotationId: string, userId: strin
 }
 
 /* ------------------------------------------------------------------
+   Getting the goods there, and saying they arrived
+   ------------------------------------------------------------------ */
+
+/**
+ * The supplier moves the order along: in production, shipped, delivered.
+ *
+ * Both of these go through a database function rather than updating the
+ * row from here. The reason is that the rules are about money: a supplier
+ * who could write to orders.status could write 'completed' and release
+ * their own payout, and a buyer who could write to their own order could
+ * change what it cost. supplier_advance_order and buyer_confirm_delivery
+ * each change only their own columns and re-check who is calling, which
+ * no row policy can express.
+ *
+ * Called with the user's own session so auth.uid() is set inside the
+ * function. The service key would make it null and the check would see an
+ * anonymous caller.
+ */
+export async function advanceOrder(orderId: string, formData: FormData): Promise<void> {
+  const user = await currentUser();
+  if (!user) redirect("/sign-in");
+
+  const back = (code: string) => redirect(`/account/orders/${orderId}?delivery=${code}`);
+
+  const status = String(formData.get("status") ?? "").trim();
+  if (!status) back("steperror");
+
+  const supabase = await sessionClient();
+  const { error } = await supabase.rpc("supplier_advance_order", {
+    p_order_id: orderId,
+    p_status: status,
+    p_carrier: String(formData.get("carrier") ?? "").trim() || null,
+    p_tracking: String(formData.get("tracking") ?? "").trim() || null,
+  });
+
+  if (error) {
+    // The codes the function raises, turned into something the page can
+    // say. Anything else is logged and shown as a generic failure rather
+    // than leaking a Postgres message onto a supplier's screen.
+    console.error("[orders] advance failed", error);
+    if (error.code === "42501") back("notyours");
+    back("steperror");
+  }
+
+  revalidatePath(`/account/orders/${orderId}`);
+  revalidatePath("/account/orders");
+  back(status === "delivered" ? "delivered" : "moved");
+}
+
+/**
+ * The buyer confirms the goods arrived.
+ *
+ * This is the single most consequential button on the platform: it is what
+ * releases a supplier's money. It is deliberately the buyer's, and a
+ * supplier marking their own delivery complete does not substitute for it.
+ */
+export async function confirmDelivery(orderId: string): Promise<void> {
+  const user = await currentUser();
+  if (!user) redirect("/sign-in");
+
+  const back = (code: string) => redirect(`/account/orders/${orderId}?delivery=${code}`);
+
+  const supabase = await sessionClient();
+  const { error } = await supabase.rpc("buyer_confirm_delivery", {
+    p_order_id: orderId,
+  });
+
+  if (error) {
+    console.error("[orders] confirmation failed", error);
+    if (error.code === "42501") back("notyours");
+    back("steperror");
+  }
+
+  revalidatePath(`/account/orders/${orderId}`);
+  revalidatePath("/account/orders");
+  back("confirmed");
+}
+
+/* ------------------------------------------------------------------
    The money
    ------------------------------------------------------------------ */
 

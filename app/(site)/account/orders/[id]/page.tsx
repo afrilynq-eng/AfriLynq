@@ -4,7 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { currentUser, userCompanies, sessionClient } from "@/lib/supabase-server";
 import { formatMinor, ORDER_STATUS } from "@/lib/money";
 import { SERVICE_CHARGE_NAME } from "@/lib/fees";
-import { startCheckout } from "../actions";
+import { startCheckout, advanceOrder, confirmDelivery } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -55,15 +55,39 @@ const NOTICE: Record<string, { text: string; tone: string }> = {
   },
 };
 
+/** The same idea for moving the goods, kept apart so the two never clash. */
+const DELIVERY_NOTICE: Record<string, { text: string; tone: string }> = {
+  moved: {
+    text: "Updated. The buyer can see where their order has got to.",
+    tone: "border-forest/30 bg-forest/10 text-forest",
+  },
+  delivered: {
+    text: "Marked delivered. The buyer now has to confirm it arrived, and your payment is released once they do.",
+    tone: "border-forest/30 bg-forest/10 text-forest",
+  },
+  confirmed: {
+    text: "Thank you. Your supplier's payment has been released for approval, and the order is complete as far as you are concerned.",
+    tone: "border-forest/30 bg-forest/10 text-forest",
+  },
+  notyours: {
+    text: "That is not your order to update.",
+    tone: "border-sand-deep bg-sand-deep/40 text-ink-soft",
+  },
+  steperror: {
+    text: "We could not update the order. Refresh the page and try again, and email info@afrilynq.co.uk if it keeps happening.",
+    tone: "border-[#d9b3aa] bg-[#f6e3e0] text-[#8c3b2c]",
+  },
+};
+
 export default async function OrderPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ payment?: string }>;
+  searchParams: Promise<{ payment?: string; delivery?: string }>;
 }) {
   const { id } = await params;
-  const { payment } = await searchParams;
+  const { payment, delivery } = await searchParams;
 
   const user = await currentUser();
   if (!user) redirect("/sign-in");
@@ -77,6 +101,7 @@ export default async function OrderPage({
     .select(
       "id, reference, status, currency, total_minor, commission_rate, commission_minor, " +
         "incoterm, delivery_address, expected_delivery_date, carrier_name, tracking_reference, " +
+        "shipped_at, delivered_at, buyer_confirmed_at, " +
         "supplier_company_id, buyer_company_id, buyer_profile_id, quotation_id, created_at"
     )
     .eq("id", id)
@@ -103,12 +128,25 @@ export default async function OrderPage({
     expected_delivery_date: string | null;
     carrier_name: string | null;
     tracking_reference: string | null;
+    shipped_at: string | null;
+    delivered_at: string | null;
+    buyer_confirmed_at: string | null;
     supplier_company_id: string;
     buyer_company_id: string | null;
     buyer_profile_id: string | null;
     quotation_id: string;
     created_at: string;
   };
+
+  // Named rather than "the supplier", because the sentence that asks a
+  // buyer to release somebody's money should say whose money it is.
+  const { data: supplierRow } = await supabase
+    .from("companies")
+    .select("legal_name, trading_name")
+    .eq("id", order.supplier_company_id)
+    .maybeSingle();
+  const supplier = supplierRow as { legal_name: string; trading_name: string | null } | null;
+  const supplierName = supplier?.trading_name || supplier?.legal_name || "The supplier";
 
   const selling = mine.has(order.supplier_company_id);
   const iAmBuyer = order.buyer_profile_id
@@ -117,9 +155,50 @@ export default async function OrderPage({
 
   const state = ORDER_STATUS[order.status] ?? { label: order.status, tone: "bg-sand text-stone" };
   const net = order.total_minor - (order.commission_minor ?? 0);
-  const notice = payment ? NOTICE[payment] : null;
+  const notice = (payment ? NOTICE[payment] : null) ?? (delivery ? DELIVERY_NOTICE[delivery] : null);
 
   const pay = startCheckout.bind(null, order.id);
+  const advance = advanceOrder.bind(null, order.id);
+  const confirm = confirmDelivery.bind(null, order.id);
+
+  /**
+   * What the supplier may do next.
+   *
+   * The same ladder the database enforces in supplier_advance_order. It is
+   * repeated here only to decide which button to draw; the function is
+   * what actually holds, so a stale page cannot skip a step.
+   */
+  const SUPPLIER_STEPS: Record<string, { value: string; label: string }[]> = {
+    confirmed: [
+      { value: "in_production", label: "Start preparing it" },
+      { value: "shipped", label: "Mark dispatched" },
+    ],
+    in_production: [{ value: "shipped", label: "Mark dispatched" }],
+    // in_transit is confirmed present in app.order_status, so it is offered.
+    // It is optional: a short delivery can go straight from dispatched to
+    // delivered without anybody pretending there was a leg in between.
+    shipped: [
+      { value: "in_transit", label: "Mark in transit" },
+      { value: "delivered", label: "Mark delivered" },
+    ],
+    in_transit: [{ value: "delivered", label: "Mark delivered" }],
+  };
+  const steps = selling ? (SUPPLIER_STEPS[order.status] ?? []) : [];
+  const needsCarrier = steps.some((s) => s.value === "shipped");
+
+  // The buyer confirms only once the supplier has said it arrived, and
+  // only once. This is the button that releases the supplier's money.
+  const awaitingConfirmation =
+    iAmBuyer && Boolean(order.delivered_at) && !order.buyer_confirmed_at;
+
+  const when = (iso: string | null) =>
+    iso
+      ? new Date(iso).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : null;
 
   return (
     <div className="space-y-6">
@@ -176,6 +255,115 @@ export default async function OrderPage({
             You will be taken to Flutterwave to pay, and brought back here afterwards. Card
             details never touch AfriLynq.
           </p>
+        </div>
+      )}
+
+      {/* The buyer's confirmation. Deliberately the most prominent thing on
+          the page when it is due, because nothing else on the platform
+          releases a supplier's money and an order that quietly waits here
+          is a supplier going unpaid. */}
+      {awaitingConfirmation && (
+        <div className="rounded-xl border-2 border-forest bg-forest/5 p-7 shadow-sm">
+          <h2 className="text-lg">Has your order arrived?</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+            {supplierName} marked this delivered
+            {order.delivered_at ? ` on ${when(order.delivered_at)}` : ""}. Confirming releases
+            their payment. Only do it once you have the goods and they are what you ordered.
+          </p>
+          <form action={confirm} className="mt-5">
+            <button
+              type="submit"
+              className="rounded-lg bg-forest px-6 py-3 text-sm font-semibold text-white hover:bg-forest/90"
+            >
+              Yes, it arrived
+            </button>
+          </form>
+          <p className="mt-3 text-xs text-ink-soft">
+            If it has not arrived, or there is something wrong with it, do not confirm. Message
+            the supplier, and email info@afrilynq.co.uk if you cannot resolve it.
+          </p>
+        </div>
+      )}
+
+      {/* The supplier's ladder. Nothing is offered before the money is in. */}
+      {selling && steps.length > 0 && (
+        <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
+          <h2 className="text-lg">Move this order along</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+            The buyer sees each step. Once you mark it delivered they confirm receipt, and that
+            is what releases your payment.
+          </p>
+
+          {needsCarrier && (
+            <p className="mt-3 text-xs text-ink-soft">
+              Add the carrier and tracking reference when you dispatch, so the buyer can follow
+              it without having to ask you.
+            </p>
+          )}
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            {steps.map((step) => (
+              <form key={step.value} action={advance} className="contents">
+                <input type="hidden" name="status" value={step.value} />
+                {step.value === "shipped" && (
+                  <>
+                    <input
+                      name="carrier"
+                      placeholder="Carrier"
+                      defaultValue={order.carrier_name ?? ""}
+                      aria-label="Carrier"
+                      className="rounded-lg border border-sand-deep px-3 py-2 text-sm"
+                    />
+                    <input
+                      name="tracking"
+                      placeholder="Tracking reference"
+                      defaultValue={order.tracking_reference ?? ""}
+                      aria-label="Tracking reference"
+                      className="rounded-lg border border-sand-deep px-3 py-2 text-sm"
+                    />
+                  </>
+                )}
+                <button
+                  type="submit"
+                  className="rounded-lg bg-forest px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest/90"
+                >
+                  {step.label}
+                </button>
+              </form>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Where it has got to, once anything has happened. */}
+      {(order.shipped_at || order.delivered_at || order.buyer_confirmed_at) && (
+        <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
+          <h2 className="text-lg">Progress</h2>
+          <ol className="mt-4 space-y-3 text-sm">
+            {[
+              ["Dispatched", order.shipped_at],
+              ["Supplier marked it delivered", order.delivered_at],
+              ["Buyer confirmed it arrived", order.buyer_confirmed_at],
+            ]
+              .filter(([, at]) => Boolean(at))
+              .map(([label, at]) => (
+                <li key={String(label)} className="flex items-baseline justify-between gap-4">
+                  <span className="text-ink">{label}</span>
+                  <span className="text-ink-soft">{when(at as string)}</span>
+                </li>
+              ))}
+          </ol>
+          {selling && order.delivered_at && !order.buyer_confirmed_at && (
+            <p className="mt-4 rounded-lg border border-gold/30 bg-gold/10 px-4 py-2.5 text-xs text-gold-deep">
+              Waiting on the buyer to confirm receipt. Your payment is released once they do.
+            </p>
+          )}
+          {selling && order.buyer_confirmed_at && (
+            <p className="mt-4 rounded-lg border border-forest/30 bg-forest/10 px-4 py-2.5 text-xs text-forest">
+              The buyer has confirmed. Your payment has been released for approval and will
+              follow.
+            </p>
+          )}
         </div>
       )}
 

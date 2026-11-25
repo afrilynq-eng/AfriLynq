@@ -30,6 +30,16 @@ const NAV = [
     ],
   },
   {
+    // Stage 4. Three ledgers, three screens, in the order money moves
+    // through them: in from a buyer, out to a supplier, back to a buyer.
+    heading: "Money",
+    items: [
+      { href: "/admin/payments", label: "Payments", icon: "card" },
+      { href: "/admin/payouts", label: "Payouts", icon: "send" },
+      { href: "/admin/refunds", label: "Refunds", icon: "undo" },
+    ],
+  },
+  {
     heading: "Registrations",
     items: [
       { href: "/admin/leads", label: "All leads", icon: "list" },
@@ -122,6 +132,25 @@ function Icon({ name }: { name: string }) {
           <path d="M13.2 4.6a2.8 2.8 0 0 1 0 5.2M14.4 12.6c1.8.5 3 1.9 3 4" {...common} strokeLinecap="round" />
         </>
       )}
+      {name === "card" && (
+        <>
+          <rect x="2" y="4.5" width="16" height="11" rx="1.8" {...common} />
+          <path d="M2 8.4h16" {...common} />
+          <path d="M5 12.3h3.4" {...common} strokeLinecap="round" />
+        </>
+      )}
+      {name === "send" && (
+        <>
+          <path d="M17.5 2.5 9 11" {...common} strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M17.5 2.5 12 17.5 9 11 2.5 8z" {...common} strokeLinejoin="round" />
+        </>
+      )}
+      {name === "undo" && (
+        <>
+          <path d="M3 9.5h8.8a4.2 4.2 0 1 1 0 8.4H6.5" {...common} strokeLinecap="round" />
+          <path d="M6.2 5.6 2.6 9.5l3.6 3.9" {...common} strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
       {name === "tag" && (
         <>
           <path d="M3 3h6.5l7.5 7.5-6.5 6.5L3 9.5V3Z" {...common} strokeLinejoin="round" />
@@ -146,14 +175,20 @@ export default async function AdminShell({
   // The two queues an administrator is actually on the hook for. A badge
   // means "this is waiting on you", so nothing else gets one.
   const svc = serviceClient();
-  const [{ count: waiting }, verifiedRes, activeRes] = await Promise.all([
-    svc
-      .from("companies")
-      .select("id", { count: "exact", head: true })
-      .eq("verification_status", "pending"),
-    svc.from("companies").select("id").eq("verification_status", "verified"),
-    svc.from("products").select("company_id").eq("status", "active"),
-  ]);
+  const [{ count: waiting }, verifiedRes, activeRes, payoutsRes, { count: refundsOpen }] =
+    await Promise.all([
+      svc
+        .from("companies")
+        .select("id", { count: "exact", head: true })
+        .eq("verification_status", "pending"),
+      svc.from("companies").select("id").eq("verification_status", "verified"),
+      svc.from("products").select("company_id").eq("status", "active"),
+      // Only the payouts a person has to do something about: cleared and
+      // not yet sent, or owed against a delivery the buyer has confirmed.
+      // Everything else is waiting on goods moving, not on anybody here.
+      svc.from("payouts").select("id, status, order_id").in("status", ["pending", "approved"]),
+      svc.from("refunds").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    ]);
 
   // A listing goes public only once its company is verified, so an active
   // listing on an unverified company is sitting in the queue.
@@ -164,9 +199,38 @@ export default async function AdminShell({
     (p) => !verifiedIds.has(p.company_id)
   ).length;
 
+  /**
+   * A payout is only actionable once the buyer has confirmed delivery,
+   * which is the rule the whole payout screen exists to enforce. So the
+   * badge counts approved payouts plus pending ones whose order has
+   * reached delivered, and ignores the rest.
+   */
+  const openPayouts = (payoutsRes.data ?? []) as {
+    id: string;
+    status: string;
+    order_id: string;
+  }[];
+  const pendingOrderIds = openPayouts
+    .filter((p) => p.status === "pending")
+    .map((p) => p.order_id);
+
+  let readyPayouts = openPayouts.filter((p) => p.status === "approved").length;
+  if (pendingOrderIds.length > 0) {
+    // Confirmed by the BUYER, not merely marked delivered by the supplier.
+    // The two are different facts and only the first releases money.
+    const { data: delivered } = await svc
+      .from("orders")
+      .select("id")
+      .in("id", pendingOrderIds)
+      .not("buyer_confirmed_at", "is", null);
+    readyPayouts += ((delivered ?? []) as { id: string }[]).length;
+  }
+
   const badges: Record<string, number> = {
     "/admin/verification": waiting ?? 0,
     "/admin/products": held,
+    "/admin/payouts": readyPayouts,
+    "/admin/refunds": refundsOpen ?? 0,
   };
 
   const today = new Date().toLocaleDateString("en-GB", {
