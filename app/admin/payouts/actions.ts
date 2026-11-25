@@ -6,6 +6,7 @@ import { serviceClient } from "@/lib/supabase";
 import {
   canMove,
   deliveryConfirmed,
+  disputeBlocks,
   ORDER_FOLLOWS,
   ORDER_MOVES_FROM,
 } from "@/lib/payout-flow";
@@ -80,15 +81,33 @@ async function move(
   if (to === "approved" || to === "paid") {
     const { data: orderRow } = await svc
       .from("orders")
-      .select("status, buyer_confirmed_at")
+      .select("status, buyer_confirmed_at, dispute_resolved_at")
       .eq("id", row.order_id)
       .maybeSingle();
 
     const order = orderRow as unknown as {
       status: string;
       buyer_confirmed_at: string | null;
+      dispute_resolved_at: string | null;
     } | null;
     const orderStatus = order?.status;
+
+    /**
+     * An open dispute stops everything.
+     *
+     * Checked here and not only on the page, because the page's disabled
+     * button is a courtesy and this is the control. A payout released
+     * while two parties are still arguing about the goods is the one
+     * mistake on this screen that cannot be undone afterwards.
+     */
+    if (disputeBlocks(order)) {
+      return {
+        ok: false,
+        message:
+          "This order is in dispute. Settle the dispute first, which sets the supplier's " +
+          "share at the reduced rate and releases it.",
+      };
+    }
 
     /**
      * An order that has already been approved or completed has passed this

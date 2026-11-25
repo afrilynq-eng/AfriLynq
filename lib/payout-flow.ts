@@ -89,7 +89,32 @@ export const ORDER_MOVES_FROM: Record<string, readonly string[]> = {
  * a box, which is precisely the exposure the escrow exists to remove.
  */
 export function deliveryConfirmed(
-  order: { buyer_confirmed_at?: string | null } | null | undefined
+  order:
+    | { buyer_confirmed_at?: string | null; dispute_resolved_at?: string | null }
+    | null
+    | undefined
 ): boolean {
-  return Boolean(order?.buyer_confirmed_at);
+  // A settled dispute opens the gate in place of a confirmation.
+  //
+  // A disputed order never receives one: the buyer who is arguing about
+  // the goods is not going to press "yes, it arrived". Without this a
+  // resolved dispute would leave the supplier's share, already decided
+  // and already reduced to 3.5 percent, stranded for ever. The decision
+  // was made by an administrator with the amounts in front of them, which
+  // is a stronger authority than the button it replaces.
+  return Boolean(order?.buyer_confirmed_at || order?.dispute_resolved_at);
+}
+
+/**
+ * Whether an open dispute is blocking this payout.
+ *
+ * Separate from the gate above, because the two say different things. The
+ * gate asks whether anything has authorised a release. This asks whether
+ * something is actively forbidding one. An order can fail both at once,
+ * and the screen should say which.
+ */
+export function disputeBlocks(
+  order: { status?: string; dispute_resolved_at?: string | null } | null | undefined
+): boolean {
+  return order?.status === "disputed" && !order?.dispute_resolved_at;
 }

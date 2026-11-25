@@ -202,6 +202,45 @@ export async function confirmDelivery(orderId: string): Promise<void> {
   back("confirmed");
 }
 
+/**
+ * Raising a dispute.
+ *
+ * Open to both sides, because the two failures are different and both are
+ * real: a buyer who received the wrong goods, and a supplier whose buyer
+ * has gone quiet and will not confirm a delivery that plainly happened.
+ * Only one of those is the case people think of, and leaving the other
+ * out would strand suppliers.
+ *
+ * Raising one stops the money. An approved payout drops back to pending
+ * and nothing is released until an administrator settles it.
+ */
+export async function raiseDispute(orderId: string, formData: FormData): Promise<void> {
+  const user = await currentUser();
+  if (!user) redirect("/sign-in");
+
+  const back = (code: string) => redirect(`/account/orders/${orderId}?delivery=${code}`);
+
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!reason) back("noreason");
+
+  const supabase = await sessionClient();
+  const { error } = await supabase.rpc("raise_dispute", {
+    p_order_id: orderId,
+    p_reason: reason,
+  });
+
+  if (error) {
+    console.error("[orders] dispute failed", error);
+    if (error.code === "42501") back("cannotdispute");
+    if (error.code === "23505") back("alreadydisputed");
+    back("steperror");
+  }
+
+  revalidatePath(`/account/orders/${orderId}`);
+  revalidatePath("/account/orders");
+  back("disputed");
+}
+
 /* ------------------------------------------------------------------
    The money
    ------------------------------------------------------------------ */

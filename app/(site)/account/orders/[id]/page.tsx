@@ -4,7 +4,8 @@ import { redirect, notFound } from "next/navigation";
 import { currentUser, userCompanies, sessionClient } from "@/lib/supabase-server";
 import { formatMinor, ORDER_STATUS } from "@/lib/money";
 import { SERVICE_CHARGE_NAME } from "@/lib/fees";
-import { startCheckout, advanceOrder, confirmDelivery } from "../actions";
+import { startCheckout, advanceOrder, confirmDelivery, raiseDispute } from "../actions";
+import { SERVICE_CHARGE_DISPUTE_PERCENT } from "@/lib/fees";
 
 export const dynamic = "force-dynamic";
 
@@ -77,6 +78,22 @@ const DELIVERY_NOTICE: Record<string, { text: string; tone: string }> = {
     text: "We could not update the order. Refresh the page and try again, and email info@afrilynq.co.uk if it keeps happening.",
     tone: "border-[#d9b3aa] bg-[#f6e3e0] text-[#8c3b2c]",
   },
+  disputed: {
+    text: "Raised. The money on this order is held until AfriLynq has looked at it, and we will be in touch with both sides.",
+    tone: "border-gold/30 bg-gold/10 text-gold-deep",
+  },
+  noreason: {
+    text: "Tell us what went wrong. A dispute without a reason cannot be settled fairly on either side.",
+    tone: "border-[#d9b3aa] bg-[#f6e3e0] text-[#8c3b2c]",
+  },
+  alreadydisputed: {
+    text: "There is already an open dispute on this order.",
+    tone: "border-gold/30 bg-gold/10 text-gold-deep",
+  },
+  cannotdispute: {
+    text: "This order cannot be disputed. Either it has not been paid for, or it is already closed.",
+    tone: "border-sand-deep bg-sand-deep/40 text-ink-soft",
+  },
 };
 
 export default async function OrderPage({
@@ -101,7 +118,7 @@ export default async function OrderPage({
     .select(
       "id, reference, status, currency, total_minor, commission_rate, commission_minor, " +
         "incoterm, delivery_address, expected_delivery_date, carrier_name, tracking_reference, " +
-        "shipped_at, delivered_at, buyer_confirmed_at, " +
+        "shipped_at, delivered_at, buyer_confirmed_at, disputed_at, dispute_resolved_at, " +
         "supplier_company_id, buyer_company_id, buyer_profile_id, quotation_id, created_at"
     )
     .eq("id", id)
@@ -131,6 +148,8 @@ export default async function OrderPage({
     shipped_at: string | null;
     delivered_at: string | null;
     buyer_confirmed_at: string | null;
+    disputed_at: string | null;
+    dispute_resolved_at: string | null;
     supplier_company_id: string;
     buyer_company_id: string | null;
     buyer_profile_id: string | null;
@@ -160,6 +179,7 @@ export default async function OrderPage({
   const pay = startCheckout.bind(null, order.id);
   const advance = advanceOrder.bind(null, order.id);
   const confirm = confirmDelivery.bind(null, order.id);
+  const dispute = raiseDispute.bind(null, order.id);
 
   /**
    * What the supplier may do next.
@@ -188,8 +208,23 @@ export default async function OrderPage({
 
   // The buyer confirms only once the supplier has said it arrived, and
   // only once. This is the button that releases the supplier's money.
+  const inDispute = order.status === "disputed" && !order.dispute_resolved_at;
+
   const awaitingConfirmation =
-    iAmBuyer && Boolean(order.delivered_at) && !order.buyer_confirmed_at;
+    iAmBuyer && Boolean(order.delivered_at) && !order.buyer_confirmed_at && !inDispute;
+
+  /**
+   * Who may raise a dispute, and when.
+   *
+   * Both sides, once money is in and before the order closes. A supplier
+   * needs this as much as a buyer does: the commonest way a supplier is
+   * left unpaid is not fraud, it is a buyer who received the goods and
+   * never pressed the button.
+   */
+  const canDispute =
+    (iAmBuyer || selling) &&
+    !inDispute &&
+    !["awaiting_payment", "completed", "cancelled"].includes(order.status);
 
   const when = (iso: string | null) =>
     iso
@@ -285,8 +320,38 @@ export default async function OrderPage({
         </div>
       )}
 
+      {/* An open dispute replaces everything else. Nothing moves while one
+          is running, and the page should say so rather than leaving
+          buttons about that will be refused. */}
+      {inDispute && (
+        <div className="rounded-xl border-2 border-gold bg-gold/5 p-7 shadow-sm">
+          <h2 className="text-lg">This order is in dispute</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+            {order.disputed_at ? `Raised on ${when(order.disputed_at)}. ` : ""}
+            AfriLynq is holding the money while we look at it, and nothing is paid out or
+            refunded until it is settled. We will be in touch with both sides.
+          </p>
+          <p className="mt-3 text-xs text-ink-soft">
+            Anything you can send that helps, photographs, weights, delivery notes, send to
+            info@afrilynq.co.uk with this order reference.
+          </p>
+        </div>
+      )}
+
+      {order.dispute_resolved_at && (
+        <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
+          <h2 className="text-lg">The dispute was settled</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+            Settled on {when(order.dispute_resolved_at)}.
+            {selling
+              ? ` Your share has been released, less the reduced service charge of ${SERVICE_CHARGE_DISPUTE_PERCENT} percent that applies when an order is disputed.`
+              : " Any refund due to you has been queued and will follow."}
+          </p>
+        </div>
+      )}
+
       {/* The supplier's ladder. Nothing is offered before the money is in. */}
-      {selling && steps.length > 0 && (
+      {selling && !inDispute && steps.length > 0 && (
         <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
           <h2 className="text-lg">Move this order along</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
@@ -365,6 +430,44 @@ export default async function OrderPage({
             </p>
           )}
         </div>
+      )}
+
+      {/* Deliberately quiet, and deliberately last. A dispute should be
+          available without being suggested: a prominent button inviting
+          one is an invitation to use it instead of a message. */}
+      {canDispute && (
+        <details className="rounded-xl border border-sand-deep bg-paper px-7 py-5 shadow-sm">
+          <summary className="cursor-pointer list-none text-sm font-medium text-ink-soft hover:text-ink">
+            Something has gone wrong with this order
+          </summary>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">
+            {selling
+              ? "If the buyer has received the goods and will not confirm it, raise this and we will look at it. Try messaging them first, since most of these are an oversight rather than a refusal."
+              : "If the goods have not arrived, or they are not what you ordered, raise this and AfriLynq will hold the money while we look at it. Try messaging the supplier first, since most problems are settled that way in a day."}
+          </p>
+          <form action={dispute} className="mt-4">
+            <label className="block">
+              <span className="text-sm font-medium text-ink">What went wrong</span>
+              <textarea
+                name="reason"
+                required
+                rows={3}
+                placeholder={
+                  selling
+                    ? "Delivered on the 14th, signed for, buyer has not responded to three messages"
+                    : "Two of the ten bags were short weight and three arrived damp"
+                }
+                className="mt-1.5 w-full rounded-lg border border-sand-deep px-3 py-2.5 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              className="mt-3 rounded-lg border border-sand-deep px-5 py-2.5 text-sm font-semibold text-ink hover:bg-sand"
+            >
+              Raise it with AfriLynq
+            </button>
+          </form>
+        </details>
       )}
 
       <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">

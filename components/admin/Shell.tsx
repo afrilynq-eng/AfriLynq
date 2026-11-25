@@ -37,6 +37,7 @@ const NAV = [
       { href: "/admin/payments", label: "Payments", icon: "card" },
       { href: "/admin/payouts", label: "Payouts", icon: "send" },
       { href: "/admin/refunds", label: "Refunds", icon: "undo" },
+      { href: "/admin/disputes", label: "Disputes", icon: "flag" },
     ],
   },
   {
@@ -132,6 +133,12 @@ function Icon({ name }: { name: string }) {
           <path d="M13.2 4.6a2.8 2.8 0 0 1 0 5.2M14.4 12.6c1.8.5 3 1.9 3 4" {...common} strokeLinecap="round" />
         </>
       )}
+      {name === "flag" && (
+        <>
+          <path d="M4.5 17.5V3.2" {...common} strokeLinecap="round" />
+          <path d="M4.5 4.2h10.2l-2.1 3.4 2.1 3.4H4.5z" {...common} strokeLinejoin="round" />
+        </>
+      )}
       {name === "card" && (
         <>
           <rect x="2" y="4.5" width="16" height="11" rx="1.8" {...common} />
@@ -175,7 +182,7 @@ export default async function AdminShell({
   // The two queues an administrator is actually on the hook for. A badge
   // means "this is waiting on you", so nothing else gets one.
   const svc = serviceClient();
-  const [{ count: waiting }, verifiedRes, activeRes, payoutsRes, { count: refundsOpen }] =
+  const [{ count: waiting }, verifiedRes, activeRes, payoutsRes, { count: refundsOpen }, { count: disputesOpen }] =
     await Promise.all([
       svc
         .from("companies")
@@ -188,6 +195,7 @@ export default async function AdminShell({
       // Everything else is waiting on goods moving, not on anybody here.
       svc.from("payouts").select("id, status, order_id").in("status", ["pending", "approved"]),
       svc.from("refunds").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      svc.from("disputes").select("id", { count: "exact", head: true }).eq("status", "open"),
     ]);
 
   // A listing goes public only once its company is verified, so an active
@@ -231,6 +239,7 @@ export default async function AdminShell({
     "/admin/products": held,
     "/admin/payouts": readyPayouts,
     "/admin/refunds": refundsOpen ?? 0,
+    "/admin/disputes": disputesOpen ?? 0,
   };
 
   const today = new Date().toLocaleDateString("en-GB", {

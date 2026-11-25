@@ -15,7 +15,7 @@ import {
 } from "@/components/admin/Money";
 import { formatMinor, ORDER_STATUS } from "@/lib/money";
 import { sumByCurrency, formatTotals, minorUnitsMap, shortDate } from "@/lib/admin-money";
-import { stepsFrom, deliveryConfirmed } from "@/lib/payout-flow";
+import { stepsFrom, deliveryConfirmed, disputeBlocks } from "@/lib/payout-flow";
 import { describeDestination, type PayoutDestination } from "@/lib/payout-destinations";
 import {
   approvePayout,
@@ -109,7 +109,7 @@ export default async function AdminPayoutsPage({
     orderIds.length
       ? svc
           .from("orders")
-          .select("id, reference, status, buyer_confirmed_at")
+          .select("id, reference, status, buyer_confirmed_at, dispute_resolved_at")
           .in("id", orderIds)
       : Promise.resolve({ data: [] }),
     // The destination, shown in full on the row. Every Zambian and
@@ -139,6 +139,7 @@ export default async function AdminPayoutsPage({
       reference: string;
       status: string;
       buyer_confirmed_at: string | null;
+      dispute_resolved_at: string | null;
     }[]).map((o) => [o.id, o] as const)
   );
 
@@ -174,7 +175,10 @@ export default async function AdminPayoutsPage({
   // A payout can only be approved once the buyer has confirmed delivery.
   // This counts the ones that have cleared that bar and are waiting on an
   // administrator, which is the only number on the page that is a to-do.
-  const readyNow = owed.filter((p) => deliveryConfirmed(orders.get(p.order_id))).length;
+  const readyNow = owed.filter((p) => {
+    const o = orders.get(p.order_id);
+    return deliveryConfirmed(o) && !disputeBlocks(o);
+  }).length;
 
   return (
     <AdminShell
@@ -279,7 +283,8 @@ export default async function AdminPayoutsPage({
                   // not be blocked by it a second time.
                   const cleared =
                     order?.status === "payout_approved" || order?.status === "completed";
-                  const mayRelease = delivered || cleared;
+                  const blocked = disputeBlocks(order);
+                  const mayRelease = (delivered || cleared) && !blocked;
                   const destination = destinations.get(
                     `${p.supplier_company_id}:${p.currency}`
                   );
@@ -355,9 +360,14 @@ export default async function AdminPayoutsPage({
                             not confirmed delivery.
                           </span>
                         )}
-                        {p.status === "pending" && delivered && (
+                        {p.status === "pending" && delivered && !blocked && (
                           <span className="mt-1.5 block text-xs text-[#4CC98D]">
                             Buyer confirmed delivery. Ready to approve.
+                          </span>
+                        )}
+                        {blocked && (
+                          <span className="mt-1.5 block text-xs text-[#E58B85]">
+                            In dispute. Settle it first.
                           </span>
                         )}
                         {p.failed_reason && (
