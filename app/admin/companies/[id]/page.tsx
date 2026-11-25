@@ -5,6 +5,13 @@ import { serviceClient } from "@/lib/supabase";
 import { COUNTRIES } from "@/lib/countries";
 import AdminShell, { Panel } from "@/components/admin/Shell";
 import VerificationDecision from "@/components/admin/VerificationDecision";
+import {
+  METHOD_LABEL,
+  describeDestination,
+  whatIsMissing,
+  type PayoutDestination,
+  type PayoutMethod,
+} from "@/lib/payout-destinations";
 
 export const dynamic = "force-dynamic";
 
@@ -179,24 +186,28 @@ export default async function AdminCompanyPage({
     (company.trading_name as string | null) || String(company.legal_name);
 
   /**
-   * Where this supplier stands with Stripe, in one line.
+   * Where this supplier stands on getting paid, in one line.
    *
-   * Read off the raw row rather than the flattened company map, because
-   * currently_due comes back as an array and that map is typed for scalars.
+   * This used to read stripe_account_id and stripe_requirements_due off
+   * the company row. stage4-03 renamed both columns, so the cast had been
+   * silently producing undefined and this line had been saying "Not
+   * started" for every supplier on the platform whatever the truth was.
+   * It now reads the destination the supplier actually saved.
    */
-  const payout = companyRow as {
-    stripe_account_id: string | null;
-    payouts_enabled: boolean | null;
-    stripe_requirements_due: string[] | null;
-  };
-  const payoutDue = payout.stripe_requirements_due ?? [];
-  const payoutLine = !payout.stripe_account_id
-    ? "Not started"
-    : payout.payouts_enabled
-      ? "Ready"
-      : payoutDue.length > 0
-        ? `Setup unfinished, Stripe wants: ${payoutDue.join(", ")}`
-        : "Setup unfinished";
+  const { data: destinationRows } = await svc
+    .from("payout_accounts")
+    .select("*")
+    .eq("company_id", id)
+    .order("is_default", { ascending: false });
+
+  const destinations = (destinationRows ?? []) as unknown as PayoutDestination[];
+  const primary = destinations[0];
+
+  const payoutLine = !primary
+    ? "No account given"
+    : whatIsMissing(primary).filter((g) => !g.includes("AfriLynq fills in")).length > 0
+      ? "Incomplete"
+      : `Ready, paid in ${primary.currency}`;
 
   const expiringSoon = docs.filter((d) => {
     const n = daysUntil(d.expires_on);
@@ -404,10 +415,20 @@ export default async function AdminCompanyPage({
               <Row label="Created" value={fmt(String(company.created_at))} />
               <Row label="Decided" value={fmt(company.verified_at as string | null)} />
               {/* The first question when a supplier asks where their money
-                  is. Without it the answer needs the Stripe dashboard open
-                  in another tab and a guess about which account is theirs. */}
+                  is. The full account number is shown deliberately: for
+                  Zambia and Togo every payout is sent by hand, and an
+                  administrator who has to go hunting for the number will
+                  end up asking the supplier for it over email instead. */}
               <Row label="Payouts" value={payoutLine} />
-              <Row label="Stripe account" value={payout.stripe_account_id} />
+              {primary && (
+                <>
+                  <Row
+                    label={METHOD_LABEL[primary.method as PayoutMethod] ?? "Destination"}
+                    value={describeDestination(primary, true)}
+                  />
+                  <Row label="Account name" value={primary.account_name} />
+                </>
+              )}
             </dl>
 
             {company.verification_notes && (

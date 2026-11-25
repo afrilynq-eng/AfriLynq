@@ -16,6 +16,7 @@ import {
 import { formatMinor, ORDER_STATUS } from "@/lib/money";
 import { sumByCurrency, formatTotals, minorUnitsMap, shortDate } from "@/lib/admin-money";
 import { stepsFrom, deliveryConfirmed } from "@/lib/payout-flow";
+import { describeDestination, type PayoutDestination } from "@/lib/payout-destinations";
 import {
   approvePayout,
   markPayoutSent,
@@ -98,7 +99,7 @@ export default async function AdminPayoutsPage({
   const companyIds = [...new Set(payouts.map((p) => p.supplier_company_id))];
   const orderIds = [...new Set(payouts.map((p) => p.order_id))];
 
-  const [companiesRes, ordersRes] = await Promise.all([
+  const [companiesRes, ordersRes, destinationsRes] = await Promise.all([
     companyIds.length
       ? svc
           .from("companies")
@@ -110,6 +111,17 @@ export default async function AdminPayoutsPage({
           .from("orders")
           .select("id, reference, status, buyer_confirmed_at")
           .in("id", orderIds)
+      : Promise.resolve({ data: [] }),
+    // The destination, shown in full on the row. Every Zambian and
+    // Togolese payout is sent by hand, and an administrator who has to
+    // open another page for the account number will end up emailing the
+    // supplier to ask for it instead.
+    companyIds.length
+      ? svc
+          .from("payout_accounts")
+          .select("*")
+          .in("company_id", companyIds)
+          .order("is_default", { ascending: false })
       : Promise.resolve({ data: [] }),
   ]);
 
@@ -129,6 +141,19 @@ export default async function AdminPayoutsPage({
       buyer_confirmed_at: string | null;
     }[]).map((o) => [o.id, o] as const)
   );
+
+  /**
+   * One destination per company per currency, keyed on both.
+   *
+   * A supplier may hold a naira account and a sterling one; a payout in
+   * euros when they have given us neither should say so plainly rather
+   * than quietly offering up whichever account happened to be first.
+   */
+  const destinations = new Map<string, PayoutDestination>();
+  for (const d of (destinationsRes.data ?? []) as unknown as PayoutDestination[]) {
+    const key = `${d.company_id}:${d.currency}`;
+    if (!destinations.has(key)) destinations.set(key, d);
+  }
 
   const by = (s: string) => payouts.filter((p) => p.status === s);
 
@@ -255,6 +280,9 @@ export default async function AdminPayoutsPage({
                   const cleared =
                     order?.status === "payout_approved" || order?.status === "completed";
                   const mayRelease = delivered || cleared;
+                  const destination = destinations.get(
+                    `${p.supplier_company_id}:${p.currency}`
+                  );
                   const orderState = order
                     ? (ORDER_STATUS[order.status]?.label ?? order.status)
                     : null;
@@ -278,6 +306,15 @@ export default async function AdminPayoutsPage({
                         {company?.country_code && (
                           <span className="mt-0.5 block text-xs text-white/35">
                             {company.country_code}
+                          </span>
+                        )}
+                        {destination ? (
+                          <span className="tabular mt-1 block text-xs text-white/55">
+                            {describeDestination(destination, true)}
+                          </span>
+                        ) : (
+                          <span className="mt-1 block text-xs text-[#E58B85]">
+                            No account given for {p.currency}
                           </span>
                         )}
                       </Td>
