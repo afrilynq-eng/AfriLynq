@@ -4,3 +4,7 @@ node_modules/
 .DS_Store
 *.log
 supabase/.temp/
+
+# TypeScript incremental build cache. Machine specific, regenerated on
+# every build, and merge conflicts on it are pure noise.
+tsconfig.tsbuildinfo
