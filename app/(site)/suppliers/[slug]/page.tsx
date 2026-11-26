@@ -299,21 +299,18 @@ export default async function SupplierPage({
               </>
             )}
 
-            {company.websiteUrl && (
-              <p className="mt-5 border-t border-sand pt-4 text-sm break-all">
-                <span className="block text-[0.68rem] font-semibold tracking-widest text-stone uppercase">
-                  Website
-                </span>
-                <a
-                  href={company.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="link-quiet mt-1 inline-block text-forest"
-                >
-                  {company.websiteUrl.replace(/^https?:\/\//, "")}
-                </a>
-              </p>
-            )}
+            {/* The supplier's own website is deliberately not shown here.
+                It was the one remaining way around the platform: a buyer
+                reads the profile, finds the site, emails them directly,
+                and the enquiry, the quotation, the record of what was
+                agreed and the service charge all go with them. Showing it
+                undid stage3-03, which took the contact details off this
+                page for exactly that reason.
+
+                It is still collected on the company profile and still
+                visible to administrators during verification, where it is
+                genuinely useful: a supplier with a real trading website is
+                easier to believe. */}
 
             <p className="mt-5 border-t border-sand pt-4 text-xs leading-relaxed text-stone">
               Email and phone numbers are exchanged once an order is
