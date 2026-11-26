@@ -109,7 +109,7 @@ export default async function AdminPayoutsPage({
     orderIds.length
       ? svc
           .from("orders")
-          .select("id, reference, status, buyer_confirmed_at, dispute_resolved_at")
+          .select("id, reference, status, buyer_confirmed_at, dispute_resolved_at, auto_released_at")
           .in("id", orderIds)
       : Promise.resolve({ data: [] }),
     // The destination, shown in full on the row. Every Zambian and
@@ -140,6 +140,7 @@ export default async function AdminPayoutsPage({
       status: string;
       buyer_confirmed_at: string | null;
       dispute_resolved_at: string | null;
+      auto_released_at: string | null;
     }[]).map((o) => [o.id, o] as const)
   );
 
@@ -362,7 +363,14 @@ export default async function AdminPayoutsPage({
                         )}
                         {p.status === "pending" && delivered && !blocked && (
                           <span className="mt-1.5 block text-xs text-[#4CC98D]">
-                            Buyer confirmed delivery. Ready to approve.
+                            {order?.buyer_confirmed_at
+                              ? "Buyer confirmed delivery. Ready to approve."
+                              : "Released automatically after seven days. Ready to approve."}
+                          </span>
+                        )}
+                        {order?.auto_released_at && p.status === "approved" && (
+                          <span className="mt-1.5 block text-xs text-white/40">
+                            Released on a timer, not by a person. The buyer never confirmed.
                           </span>
                         )}
                         {blocked && (

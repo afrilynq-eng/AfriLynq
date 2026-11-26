@@ -90,7 +90,11 @@ export const ORDER_MOVES_FROM: Record<string, readonly string[]> = {
  */
 export function deliveryConfirmed(
   order:
-    | { buyer_confirmed_at?: string | null; dispute_resolved_at?: string | null }
+    | {
+        buyer_confirmed_at?: string | null;
+        dispute_resolved_at?: string | null;
+        auto_released_at?: string | null;
+      }
     | null
     | undefined
 ): boolean {
@@ -102,7 +106,13 @@ export function deliveryConfirmed(
   // and already reduced to 3.5 percent, stranded for ever. The decision
   // was made by an administrator with the amounts in front of them, which
   // is a stronger authority than the button it replaces.
-  return Boolean(order?.buyer_confirmed_at || order?.dispute_resolved_at);
+  // The third way in: the buyer was given seven days after delivery and
+  // said nothing. Their silence is not a confirmation and is never
+  // recorded as one, but it cannot be allowed to hold a supplier's money
+  // indefinitely either.
+  return Boolean(
+    order?.buyer_confirmed_at || order?.dispute_resolved_at || order?.auto_released_at
+  );
 }
 
 /**

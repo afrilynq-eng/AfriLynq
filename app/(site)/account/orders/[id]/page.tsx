@@ -119,6 +119,7 @@ export default async function OrderPage({
       "id, reference, status, currency, total_minor, commission_rate, commission_minor, " +
         "incoterm, delivery_address, expected_delivery_date, carrier_name, tracking_reference, " +
         "shipped_at, delivered_at, buyer_confirmed_at, disputed_at, dispute_resolved_at, " +
+        "auto_released_at, " +
         "supplier_company_id, buyer_company_id, buyer_profile_id, quotation_id, created_at"
     )
     .eq("id", id)
@@ -150,6 +151,7 @@ export default async function OrderPage({
     buyer_confirmed_at: string | null;
     disputed_at: string | null;
     dispute_resolved_at: string | null;
+    auto_released_at: string | null;
     supplier_company_id: string;
     buyer_company_id: string | null;
     buyer_profile_id: string | null;
@@ -209,6 +211,28 @@ export default async function OrderPage({
   // The buyer confirms only once the supplier has said it arrived, and
   // only once. This is the button that releases the supplier's money.
   const inDispute = order.status === "disputed" && !order.dispute_resolved_at;
+
+  /**
+   * How long the buyer has left before it releases on its own.
+   *
+   * Said out loud on the page rather than left as a surprise. A buyer who
+   * is told the clock is running usually presses the button, which is the
+   * outcome everyone wants; one who is not told finds out when the money
+   * has already gone.
+   */
+  const CONFIRMATION_WINDOW_DAYS = 7;
+  const daysToRelease =
+    order.delivered_at && !order.buyer_confirmed_at && !order.auto_released_at
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(order.delivered_at).getTime() +
+              CONFIRMATION_WINDOW_DAYS * 86_400_000 -
+              Date.now()) /
+              86_400_000
+          )
+        )
+      : null;
 
   const awaitingConfirmation =
     iAmBuyer && Boolean(order.delivered_at) && !order.buyer_confirmed_at && !inDispute;
@@ -304,6 +328,16 @@ export default async function OrderPage({
             {supplierName} marked this delivered
             {order.delivered_at ? ` on ${when(order.delivered_at)}` : ""}. Confirming releases
             their payment. Only do it once you have the goods and they are what you ordered.
+            {daysToRelease !== null && (
+              <>
+                {" "}
+                <strong className="font-semibold text-ink">
+                  {daysToRelease > 0
+                    ? `If we do not hear from you, this releases automatically in ${daysToRelease} ${daysToRelease === 1 ? "day" : "days"}.`
+                    : "This releases automatically today if we do not hear from you."}
+                </strong>
+              </>
+            )}
           </p>
           <form action={confirm} className="mt-5">
             <button
@@ -334,6 +368,17 @@ export default async function OrderPage({
           <p className="mt-3 text-xs text-ink-soft">
             Anything you can send that helps, photographs, weights, delivery notes, send to
             info@afrilynq.co.uk with this order reference.
+          </p>
+        </div>
+      )}
+
+      {order.auto_released_at && (
+        <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
+          <h2 className="text-lg">This order closed on its own</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+            {selling
+              ? `The buyer did not confirm within seven days of delivery, so your payment was released automatically on ${when(order.auto_released_at)}.`
+              : `We did not hear from you within seven days of delivery, so the supplier was paid on ${when(order.auto_released_at)}. If something is wrong with this order, email info@afrilynq.co.uk with the reference.`}
           </p>
         </div>
       )}
