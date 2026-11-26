@@ -41,6 +41,15 @@ const NAV = [
     ],
   },
   {
+    // Logistics. Separate from Money because the questions are different:
+    // money asks who is owed what, this asks where the goods are.
+    heading: "Logistics",
+    items: [
+      { href: "/admin/shipments", label: "Shipments", icon: "truck" },
+      { href: "/admin/carriers", label: "Carriers", icon: "route" },
+    ],
+  },
+  {
     heading: "Registrations",
     items: [
       { href: "/admin/leads", label: "All leads", icon: "list" },
@@ -133,6 +142,21 @@ function Icon({ name }: { name: string }) {
           <path d="M13.2 4.6a2.8 2.8 0 0 1 0 5.2M14.4 12.6c1.8.5 3 1.9 3 4" {...common} strokeLinecap="round" />
         </>
       )}
+      {name === "truck" && (
+        <>
+          <path d="M2.4 13.6V5.4a.8.8 0 0 1 .8-.8h7.6v9H2.4Z" {...common} strokeLinejoin="round" />
+          <path d="M10.8 7.8h3.3l2.5 2.6v3.2h-5.8z" {...common} strokeLinejoin="round" />
+          <circle cx="6" cy="15" r="1.6" {...common} />
+          <circle cx="14" cy="15" r="1.6" {...common} />
+        </>
+      )}
+      {name === "route" && (
+        <>
+          <circle cx="5" cy="5" r="2.1" {...common} />
+          <circle cx="15" cy="15" r="2.1" {...common} />
+          <path d="M7.1 5h4.3a2.6 2.6 0 0 1 0 5.2H8.6a2.6 2.6 0 0 0 0 5.2h4.3" {...common} strokeLinecap="round" />
+        </>
+      )}
       {name === "flag" && (
         <>
           <path d="M4.5 17.5V3.2" {...common} strokeLinecap="round" />
@@ -182,7 +206,7 @@ export default async function AdminShell({
   // The two queues an administrator is actually on the hook for. A badge
   // means "this is waiting on you", so nothing else gets one.
   const svc = serviceClient();
-  const [{ count: waiting }, verifiedRes, activeRes, payoutsRes, { count: refundsOpen }, { count: disputesOpen }] =
+  const [{ count: waiting }, verifiedRes, activeRes, payoutsRes, { count: refundsOpen }, { count: disputesOpen }, { count: shipmentProblems }] =
     await Promise.all([
       svc
         .from("companies")
@@ -196,6 +220,9 @@ export default async function AdminShell({
       svc.from("payouts").select("id, status, order_id").in("status", ["pending", "approved"]),
       svc.from("refunds").select("id", { count: "exact", head: true }).eq("status", "pending"),
       svc.from("disputes").select("id", { count: "exact", head: true }).eq("status", "open"),
+      // Shipments that have hit a problem, which is the only logistics
+      // state that genuinely needs somebody now.
+      svc.from("shipments").select("id", { count: "exact", head: true }).eq("status", "exception"),
     ]);
 
   // A listing goes public only once its company is verified, so an active
@@ -240,6 +267,7 @@ export default async function AdminShell({
     "/admin/payouts": readyPayouts,
     "/admin/refunds": refundsOpen ?? 0,
     "/admin/disputes": disputesOpen ?? 0,
+    "/admin/shipments": shipmentProblems ?? 0,
   };
 
   const today = new Date().toLocaleDateString("en-GB", {

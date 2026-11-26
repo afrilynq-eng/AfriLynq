@@ -6,6 +6,7 @@ import { formatMinor, ORDER_STATUS } from "@/lib/money";
 import { SERVICE_CHARGE_NAME } from "@/lib/fees";
 import { startCheckout, advanceOrder, confirmDelivery, raiseDispute } from "../actions";
 import { SERVICE_CHARGE_DISPUTE_PERCENT } from "@/lib/fees";
+import { SHIPMENT_STATUS, SHIPMENT_PATH, formatWeight, type ShipmentStatus } from "@/lib/shipments";
 
 export const dynamic = "force-dynamic";
 
@@ -168,6 +169,67 @@ export default async function OrderPage({
     .maybeSingle();
   const supplier = supplierRow as { legal_name: string; trading_name: string | null } | null;
   const supplierName = supplier?.trading_name || supplier?.legal_name || "The supplier";
+
+  /**
+   * The shipment, if one has been booked.
+   *
+   * Read through the user's own session so the policy decides. A buyer
+   * and a supplier both see the same row; neither sees anybody else's.
+   */
+  const { data: shipmentRow } = await supabase
+    .from("shipments")
+    .select(
+      "id, reference, status, carrier_id, tracking_reference, service, " +
+        "pieces, gross_weight_kg, origin_country_code, destination_country_code, " +
+        "expected_delivery, collected_at, delivered_at, booked_at"
+    )
+    .eq("order_id", order.id)
+    .order("booked_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const shipment = shipmentRow as unknown as {
+    id: string;
+    reference: string;
+    status: string;
+    carrier_id: string | null;
+    tracking_reference: string | null;
+    service: string | null;
+    pieces: number | null;
+    gross_weight_kg: number | null;
+    origin_country_code: string | null;
+    destination_country_code: string | null;
+    expected_delivery: string | null;
+    collected_at: string | null;
+    delivered_at: string | null;
+    booked_at: string;
+  } | null;
+
+  const [{ data: carrierRow }, { data: eventRows }] = await Promise.all([
+    shipment?.carrier_id
+      ? supabase
+          .from("carriers_public")
+          .select("name, website")
+          .eq("id", shipment.carrier_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    shipment
+      ? supabase
+          .from("shipment_events")
+          .select("status, description, location, occurred_at")
+          .eq("shipment_id", shipment.id)
+          .order("occurred_at", { ascending: false })
+          .limit(12)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const carrier = carrierRow as { name: string; website: string | null } | null;
+  const shipmentEvents = (eventRows ?? []) as {
+    status: string;
+    description: string | null;
+    location: string | null;
+    occurred_at: string;
+  }[];
 
   const selling = mine.has(order.supplier_company_id);
   const iAmBuyer = order.buyer_profile_id
@@ -442,6 +504,101 @@ export default async function OrderPage({
               </form>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Tracking. Only once there is a shipment, and worded for whoever
+          is reading: a buyer wants to know when it arrives, a supplier
+          wants to know it was collected. */}
+      {shipment && (
+        <div className="rounded-xl border border-sand-deep bg-paper p-7 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg">Tracking</h2>
+              <p className="mt-1 text-sm text-ink-soft">
+                {carrier?.name ?? "A carrier"}
+                {shipment.tracking_reference ? ` · ${shipment.tracking_reference}` : ""}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-sand px-3 py-1 text-xs font-semibold text-ink">
+              {SHIPMENT_STATUS[shipment.status as ShipmentStatus]?.buyer ?? shipment.status}
+            </span>
+          </div>
+
+          {/* The run, as a bar. Nothing to read, just where it has got to. */}
+          {(SHIPMENT_STATUS[shipment.status as ShipmentStatus]?.step ?? 0) > 0 && (
+            <ol className="mt-4 flex gap-1" aria-label="Progress">
+              {SHIPMENT_PATH.map((st) => (
+                <li
+                  key={st}
+                  title={SHIPMENT_STATUS[st].label}
+                  className={`h-1.5 flex-1 rounded-full ${
+                    SHIPMENT_STATUS[st].step <=
+                    (SHIPMENT_STATUS[shipment.status as ShipmentStatus]?.step ?? 0)
+                      ? "bg-forest"
+                      : "bg-sand-deep"
+                  }`}
+                />
+              ))}
+            </ol>
+          )}
+
+          <dl className="mt-5 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+            {shipment.expected_delivery && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-soft">Expected</dt>
+                <dd>{when(shipment.expected_delivery)}</dd>
+              </div>
+            )}
+            {shipment.gross_weight_kg && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-soft">Weight</dt>
+                <dd>{formatWeight(shipment.gross_weight_kg)}</dd>
+              </div>
+            )}
+            {shipment.pieces && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-soft">Pieces</dt>
+                <dd>{shipment.pieces}</dd>
+              </div>
+            )}
+            {shipment.origin_country_code && shipment.destination_country_code && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-soft">Route</dt>
+                <dd>
+                  {shipment.origin_country_code} to {shipment.destination_country_code}
+                </dd>
+              </div>
+            )}
+          </dl>
+
+          {shipmentEvents.length > 0 && (
+            <ol className="mt-5 space-y-3 border-t border-sand pt-4">
+              {shipmentEvents.map((e, i) => (
+                <li key={i} className="flex items-baseline justify-between gap-4 text-sm">
+                  <span className="text-ink">
+                    {SHIPMENT_STATUS[e.status as ShipmentStatus]?.buyer ?? e.status}
+                    {e.location && <span className="text-ink-soft"> · {e.location}</span>}
+                    {e.description && (
+                      <span className="mt-0.5 block text-xs text-ink-soft">{e.description}</span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs text-ink-soft">{when(e.occurred_at)}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          {carrier?.website && (
+            <a
+              href={carrier.website}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-4 inline-block text-sm font-semibold text-forest hover:underline"
+            >
+              Track it on {carrier.name}
+            </a>
+          )}
         </div>
       )}
 
