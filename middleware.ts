@@ -45,5 +45,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*", "/dashboard/:path*"],
+  // /carrier belongs here for the same reason as the rest. A haulier may
+  // have the portal open for hours while a load is being worked, and
+  // without the refresh their token expires and they are bounced to the
+  // sign-in page mid job.
+  matcher: [
+    "/admin/:path*",
+    "/account/:path*",
+    "/dashboard/:path*",
+    "/carrier/:path*",
+  ],
 };

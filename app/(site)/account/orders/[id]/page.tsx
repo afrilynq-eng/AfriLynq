@@ -215,7 +215,11 @@ export default async function OrderPage({
       : Promise.resolve({ data: null }),
     shipment
       ? supabase
-          .from("shipment_events")
+          // The public view, not the table. A carrier's "delivered" and any
+          // problem they report sit pending until somebody here approves
+          // them, and reading the table directly would show the buyer an
+          // update we have not accepted yet.
+          .from("shipment_events_public")
           .select("status, description, location, occurred_at")
           .eq("shipment_id", shipment.id)
           .order("occurred_at", { ascending: false })
