@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/supabase-server";
 import { serviceClient } from "@/lib/supabase";
@@ -94,7 +95,17 @@ export default async function AdminCarriersPage({
         <p className={`mb-6 rounded-xl border px-4 py-3 text-sm ${notice.tone}`}>{notice.text}</p>
       )}
 
-      <Panel title="Who you work with">
+      <Panel
+        title="Who you work with"
+        action={
+          <Link
+            href="/admin/carriers/logins"
+            className="text-[12px] font-bold text-gold hover:underline"
+          >
+            Carrier logins
+          </Link>
+        }
+      >
         {carriers.length === 0 ? (
           <Empty>
             No carriers yet. Add one below and you can start booking shipments against paid
